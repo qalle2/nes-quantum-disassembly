@@ -11,10 +11,10 @@ Notes:
 * Rename the file to `quantum-original.nes` (`assemble.bat` expects to find it).
 * Extract the original PRG ROM data to `prg-original.bin` (`assemble.bat` expects to find it):
   * Either use my [ines-split](http://github.com/qalle2/ines-split)&hellip;
-  * &hellip; or, using a hex editor, copy 32,768 (0x8000) bytes starting from offset 16 (0x10) to a new file.
+  * &hellip; or, using a hex editor, copy 32,768 (`0x8000`) bytes starting from offset 16 (`0x10`) to a new file.
 * Extract the original CHR ROM data to `chr.bin` (`assemble.bat` expects to find it):
   * Either use my [ines-split](http://github.com/qalle2/ines-split)&hellip;
-  * &hellip; or, using a hex editor, copy 32,768 (0x8000) bytes starting from offset 32,784 (0x8010) to a new file.
+  * &hellip; or, using a hex editor, copy 32,768 (`0x8000`) bytes starting from offset 32,784 (`0x8010`) to a new file.
 * Install the [Ophis](http://michaelcmartin.github.io/Ophis/) assembler.
 * Assemble:
   * Either run `assemble.bat` (only works on Windows; also compares the assembled files to the originals)&hellip;
@@ -32,11 +32,11 @@ Notes:
 * no save RAM
 
 ## FCEUX Code/Data Log - PRG ROM
-I used my cdl-summary (see *Software used*) with the following arguments:
+I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:
 
 `python cdlsummary.py --prg-rom-banks=2 --part=p --ignore-bank quantum.cdl`
 
-No data was accessed as PCM audio.
+No bytes were accessed as PCM audio or indirect code.
 
 Start address (hexadecimal), end address (hexadecimal), length (decimal), description:
 ```
@@ -418,11 +418,11 @@ fffe-ffff (   2): unaccessed (note: IRQ vector)
 ```
 
 ## FCEUX Code/Data Log - CHR ROM
-I used my cdl-summary (see *Software used*) with the following arguments:
+I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:
 
 `python cdlsummary.py --prg-rom-banks=2 --part=c quantum.cdl`
 
-No CHR ROM data was read programmatically via $2007.
+No bytes were read programmatically via `$2007`.
 
 Whether each tile in each half-bank was rendered or not:
 ```

@@ -550,6 +550,7 @@ ef-ff: yes
 
 ## References
 * [NESDev Wiki &ndash; CNROM](http://wiki.nesdev.com/w/index.php/CNROM)
+* [a 6502 instruction reference](http://www.obelisk.me.uk/6502/reference.html)
 
 ## Software used
 * FCEUX (Code/Data Logger etc.)

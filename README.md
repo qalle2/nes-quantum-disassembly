@@ -1,11 +1,11 @@
 # nes-quantum-disassembly
 
-A disassembly of the NES demo *Quantum Disco Brothers* by wAMMA. At an early stage.
+A disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA. At an early stage.
 
-The original file:
+The original file (not included):
 * name: `Quantum Disco Brothers by wAMMA (PD) (PAL).nes`
 * size: 65,552 bytes
-* MD5 hash: 2c932e9e8ae7859517905e2539565a89
+* MD5 hash: `2c932e9e8ae7859517905e2539565a89`
 * mapper: CNROM (iNES mapper number 3)
 * PRG ROM: 32 KiB (1 &times; 32 KiB)
 * CHR ROM: 32 KiB (4 &times; 8 KiB)
@@ -14,13 +14,12 @@ The original file:
 * no save RAM
 
 ## FCEUX Code/Data Log - PRG ROM
+I used my `cdl-summary` (see *Software used*) with the following arguments:
+`python cdlsummary.py --prg-rom-banks=2 --part=p --ignore-bank quantum.cdl`
 
 No data was accessed as PCM audio.
 
-`python cdlsummary.py --prg-rom-banks=2 --part=p --ignore-bank quantum.cdl`
-
 Start address (hexadecimal), end address (hexadecimal), length (decimal), description:
-
 ```
 8000-8033 (  52): unaccessed
 8034-8156 ( 291): code
@@ -400,13 +399,12 @@ fffe-ffff (   2): unaccessed (note: IRQ vector)
 ```
 
 ## FCEUX Code/Data Log - CHR ROM
+I used my `cdl-summary` (see *Software used*) with the following arguments:
+`python cdlsummary.py --prg-rom-banks=2 --part=c quantum.cdl`
 
 No CHR ROM data was read programmatically via $2007.
 
-`python cdlsummary.py --prg-rom-banks=2 --part=c quantum.cdl`
-
 Whether each tile in each half-bank was rendered or not:
-
 ```
 ; bank 0 - first half
 00-00: yes

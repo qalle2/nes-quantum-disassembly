@@ -15,6 +15,7 @@ The original file (not included):
 
 ## FCEUX Code/Data Log - PRG ROM
 I used my `cdl-summary` (see *Software used*) with the following arguments:
+
 `python cdlsummary.py --prg-rom-banks=2 --part=p --ignore-bank quantum.cdl`
 
 No data was accessed as PCM audio.
@@ -400,6 +401,7 @@ fffe-ffff (   2): unaccessed (note: IRQ vector)
 
 ## FCEUX Code/Data Log - CHR ROM
 I used my `cdl-summary` (see *Software used*) with the following arguments:
+
 `python cdlsummary.py --prg-rom-banks=2 --part=c quantum.cdl`
 
 No CHR ROM data was read programmatically via $2007.

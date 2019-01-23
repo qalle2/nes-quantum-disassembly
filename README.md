@@ -5,6 +5,7 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 Notes:
 * This disassembly is at an early stage.
 * I have not been involved with wAMMA or in the making of this demo.
+* This project had an incorrect license for a short time by mistake.
 
 ## How to assemble
 * Download the original *Quantum Disco Brothers* from somewhere (see *The original file* below; it should be easy to find).

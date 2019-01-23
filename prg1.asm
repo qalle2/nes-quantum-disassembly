@@ -124,7 +124,7 @@ sub16:
     ldx #0
 
 sub16_loop:
-    lda $c254,x
+    lda table12,x
     sta $07c0,x
     inx
     cpx #32
@@ -233,7 +233,7 @@ sub20_loop:
     tax
     lda $01
     and #%00001111
-    ora $d531,x
+    ora table18,x
     sta $07c0,y
     iny
     cpy #$20
@@ -437,7 +437,7 @@ sub25:
     stx $9b
 
 sub25_loop:
-    lda $c138,y
+    lda table10,y
     cmp #$ff
     bne +
 
@@ -454,7 +454,7 @@ sub25_loop:
     sta $016a,y
     lda #$01
     sta $0180,y
-    lda $c138,y
+    lda table10,y
     sta $0501,x
     lda #$00
     sta $0502,x
@@ -493,7 +493,7 @@ sub26_loop1:
     clc
     sbc #$40
     tay
-    ldx $d505,y
+    ldx table17,y
     stx reg5
     inx
     stx reg5
@@ -511,7 +511,7 @@ sub26_loop2:
     clc
     sbc #$40
     tay
-    ldx $d505,y
+    ldx table17,y
     txa
     `add_imm 16
     tax
@@ -535,7 +535,7 @@ sub27:
     lda #$00
     sta $9a
 
-    ldx $dc10
+    ldx data8
 sub27_loop:
     txa
     asl
@@ -543,7 +543,7 @@ sub27_loop:
     tay
     lda $05b4,y
     clc
-    sbc $dc31,x
+    sbc table46,x
     sta $05b4,y
     dex
     cpx #$ff
@@ -555,21 +555,21 @@ sub27_loop:
 
 sub28:
 
-    ldx $dc10
+    ldx data8
 sub28_loop:
     txa
     asl
     asl
     tay
-    lda $dc21,x
+    lda table45,x
     sta $05b4,y
     lda $dc41,x
     sta $05b5,y
     lda #$03
     sta $05b6,y
-    lda $dc11,x
+    lda table44,x
     sta $05b7,y
-    lda $dc31,x
+    lda table46,x
     sta $011e,x
     dex
     cpx #$ff
@@ -610,7 +610,7 @@ sub29_1:
     lda #$00
     sta reg3
     ldx $96
-    lda $d53d,x
+    lda table19,x
     `add_mem $96
     sta reg3
     lda $96
@@ -638,10 +638,10 @@ sub29_jump_table:  ; dff8
     jmp sub29_10
 
 sub29_2:
-    ; word($c0a8) -> ptr1
-    lda $c0a8
+    ; pointer 0 -> ptr1
+    lda pointers+0*2+0
     sta ptr1+0
-    lda $c0a9
+    lda pointers+0*2+1
     sta ptr1+1
 
     ldx #$20
@@ -666,10 +666,10 @@ sub29_3:
     jmp sub29_11
 
 sub29_4:
-    ; word($c0aa) -> ptr1
-    lda $c0aa
+    ; pointer 1 -> ptr1
+    lda pointers+1*2+0
     sta ptr1+0
-    lda $c0ab
+    lda pointers+1*2+1
     sta ptr1+1
 
     ldx #$20
@@ -678,10 +678,10 @@ sub29_4:
     jmp sub29_11
 
 sub29_5:
-    ; word($c0ac) -> ptr1
-    lda $c0ac
+    ; pointer 2 -> ptr1
+    lda pointers+2*2+0
     sta ptr1+0
-    lda $c0ad
+    lda pointers+2*2+1
     sta ptr1+1
 
     ldx #$21
@@ -690,10 +690,10 @@ sub29_5:
     jmp sub29_11
 
 sub29_6:
-    ; word($c0ae) -> ptr1
-    lda $c0ae
+    ; pointer 3 -> ptr1
+    lda pointers+3*2+0
     sta ptr1+0
-    lda $c0af
+    lda pointers+3*2+1
     sta ptr1+1
 
     ldx #$21
@@ -702,10 +702,10 @@ sub29_6:
     jmp sub29_11
 
 sub29_7:
-    ; word($c0b0) -> ptr1
-    lda $c0b0
+    ; pointer 4 -> ptr1
+    lda pointers+4*2+0
     sta ptr1+0
-    lda $c0b1
+    lda pointers+4*2+1
     sta ptr1+1
 
     ldx #$22
@@ -714,10 +714,10 @@ sub29_7:
     jmp sub29_11
 
 sub29_8:
-    ; word($c0b2) -> ptr1
-    lda $c0b2
+    ; pointer 5 -> ptr1
+    lda pointers+5*2+0
     sta ptr1+0
-    lda $c0b3
+    lda pointers+5*2+1
     sta ptr1+1
 
     ldx #$22
@@ -726,10 +726,10 @@ sub29_8:
     jmp sub29_11
 
 sub29_9:
-    ; word($c0b4) -> ptr1
-    lda $c0b4
+    ; pointer 6 -> ptr1
+    lda pointers+6*2+0
     sta ptr1+0
-    lda $c0b5
+    lda pointers+6*2+1
     sta ptr1+1
 
     ldx #$23
@@ -753,52 +753,52 @@ sub29_11:
     bcc +
     jmp sub29_12
 *   ldx $93
-    lda $d53d,x
+    lda table19,x
     `add_imm $58
     sta $0500
-    lda $d63d,x
+    lda table20,x
     `add_imm $6e
     sta $0503
-    lda $d53d,x
+    lda table19,x
     `add_imm $58
     sta $0504
-    lda $d63d,x
+    lda table20,x
     `add_imm $76
     sta $0507
-    lda $d53d,x
+    lda table19,x
     `add_imm $60
     sta $0508
-    lda $d63d,x
+    lda table20,x
     `add_imm $6e
     sta $050b
-    lda $d53d,x
+    lda table19,x
     `add_imm $60
     sta $050c
-    lda $d63d,x
+    lda table20,x
     `add_imm $76
     sta $050f
-    lda $d63d,x
+    lda table20,x
     `add_imm $58
     sta $0510
-    lda $d53d,x
+    lda table19,x
     `add_imm $6e
     sta $0513
-    lda $d63d,x
+    lda table20,x
     `add_imm $58
     sta $0514
-    lda $d53d,x
+    lda table19,x
     `add_imm $76
     sta $0517
-    lda $d63d,x
+    lda table20,x
     `add_imm $60
     sta $0518
-    lda $d53d,x
+    lda table19,x
     `add_imm $6e
     sta $051b
-    lda $d63d,x
+    lda table20,x
     `add_imm $60
     sta $051c
-    lda $d53d,x
+    lda table19,x
     `add_imm $75
     sta $051f
     jmp sub29_13
@@ -936,7 +936,7 @@ sub31:  ; e25c
     lda #$00
     sta reg3
     ldx $014e
-    lda $d53d,x
+    lda table19,x
     `add_mem $014e
     sta reg3
     lda $014e
@@ -961,19 +961,19 @@ sub31:  ; e25c
     cmp #$96
     bne $e327
 
-    ldx $da85
+    ldx data1
     txa
     asl
     asl
     tay
-    lda $da86,x
+    lda table24,x
     `add_mem $012f
     sta $055c,y
-    lda $da9f,x
+    lda table25,x
     sta $055d,y
-    lda $dab8,x
+    lda table26,x
     sta $055e,y
-    lda $dad1,x
+    lda table27,x
     `add_mem $012e
     sta $055f,y
     cpx #$00
@@ -1036,7 +1036,7 @@ sub31:  ; e25c
     lda $0196,x
     sta $9c
     tax
-    lda $d53d,x
+    lda table19,x
     sta $9b
     pla
     tax
@@ -1112,12 +1112,12 @@ sub33:  ; e3cb
 
     inc $89
     ldx $8a
-    lda $d83d,x
+    lda table22,x
     `add_imm $96
     sta $8b
     dec $8a
     ldx $8a
-    lda $d63d,x
+    lda table20,x
     sta $8d
     lda #$84
     sta reg0
@@ -1147,14 +1147,14 @@ sub33:  ; e3cb
     sbc $8a
     adc $8b
     tax
-    lda $d83d,x
+    lda table22,x
     sbc $8d
     and #%00111111
     tax
-    lda $d93d,x
+    lda table23,x
     sta reg5
     ldx $8b
-    lda $d53d,x
+    lda table19,x
     tax
     dey
     bne $e3eb
@@ -1222,7 +1222,7 @@ sub35:  ; e471
     lda $89
     adc $8a
     tay
-    lda $d53d,y
+    lda table19,y
     sta $0600,x
     lda $89
     `add_mem $00
@@ -1272,7 +1272,7 @@ sub35:  ; e471
     lda $89
     adc $8a
     tay
-    lda $d53d,y
+    lda table19,y
     sta $0600,x
     lda $89
     `add_mem $00
@@ -1322,7 +1322,7 @@ sub35:  ; e471
     lda $89
     `add_mem $8b
     tax
-    lda $d53d,x
+    lda table19,x
     sta reg3
     lda #$00
     sta reg3
@@ -1332,13 +1332,13 @@ sub35:  ; e471
     bne $e555
 
     ldx $8b
-    lda $d83d,x
+    lda table22,x
     sbc $8b
     sbc $8b
     lda #$00
     sta reg3
     ldx $8b
-    lda $d63d,x
+    lda table20,x
     clc
     sbc #10
     lda #$e6
@@ -1400,7 +1400,7 @@ sub37:  ; e5d3
     lda $89
     adc $8a
     tay
-    lda $d53d,y
+    lda table19,y
     adc #$46
     sta $0600,x
     inc $89
@@ -1481,7 +1481,7 @@ sub37:  ; e5d3
     sta reg4
     sta reg4
     ldx $8b
-    lda $d83d,x
+    lda table22,x
     sbc $8b
     sbc $8b
     sbc $8b
@@ -1490,7 +1490,7 @@ sub37:  ; e5d3
     sbc $8b
     sta reg3
     ldx $8b
-    lda $d63d,x
+    lda table20,x
     clc
     sbc #10
     sta reg3
@@ -1576,18 +1576,18 @@ sub39:  ; e6ea
     ldx #$00
     stx reg4
     ldx $8a
-    lda $d83d,x
+    lda table22,x
     sta $9a
     dec $89
     lda $89
     `add_mem $8a
     tax
-    lda $d63d,x
+    lda table20,x
     clc
     sbc $9a
     adc $8c
     tax
-    lda $d93d,x
+    lda table23,x
     sta reg5
     dey
     bne $e73d
@@ -1867,7 +1867,7 @@ sub41:  ; e8ae
     lda $89
     sta reg3
     ldx $89
-    lda $d63d,x
+    lda table20,x
     sta reg3
     inc $a1
     lda $a1
@@ -2215,7 +2215,7 @@ sub43:  ; eb8c
     lda $89
     `add_mem $8a
     tax
-    lda $d73d,x
+    lda table21,x
     `add_imm $c2
     sta $0503,y
     pla
@@ -2264,7 +2264,7 @@ sub43:  ; eb8c
     lda $89
     `add_mem $8b
     tax
-    lda $d73d,x
+    lda table21,x
     `add_imm $c2
     sta $0503,y
     pla
@@ -2475,7 +2475,7 @@ sub43:  ; eb8c
     txa
     `add_mem $8f
     tay
-    lda $c14e,y
+    lda table11,y
     clc
     sbc #$36
     sta reg5
@@ -2489,7 +2489,7 @@ sub43:  ; eb8c
     `chr_bankswitch 2
     inc $89
     ldx $89
-    lda $d63d,x
+    lda table20,x
     clc
     sbc #$1e
     sta reg3
@@ -2540,12 +2540,12 @@ sub43:  ; eb8c
     sta $050a
     lda #$f8
     sta $050b
-    ldx $daea
+    ldx data2
     txa
     asl
     asl
     tay
-    lda $daeb,x
+    lda table28,x
     `add_imm $9b
     sta $055c,y
     txa
@@ -2555,12 +2555,12 @@ sub43:  ; eb8c
     sta $9a
     pla
     tax
-    lda $daf7,x
+    lda table29,x
     `add_mem $9a
     sta $055d,y
     lda #$02
     sta $055e,y
-    lda $db0f,x
+    lda table30,x
     `add_mem $0139
     sta $055f,y
     cpx #$00
@@ -2717,16 +2717,16 @@ sub44:  ; eefb
     lda #$00
     sta reg4
     sta reg4
-    ldx $db1b
-    lda $db1c,x
+    ldx data3
+    lda table31,x
     sta $0104,x
-    lda $db20,x
+    lda table32,x
     sta $0108,x
     dex
     cpx #$ff
     bne $efee
 
-    ldx $db6f
+    ldx data5
     lda #$00
     sta $0112,x
     lda #$f0
@@ -2735,18 +2735,18 @@ sub44:  ; eefb
     cpx #$ff
     bne $f002
 
-    ldx $dbcf
+    ldx data7
     txa
     asl
     asl
     tay
-    lda $dbe0,x
+    lda table41,x
     sta $05c0,y
-    lda $dc00,x
+    lda table43,x
     sta $05c1,y
-    lda $dbd0,x
+    lda table40,x
     sta $05c3,y
-    lda $dbf0,x
+    lda table42,x
     sta $011e,x
     dex
     cpx #$ff
@@ -2756,14 +2756,14 @@ sub44:  ; eefb
     sta $0111
     lda #$0a
     sta $0110
-    ldx $db2a
+    ldx data4
     txa
     asl
     asl
     tay
-    lda $db3c,x
+    lda table35,x
     sta $0505,y
-    lda $db4d,x
+    lda table36,x
     sta $0506,y
     cpx #$00
     beq $f05a
@@ -2805,29 +2805,29 @@ sub45:  ; f074
     sta reg17
     inc $0100
     ldx $0100
-    lda $d53d,x
+    lda table19,x
     adc #$7a
     sta $0111
-    lda $d63d,x
+    lda table20,x
     adc #15
     sta $0110
     `chr_bankswitch 2
-    ldx $db1b
+    ldx data3
     dec $0104,x
     lda $0104,x
     cmp #$00
     bne $f0bb
 
     lda $0108,x
-    cmp $db24,x
+    cmp table33,x
     beq $f0af
 
     inc $0108,x
     jmp $f0b5
 
-    lda $db20,x
+    lda table32,x
     sta $0108,x
-    lda $db1c,x
+    lda table31,x
     sta $0104,x
     dex
     cpx #$ff
@@ -2841,15 +2841,15 @@ sub45:  ; f074
     sta $0545
     lda $010b
     sta $0535
-    ldx $db2a
+    ldx data4
     txa
     asl
     asl
     tay
-    lda $db2b,x
+    lda table34,x
     `add_mem $0111
     sta $0504,y
-    lda $db5e,x
+    lda table37,x
     `add_mem $0110
     sta $0507,y
     cpx #$00
@@ -2860,12 +2860,12 @@ sub45:  ; f074
 
     lda $0100
     ldx $0101
-    cmp $db71,x
+    cmp table38,x
     bne $f13d
 
     inc $0101
     lda $0101
-    cpx $db70
+    cpx data6
     bne $f116
 
     ; f111
@@ -2877,18 +2877,18 @@ sub45:  ; f074
     ldy $0100
     lda #$ff
     sta $0112,x
-    lda $d53d,y
+    lda table19,y
     `add_imm $5a
     sta $0116,x
-    lda $d83d,y
+    lda table22,y
     sta $011a,x
     inc $0102
-    cpx $db6f
+    cpx data5
     bne $f13d
 
     lda #$00
     sta $0102
-    ldx $db6f
+    ldx data5
     lda $0116,x
     cmp #$f0
     beq $f15b
@@ -2907,14 +2907,14 @@ sub45:  ; f074
     cpx #$ff
     bne $f140
 
-    ldx $db6f
+    ldx data5
     txa
     asl
     asl
     tay
     lda $0116,x
     sta $0548,y
-    lda $dbb1,x
+    lda table39,x
     sta $0549,y
     lda #$2b
     sta $054a,y
@@ -2924,14 +2924,14 @@ sub45:  ; f074
     cpx #$ff
     bne $f163
 
-    ldx $dbcf
+    ldx data7
     txa
     asl
     asl
     tay
     lda $05c3,y
     clc
-    sbc $dbf0,x
+    sbc table42,x
     sta $05c3,y
     dex
     cpx #$ff
@@ -2964,7 +2964,7 @@ sub46:  ; f1ae
     lda #$c0
     sta reg4
     ldx #$00
-    lda $d225,x
+    lda table13,x
     clc
     sbc #$10
     sta reg5
@@ -3040,7 +3040,7 @@ sub48:  ; f1f8
     lda #$00
     sta reg4
     ldx #$00
-    lda $d285,x
+    lda table14,x
     clc
     sbc #$10
     sta reg5
@@ -3048,7 +3048,7 @@ sub48:  ; f1f8
     bne $f24f
 
     ldx #$00
-    lda $d385,x
+    lda table15,x
     clc
     sbc #$10
     sta reg5
@@ -3056,7 +3056,7 @@ sub48:  ; f1f8
     bne $f25d
 
     ldx #$00
-    lda $d485,x
+    lda table16,x
     clc
     sbc #$10
     sta reg5
@@ -3110,7 +3110,7 @@ sub49:  ; f28b
     lda #$00
     sta reg3
     ldx $0153
-    lda $d53d,x
+    lda table19,x
     `add_mem $0153
     sta reg3
     lda $0153
@@ -3340,7 +3340,7 @@ sub51:  ; f376
     ldx #$01
     jsr sub19
     ldx $8a
-    lda $d63d,x
+    lda table20,x
     adc #$32
     sta $9a
     lda $9a
@@ -3372,16 +3372,16 @@ sub51:  ; f376
     clc
     sbc #$14
     tax
-    lda $d53d,x
+    lda table19,x
     `add_mem $8b
     sta reg3
     lda $89
     `add_mem $8b
     tax
-    lda $d63d,x
+    lda table20,x
     sta reg3
     ldx $8a
-    lda $d63d,x
+    lda table20,x
     `add_imm 60
     sta $9b
     inc $89
@@ -3492,13 +3492,13 @@ sub54:  ; f504
     sta reg4
     lda #$00
     sta reg4
-    lda $d535
+    lda table18+4
     sta reg5
-    lda $d536
+    lda table18+5
     sta reg5
-    lda $d537
+    lda table18+6
     sta reg5
-    lda $d538
+    lda table18+7
     sta reg5
     lda #$00
     sta reg4
@@ -3507,18 +3507,18 @@ sub54:  ; f504
     sta reg4
     lda #$10
     sta reg4
-    lda $d539
+    lda table18+8
     sta reg5
-    lda $d53a
+    lda table18+9
     sta reg5
-    lda $d53b
+    lda table18+10
     sta reg5
-    lda $d53c
+    lda table18+11
     sta reg5
     lda #$00
     sta reg4
     sta reg4
-    ldx $dbcf
+    ldx data7
     txa
     asl
     asl
@@ -3562,13 +3562,13 @@ sub55:  ; f62f
 
     inc $0100
     ldx $0100
-    lda $d73d,x
+    lda table21,x
     sta $9a
-    lda $d83d,x
+    lda table22,x
     sta $9b
     lda #$05
     sta reg17
-    ldx $dbcf
+    ldx data7
     txa
     asl
     asl
@@ -3628,7 +3628,7 @@ sub55:  ; f62f
     txa
     `add_mem $8f
     tay
-    lda $c14e,y
+    lda table11,y
     clc
     sbc #$36
     sta reg5
@@ -3643,9 +3643,9 @@ sub55:  ; f62f
     ldx $89
     lda $8a
     sta reg3
-    lda $d63d,x
+    lda table20,x
     sta reg3
-    lda $d63d,x
+    lda table20,x
     sta $9a
     lda #$94
     clc

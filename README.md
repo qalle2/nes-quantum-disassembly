@@ -1,9 +1,14 @@
 # nes-quantum-disassembly
 
-A disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA. At an early stage.
+An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA.
+
+Notes:
+* This disassembly is at an early stage.
+* I have not been involved with wAMMA or in the making of this demo.
 
 ## How to assemble
 * Download the original *Quantum Disco Brothers* from somewhere (see *The original file* below; it should be easy to find).
+* Rename the file to `quantum-original.nes` (`assemble.bat` expects to find it).
 * Extract the original PRG ROM data to `prg-original.bin` (`assemble.bat` expects to find it):
   * Either use my [ines-split](http://github.com/qalle2/ines-split)&hellip;
   * &hellip; or, using a hex editor, copy 32,768 (0x8000) bytes starting from offset 16 (0x10) to a new file.

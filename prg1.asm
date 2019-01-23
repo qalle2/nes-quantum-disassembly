@@ -907,17 +907,7 @@ sub30_loop:
 
 ; -----------------------------------------------------------------------------
 
-sub31:  ; e25c
-    ; jmp/bra targets:
-    ; e29e
-    ; e2ad
-    ; e2bc
-    ; e2e8
-    ; e327
-    ; e337
-    ; e36d
-    ; e376
-    ; e394
+sub31:
 
     `chr_bankswitch 0
     lda #$05
@@ -941,27 +931,24 @@ sub31:  ; e25c
     sta reg3
     lda $014e
     cmp #$c1
-    beq $e29e
-
+    beq +
     inc $014e
-    lda $ac
+*   lda $ac
     cmp #$02
-    bne $e2ad
-
+    bne +
     lda $ab
     cmp #$32
-    bne $e2ad
-
+    bne +
     jsr sub25
-    lda $ac
+*   lda $ac
     cmp #$01
-    bne $e327
-
+    bne sub31_1
     lda $ab
     cmp #$96
-    bne $e327
-
+    bne sub31_1
     ldx data1
+
+sub31_loop1:
     txa
     asl
     asl
@@ -977,12 +964,11 @@ sub31:  ; e25c
     `add_mem $012e
     sta $055f,y
     cpx #$00
-    beq $e2e8
-
+    beq +
     dex
-    jmp $e2bc
+    jmp sub31_loop1
 
-    lda #$81
+*   lda #$81
     sta $0560
     lda #$e5
     sta $0561
@@ -1007,20 +993,21 @@ sub31:  ; e25c
     lda #$00
     sta reg4
     sta reg4
+
+sub31_1:
     lda $ac
     cmp #$02
-    bne $e376
-
+    bne sub31_2
     lda $ab
     cmp #$32
-    bcc $e376
-
+    bcc sub31_2
     ldx #$00
     ldy #$00
+
+sub31_loop2:
     lda $0180,x
     cmp #$01
-    bne $e36d
-
+    bne +
     lda #$a0
     clc
     adc $016a,x
@@ -1028,8 +1015,7 @@ sub31:  ; e25c
     lda $0154,x
     sta $0500,y
     cmp $9a
-    bcc $e36d
-
+    bcc +
     txa
     pha
     inc $0196,x
@@ -1045,45 +1031,42 @@ sub31:  ; e25c
     sbc $9b
     sbc $9c
     sta $0154,x
-    inx
+*   inx
     `iny4
     cpx #$16
-    bne $e337
+    bne sub31_loop2
 
+sub31_2:
     lda $ac
     cmp #$02
-    bne $e394
-
+    bne +
     lda $ab
     cmp #$c8
-    bcc $e394
-
+    bcc +
     inc $a3
     lda $a3
     cmp #$04
-    bne $e394
-
+    bne +
     jsr sub20
     jsr sub18
     lda #$00
     sta $a3
-    jsr sub27
+*   jsr sub27
     lda #$02
     sta $01
     rts
 
 ; -----------------------------------------------------------------------------
 
-sub32:  ; e39c
-    ; jmp/bra targets:
-    ; e3a0
+sub32:
 
     lda #$00
-    ldx #$00
+    ldx #0
+sub32_loop:
     sta reg6,x
     inx
-    cpx #$0f
-    bne $e3a0
+    cpx #15
+    bne sub32_loop
 
     lda #$0a
     sta reg15
@@ -1103,12 +1086,7 @@ sub32:  ; e39c
 
 ; -----------------------------------------------------------------------------
 
-sub33:  ; e3cb
-    ; jmp/bra targets:
-    ; e3eb
-    ; e3ed
-    ; e405
-    ; e40b
+sub33:
 
     inc $89
     ldx $8a
@@ -1124,9 +1102,13 @@ sub33:  ; e3cb
     lda #$00
     sta $89
     ldy #$9f
-    ldx #$19
+
+sub33_loop1:
+
+    ldx #25
+sub33_loop2:
     dex
-    bne $e3ed
+    bne sub33_loop2
 
     ldx #$3f
     stx reg4
@@ -1135,14 +1117,12 @@ sub33:  ; e3cb
     inc $8c
     lda $8c
     cmp #$05
-    beq $e405
-
-    jmp $e40b
-
-    inc $89
+    beq +
+    jmp ++
+*   inc $89
     lda #$00
     sta $8c
-    inc $89
+*   inc $89
     lda $89
     sbc $8a
     adc $8b
@@ -1157,7 +1137,7 @@ sub33:  ; e3cb
     lda table19,x
     tax
     dey
-    bne $e3eb
+    bne sub33_loop1
 
     lda #$06
     sta reg1
@@ -1167,7 +1147,7 @@ sub33:  ; e3cb
 
 ; -----------------------------------------------------------------------------
 
-sub34:  ; e436
+sub34:
     ldx #$00
     jsr sub58
     lda #$00
@@ -1195,30 +1175,19 @@ sub34:  ; e436
 
 ; -----------------------------------------------------------------------------
 
-sub35:  ; e471
-    ; jmp/bra targets:
-    ; e480
-    ; e488
-    ; e4a7
-    ; e4b3
-    ; e4e7
-    ; e4ef
-    ; e50c
-    ; e518
-    ; e549
-    ; e555
+sub35:
 
     `chr_bankswitch 1
     lda $0148
     cmp #$00
-    beq $e480
-
-    jmp $e4e7
-
-    dec $8a
+    beq +
+    jmp sub35_1
+*   dec $8a
     ldx #$00
     lda #$00
     sta $89
+
+sub35_loop1:
     lda $89
     adc $8a
     tay
@@ -1228,18 +1197,22 @@ sub35:  ; e471
     `add_mem $00
     sta $89
     inx
-    cpx #$40
-    bne $e488
+    cpx #64
+    bne sub35_loop1
 
     ldx #$00
     ldy #$00
     lda #$00
     sta $9a
+
+sub35_loop2:
     lda #$21
     sta reg4
     lda $9a
     sta reg4
     ldy #$00
+
+sub35_loop3:
     lda $0600,x
     sta reg5
     lda $0600,x
@@ -1251,24 +1224,27 @@ sub35:  ; e471
     sta reg5
     inx
     iny
-    cpy #$08
-    bne $e4b3
+    cpy #8
+    bne sub35_loop3
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
     cmp #$00
-    bne $e4a7
+    bne sub35_loop2
 
     lda #$01
     sta $0148
-    jmp $e549
+    jmp sub35_2
 
+sub35_1:
     dec $8a
     ldx #$40
     lda #$00
     sta $89
+
+sub35_loop4:
     lda $89
     adc $8a
     tay
@@ -1278,17 +1254,21 @@ sub35:  ; e471
     `add_mem $00
     sta $89
     inx
-    cpx #$80
-    bne $e4ef
+    cpx #128
+    bne sub35_loop4
 
     ldx #$7f
     lda #$00
     sta $9a
+
+sub35_loop5:
     lda #$22
     sta reg4
     lda $9a
     sta reg4
     ldy #$00
+
+sub35_loop6:
     lda $0600,x
     sta reg5
     lda $0600,x
@@ -1300,23 +1280,27 @@ sub35:  ; e471
     sta reg5
     dex
     iny
-    cpy #$08
-    bne $e518
+    cpy #8
+    bne sub35_loop6
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
     cmp #$00
-    bne $e50c
+    bne sub35_loop5
 
     lda #$00
     sta $0148
+
+sub35_2:
     lda #$00
     sta reg4
     sta reg4
     lda #$00
     sta $89
+
+sub35_loop7:
     ldx #$04
     jsr sub19
     lda $89
@@ -1329,7 +1313,7 @@ sub35:  ; e471
     inc $89
     iny
     cpy #$98
-    bne $e555
+    bne sub35_loop7
 
     ldx $8b
     lda table22,x
@@ -2949,9 +2933,7 @@ sub45:  ; f074
 
 ; -----------------------------------------------------------------------------
 
-sub46:  ; f1ae
-    ; jmp/bra targets:
-    ; f1ca
+sub46:
 
     ldx #$4a
     jsr sub58
@@ -2963,14 +2945,16 @@ sub46:  ; f1ae
     sta reg4
     lda #$c0
     sta reg4
-    ldx #$00
+
+    ldx #0
+sub46_loop:
     lda table13,x
     clc
     sbc #$10
     sta reg5
     inx
-    cpx #$60
-    bne $f1ca
+    cpx #96
+    bne sub46_loop
 
     lda #$02
     sta reg0

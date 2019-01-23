@@ -2,7 +2,20 @@
 
 A disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA. At an early stage.
 
-The original file (not included):
+## How to assemble
+* Download the original *Quantum Disco Brothers* from somewhere (see *The original file* below; it should be easy to find).
+* Extract the original PRG ROM data to `prg-original.bin` (`assemble.bat` expects to find it):
+  * Either use my [ines-split](http://github.com/qalle2/ines-split)&hellip;
+  * &hellip; or, using a hex editor, copy 32,768 (0x8000) bytes starting from offset 16 (0x10) to a new file.
+* Extract the original CHR ROM data to `chr.bin` (`assemble.bat` expects to find it):
+  * Either use my [ines-split](http://github.com/qalle2/ines-split)&hellip;
+  * &hellip; or, using a hex editor, copy 32,768 (0x8000) bytes starting from offset 32,784 (0x8010) to a new file.
+* Install the [Ophis](http://michaelcmartin.github.io/Ophis/) assembler.
+* Assemble:
+  * Either run `assemble.bat` (only works on Windows; also compares the assembled files to the originals)&hellip;
+  * &hellip;or assemble manually: `ophis -v -o quantum.nes quantum.asm`
+
+## The original file
 * name: `Quantum Disco Brothers by wAMMA (PD) (PAL).nes`
 * size: 65,552 bytes
 * MD5 hash: `2c932e9e8ae7859517905e2539565a89`

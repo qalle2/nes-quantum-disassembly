@@ -1,3 +1,5 @@
+"""Disassemble Quantum Disco Brothers using an FCEUX Code/Data Logger file."""
+
 import os.path
 import struct
 
@@ -21,7 +23,6 @@ ADDRESSING_MODES = {
     "zx":  (1, "", ",x"),    # zero page,x
 }
 
-# http://www.obelisk.me.uk/6502/reference.html
 # opcode: (mnemonic, addressing_mode)
 OPCODES = {
     0x05: ("ora", "z"),
@@ -156,7 +157,7 @@ def main():
 
     if(os.path.exists(OUTPUT_FILE)):
         exit("Error: output file already exists.")
-    
+
     print("Disassembling to output file...")
 
     prevByteType = None
@@ -220,7 +221,7 @@ def main():
                 or 0x799b <= pos < 0x799e
                 or 0x79b3 <= pos < 0x79b7
                 or 0x7b0c <= pos < 0x7b40
-                or 0x7c13 <= pos < 0x7c22                
+                or 0x7c13 <= pos < 0x7c22
             ):
                 # instruction
 

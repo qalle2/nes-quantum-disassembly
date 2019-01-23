@@ -563,7 +563,7 @@ sub28_loop:
     tay
     lda table45,x
     sta $05b4,y
-    lda $dc41,x
+    lda table47,x
     sta $05b5,y
     lda #$03
     sta $05b6,y
@@ -2551,7 +2551,7 @@ sub43:  ; eb8c
     txa
     pha
     ldx $0137
-    lda $dc92,x
+    lda table52,x
     sta $9a
     pla
     tax
@@ -3523,15 +3523,15 @@ sub54:  ; f504
     asl
     asl
     tay
-    lda $dc62,x
+    lda table49,x
     sta $05c0,y
-    lda $dc82,x
+    lda table51,x
     sta $05c1,y
     lda #$02
     sta $05c2,y
-    lda $dc52,x
+    lda table48,x
     sta $05c3,y
-    lda $dc72,x
+    lda table50,x
     sta $011e,x
     dex
     cpx #$ff
@@ -3573,12 +3573,12 @@ sub55:  ; f62f
     asl
     asl
     tay
-    lda $dc62,x
+    lda table49,x
     `add_mem $9a
     sta $05c0,y
     lda $05c3,y
     clc
-    adc $dc72,x
+    adc table50,x
     sta $05c3,y
     dex
     cpx #$07
@@ -3588,12 +3588,12 @@ sub55:  ; f62f
     asl
     asl
     tay
-    lda $dc62,x
+    lda table49,x
     `add_mem $9b
     sta $05c0,y
     lda $05c3,y
     clc
-    adc $dc72,x
+    adc table50,x
     sta $05c3,y
     dex
     cpx #$ff

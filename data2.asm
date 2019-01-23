@@ -1018,34 +1018,26 @@ table46:
     .byte 2, 3, 3, 5, 4, 2, 4, 3
     .byte 2, 2, 3, 4, 3, 2, 7, 6
 
-    ; Data labels (they're all tables):
-    ; dc41
-    ; dc52
-    ; dc62
-    ; dc72
-    ; dc82
-    ; dc92
-
-    ; dc41
+table47:
     .byte $af, $ae, $ae, $be, $be, $bf, $af, $bf
     .byte $bf, $af, $ae, $ae, $bf, $be, $be, $be
     .byte $0f
 
-    ; dc52
+table48:
     .byte $40, $48, $40, $48, $80, $88, $80, $88
     .byte $c0, $c8, $c0, $c8, $f0, $f8, $f0, $f8
 
-    ; dc62
+table49:
     .byte $32, $32, $3a, $3a, $80, $80, $88, $88
     .byte $68, $68, $70, $70, $b8, $b8, $c0, $c0
 
-    ; dc72
+table50:
     .byte $03, $03, $03, $03, $05, $05, $05, $05
     .byte $02, $02, $02, $02, $04, $04, $04, $04
 
-    ; dc82
+table51:
     .byte $ea, $eb, $fa, $fb, $ec, $ed, $fc, $fd
     .byte $ea, $eb, $fa, $fb, $ec, $ed, $fc, $fd
 
-    ; dc92
+table52:
     .byte $00, $03, $06, $03

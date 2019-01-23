@@ -14,7 +14,7 @@ The original file (not included):
 * no save RAM
 
 ## FCEUX Code/Data Log - PRG ROM
-I used my `cdl-summary` (see *Software used*) with the following arguments:
+I used my cdl-summary (see *Software used*) with the following arguments:
 
 `python cdlsummary.py --prg-rom-banks=2 --part=p --ignore-bank quantum.cdl`
 
@@ -400,7 +400,7 @@ fffe-ffff (   2): unaccessed (note: IRQ vector)
 ```
 
 ## FCEUX Code/Data Log - CHR ROM
-I used my `cdl-summary` (see *Software used*) with the following arguments:
+I used my cdl-summary (see *Software used*) with the following arguments:
 
 `python cdlsummary.py --prg-rom-banks=2 --part=c quantum.cdl`
 

@@ -1,23 +1,24 @@
-    .alias reg0  $2000
-    .alias reg1  $2001
-    .alias reg2  $2002
-    .alias reg3  $2005
-    .alias reg4  $2006
-    .alias reg5  $2007
-    .alias reg6  $4000
-    .alias reg7  $4001
-    .alias reg8  $4002
-    .alias reg9  $4003
-    .alias reg10 $4008
-    .alias reg11 $400e
-    .alias reg12 $400f
-    .alias reg13 $4010
-    .alias reg14 $4011
-    .alias reg15 $4012
-    .alias reg16 $4013
-    .alias reg17 $4014
-    .alias reg18 $4015
-    .alias reg19 $4017
+    .alias ppu_ctrl   $2000
+    .alias ppu_mask   $2001
+    .alias ppu_status $2002
+    .alias ppu_scroll $2005
+    .alias ppu_addr   $2006
+    .alias ppu_data   $2007
+
+    .alias pulse1_ctrl   $4000
+    .alias pulse1_sweep  $4001
+    .alias pulse1_timer  $4002
+    .alias pulse1_length $4003
+    .alias triangle_ctrl $4008
+    .alias noise_period  $400e
+    .alias noise_length  $400f
+    .alias dmc_ctrl      $4010
+    .alias dmc_load      $4011
+    .alias dmc_addr      $4012
+    .alias dmc_length    $4013
+    .alias oam_dma       $4014
+    .alias apu_ctrl      $4015
+    .alias apu_counter   $4017
 
     ; memory pointers (2 bytes each)
     .alias ptr1 $03

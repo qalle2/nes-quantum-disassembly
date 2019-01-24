@@ -8,20 +8,20 @@
     ldx #$ff
     txs
     lda #$40
-    sta reg0
+    sta ppu_ctrl
     lda #$9e
-    sta reg1
-    lda reg2
-    lda reg2
+    sta ppu_mask
+    lda ppu_status
+    lda ppu_status
     lda #$00
-    sta reg1
+    sta ppu_mask
     lda #$68
     ldx #$8b
     jsr sub01
     lda #$1e
-    sta reg1
+    sta ppu_mask
     lda #$80
-    sta reg0
+    sta ppu_ctrl
 *   jmp -
 
 ; -----------------------------------------------------------------------------
@@ -167,7 +167,7 @@ sub01:
     sta $d4
     sta $d5
     sta $ef
-    sta reg18
+    sta apu_ctrl
     ldx $d3
     inx
     stx $d2
@@ -187,7 +187,7 @@ sub02:
     lsr
     ora $0394,x
     ldy table01,x
-    sta reg6,y
+    sta pulse1_ctrl,y
     rts
 
 ; -----------------------------------------------------------------------------
@@ -199,31 +199,31 @@ sub03:
     cpx #2
     beq sub03_2
     ldy table01,x
-    sta reg8,y
+    sta pulse1_timer,y
     lda #$08
-    sta reg7,y
+    sta pulse1_sweep,y
     lda $cb
     cmp $03ac,x
     beq +
     sta $03ac,x
     ora #%00001000
-    sta reg9,y
+    sta pulse1_length,y
 *   rts
 
 sub03_1:
     and #%00001111
     ora $034c,x
-    sta reg11
+    sta noise_period
     lda #$08
-    sta reg12
+    sta noise_length
     rts
 
 sub03_2:
     ldy table01,x
-    sta reg8,y
+    sta pulse1_timer,y
     lda $cb
     ora #%00001000
-    sta reg9,y
+    sta pulse1_length,y
     rts
 
 ; -----------------------------------------------------------------------------
@@ -270,18 +270,18 @@ sub04_3:
     cpx #$02
     bne +
     lda #$ff
-    sta reg10
+    sta triangle_ctrl
 *   dex
     bpl sub04_loop1
 
-    lda reg18
+    lda apu_ctrl
     and #%00010000
     bne +
     lda $ef
     and #%00001111
     sta $ef
 *   lda $ef
-    sta reg18
+    sta apu_ctrl
     ldx #3
 
 sub04_loop2:
@@ -1242,14 +1242,14 @@ sub11_17:
     dex
     bpl sub11_loop2
 
-    lda reg18
+    lda apu_ctrl
     and #%00010000
     bne +
     lda $ef
     and #%00001111
     sta $ef
 *   lda $ef
-    sta reg18
+    sta apu_ctrl
 
     ldx #3
 sub11_loop3:
@@ -1267,7 +1267,7 @@ sub11_loop3:
     lsr
     ora $0394,x
     ldy table01,x
-    sta reg6,y
+    sta pulse1_ctrl,y
 sub11_18:
     dex
     bpl sub11_loop3

@@ -549,7 +549,10 @@ ef-ff: yes
 ```
 
 ## References
-* [NESDev Wiki &ndash; CNROM](http://wiki.nesdev.com/w/index.php/CNROM)
+* [NESDev Wiki](http://wiki.nesdev.com)
+  * [APU registers](http://wiki.nesdev.com/w/index.php/APU_registers)
+  * [CNROM](http://wiki.nesdev.com/w/index.php/CNROM)
+  * [PPU registers](http://wiki.nesdev.com/w/index.php/PPU_registers)
 * [a 6502 instruction reference](http://www.obelisk.me.uk/6502/reference.html)
 
 ## Software used

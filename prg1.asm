@@ -24,55 +24,55 @@ init:
     jsr sub16
     jsr sub18
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$1c
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$1c
-    sta reg5
+    sta ppu_data
     lda #$2b
-    sta reg5
+    sta ppu_data
     lda #$39
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$00
     sta $01
     lda #$00
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
     ldx #$ff
     jsr sub59
     jsr sub28
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     ldy #$00
     jsr sub56
     lda #$ff
-    sta reg6
+    sta pulse1_ctrl
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$00
     ldx #$01
     jsr sub13
     jsr sub14
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
 
 *   lda $01
     cmp #$09
     bne +
         lda #$0d
-        sta reg15
+        sta dmc_addr
         lda #$fa
-        sta reg16
+        sta dmc_length
 *   jmp --
 
 ; -----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ init:
 
 sub14:
 
-    bit reg2
+    bit ppu_status
     bpl sub14
     rts
 
@@ -100,20 +100,20 @@ sub15:
     rts
 
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     lda #$00
-    sta reg0
+    sta ppu_ctrl
 
     lda #$00
     ldx #0
-*   sta reg6,x
+*   sta pulse1_ctrl,x
     inx
     cpx #15
     bne -
 
     lda #$c0
-    sta reg19
+    sta apu_counter
     jsr sub16
     jsr sub18
     rts
@@ -149,20 +149,20 @@ sub17:
 sub18:
 
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
 
     ldx #0
 *   lda $07c0,x
-    sta reg5
+    sta ppu_data
     inx
     cpx #32
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -245,17 +245,17 @@ sub20:
 sub21:
 
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     lda $e8
     cmp #8
     bcc +
     lda $e8
-    sta reg5
+    sta ppu_data
     jmp sub21_exit
 *   lda #$3f
-    sta reg5
+    sta ppu_data
 sub21_exit:
     rts
 
@@ -477,9 +477,9 @@ sub26:
     stx $91
     sty $92
     lda $91
-    sta reg4
+    sta ppu_addr
     lda $92
-    sta reg4
+    sta ppu_addr
     ldx #$00
     ldy #$00
     stx $90
@@ -490,9 +490,9 @@ sub26:
     sbc #$40
     tay
     ldx table17,y
-    stx reg5
+    stx ppu_data
     inx
-    stx reg5
+    stx ppu_data
     inc $90
     lda $90
     cmp #$10
@@ -510,17 +510,17 @@ sub26:
     txa
     `add_imm 16
     tax
-    stx reg5
+    stx ppu_data
     inx
-    stx reg5
+    stx ppu_data
     inc $90
     lda $90
     cmp #$10
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -601,11 +601,11 @@ sub29:
 
 sub29_01:
     lda #$00
-    sta reg3
+    sta ppu_scroll
     ldx $96
     lda table19,x
     `add_mem $96
-    sta reg3
+    sta ppu_scroll
     lda $96
     cmp #$dc
     bne +
@@ -613,9 +613,9 @@ sub29_01:
 *   inc $96
     inc $96
 *   lda #$80
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
 
 sub29_jump_table:
     jmp sub29_11
@@ -641,9 +641,9 @@ sub29_02:
     ldy #$00
     jsr sub26
     lda #$00
-    sta reg3
+    sta ppu_scroll
     lda $96
-    sta reg3
+    sta ppu_scroll
     dec $96
     lda $96
     cmp #$f0
@@ -817,7 +817,7 @@ sub29_12:
 sub29_13:
     jsr sub27
     lda #$05
-    sta reg17
+    sta oam_dma
     rts
 
 ; -----------------------------------------------------------------------------
@@ -829,65 +829,65 @@ sub30:
     ldy #$00
     ldy #$00
     lda #$28
-    sta reg4
+    sta ppu_addr
     lda #$20
-    sta reg4
+    sta ppu_addr
 
     ldx #0
-*   stx reg5
+*   stx ppu_data
     inx
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$10
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg5
+    sta ppu_data
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$15
-    sta reg4
+    sta ppu_addr
     lda #$3d
-    sta reg5
+    sta ppu_data
     lda #$0c
-    sta reg5
+    sta ppu_data
     lda #$3c
-    sta reg5
+    sta ppu_data
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$3c
-    sta reg5
+    sta ppu_data
     lda #$0c
-    sta reg5
+    sta ppu_data
     lda #$1a
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     lda #$38
-    sta reg5
+    sta ppu_data
     lda #$01
-    sta reg5
+    sta ppu_data
     lda #$26
-    sta reg5
+    sta ppu_data
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$01
     sta $02
     lda #$8e
@@ -895,7 +895,7 @@ sub30:
     lda #$19
     sta $012f
     lda #$1e
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -904,24 +904,24 @@ sub31:
 
     `chr_bankswitch 0
     lda #$05
-    sta reg17
+    sta oam_dma
     lda #$90
-    sta reg0
+    sta ppu_ctrl
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$03
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$00
-    sta reg3
+    sta ppu_scroll
     ldx $014e
     lda table19,x
     `add_mem $014e
-    sta reg3
+    sta ppu_scroll
     lda $014e
     cmp #$c1
     beq +
@@ -977,14 +977,14 @@ sub31:
     lda #$e6
     sta $0567
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$03
-    sta reg4
+    sta ppu_addr
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
 
 sub31_1:
     lda $ac
@@ -1054,21 +1054,21 @@ sub32:
 
     lda #$00
     ldx #0
-*   sta reg6,x
+*   sta pulse1_ctrl,x
     inx
     cpx #15
     bne -
 
     lda #$0a
-    sta reg15
+    sta dmc_addr
     lda #$fa
-    sta reg16
+    sta dmc_length
     lda #$4c
-    sta reg13
+    sta dmc_ctrl
     lda #$1f
-    sta reg18
+    sta apu_ctrl
     lda #$ff
-    sta reg14
+    sta dmc_load
     ldx #$00
     jsr sub59
     lda #$01
@@ -1089,7 +1089,7 @@ sub33:
     lda table20,x
     sta $8d
     lda #$84
-    sta reg0
+    sta ppu_ctrl
     lda #$00
     sta $89
     ldy #$9f
@@ -1101,9 +1101,9 @@ sub33_loop:
     bne -
 
     ldx #$3f
-    stx reg4
+    stx ppu_addr
     ldx #$00
-    stx reg4
+    stx ppu_addr
     inc $8c
     lda $8c
     cmp #$05
@@ -1122,7 +1122,7 @@ sub33_loop:
     and #%00111111
     tax
     lda table23,x
-    sta reg5
+    sta ppu_data
     ldx $8b
     lda table19,x
     tax
@@ -1130,9 +1130,9 @@ sub33_loop:
     bne sub33_loop
 
     lda #$06
-    sta reg1
+    sta ppu_mask
     lda #$90
-    sta reg0
+    sta ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1142,22 +1142,22 @@ sub34:
     ldx #$00
     jsr sub58
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     ldy #$14
     jsr sub56
     jsr sub12
     jsr sub16
     jsr sub18
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$0c
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$01
     sta $02
     lda #$05
@@ -1197,20 +1197,20 @@ sub35:
 
 sub35_loop1:  ; start outer loop
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda $9a
-    sta reg4
+    sta ppu_addr
     ldy #$00
 
 *   lda $0600,x  ; start inner loop
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     inx
     lda $0600,x
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     inx
     iny
     cpy #8
@@ -1251,20 +1251,20 @@ sub35_1:
 
 sub35_loop2:  ; start outer loop
     lda #$22
-    sta reg4
+    sta ppu_addr
     lda $9a
-    sta reg4
+    sta ppu_addr
     ldy #$00
 
 *   lda $0600,x  ; start inner loop
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     dex
     lda $0600,x
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     dex
     iny
     cpy #8
@@ -1282,8 +1282,8 @@ sub35_loop2:  ; start outer loop
 
 sub35_2:
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$00
     sta $89
 
@@ -1293,9 +1293,9 @@ sub35_2:
     `add_mem $8b
     tax
     lda table19,x
-    sta reg3
+    sta ppu_scroll
     lda #$00
-    sta reg3
+    sta ppu_scroll
     inc $89
     iny
     cpy #$98
@@ -1306,18 +1306,18 @@ sub35_2:
     sbc $8b
     sbc $8b
     lda #$00
-    sta reg3
+    sta ppu_scroll
     ldx $8b
     lda table20,x
     clc
     sbc #10
     lda #$e6
-    sta reg3
+    sta ppu_scroll
     dec $8b
     lda #$0e
-    sta reg1
+    sta ppu_mask
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1329,21 +1329,21 @@ sub36:
     jsr sub16
     jsr sub18
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     ldy #$ff
     jsr sub56
     ldy #$55
     jsr sub57
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$0c
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$01
     sta $02
     rts
@@ -1382,19 +1382,19 @@ sub37:
     sta $9a
 sub37_loop1:  ; start outer loop
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda $9a
-    sta reg4
+    sta ppu_addr
 
     ldy #0
 *   lda $0600,x  ; start inner loop
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     inx
     iny
     cpy #8
@@ -1418,19 +1418,19 @@ sub37_1:
 
 sub37_loop2:  ; start outer loop
     lda #$22
-    sta reg4
+    sta ppu_addr
     lda $9a
-    sta reg4
+    sta ppu_addr
     ldy #0
 
 *   lda $0600,x  ; start inner loop
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     lda $0600,x
-    sta reg5
+    sta ppu_data
     dex
     iny
     cpy #8
@@ -1448,8 +1448,8 @@ sub37_loop2:  ; start outer loop
 
 sub37_2:
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     ldx $8b
     lda table22,x
     sbc $8b
@@ -1458,17 +1458,17 @@ sub37_2:
     sbc $8b
     sbc $8b
     sbc $8b
-    sta reg3
+    sta ppu_scroll
     ldx $8b
     lda table20,x
     clc
     sbc #10
-    sta reg3
+    sta ppu_scroll
     dec $8b
     lda #$0e
-    sta reg1
+    sta ppu_mask
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1489,9 +1489,9 @@ sub38:
     sta $8b
     sta $8c
     lda #$00
-    sta reg1
+    sta ppu_mask
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1507,29 +1507,29 @@ sub39:
     sta $8b
     dec $8a
 *   lda #$84
-    sta reg0
+    sta ppu_ctrl
     ldx #$3f
-    stx reg4
+    stx ppu_addr
     ldx #$00
-    stx reg4
+    stx ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     ldx #$ff
     jsr sub19
     ldx #$01
     jsr sub19
     ldx #$3f
-    stx reg4
+    stx ppu_addr
     ldx #$00
-    stx reg4
+    stx ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$00
     sta $89
 
@@ -1541,9 +1541,9 @@ sub39_loop:  ; start outer loop
     bne -
 
     ldx #$3f
-    stx reg4
+    stx ppu_addr
     ldx #$00
-    stx reg4
+    stx ppu_addr
     ldx $8a
     lda table22,x
     sta $9a
@@ -1557,22 +1557,22 @@ sub39_loop:  ; start outer loop
     adc $8c
     tax
     lda table23,x
-    sta reg5
+    sta ppu_data
     dey
     bne sub39_loop
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     ldx #$3f
-    stx reg4
+    stx ppu_addr
     ldx #$00
-    stx reg4
+    stx ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1584,24 +1584,24 @@ sub40:
     jsr sub16
     jsr sub18
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$1c
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$19
-    sta reg5
+    sta ppu_data
     lda #$33
-    sta reg5
+    sta ppu_data
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$20
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
 
 sub40_1:
     lda #$00
@@ -1616,7 +1616,7 @@ sub40_loop2:  ; start middle loop
     ldx #0
 *   txa           ; start innermost loop
     `add_mem $9e
-    sta reg5
+    sta ppu_data
     inx
     cpx #8
     bne -
@@ -1647,7 +1647,7 @@ sub40_loop4:  ; start middle loop
     ldx #0
 *   txa           ; start innermost loop
     `add_mem $9e
-    sta reg5
+    sta ppu_data
     inx
     cpx #8
     bne -
@@ -1667,7 +1667,7 @@ sub40_loop4:  ; start middle loop
 sub40_loop5:  ; start outer loop
 
     ldx #$f0
-*   stx reg5  ; start inner loop
+*   stx ppu_data  ; start inner loop
     inx
     cpx #$f8
     bne -
@@ -1677,50 +1677,50 @@ sub40_loop5:  ; start outer loop
     bne sub40_loop5
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     inc $a0
     lda $a0
     cmp #$02
     bne +
     jmp sub40_2
 *   lda #$28
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     jmp sub40_1
 
 sub40_2:
     lda #$23
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
 
     ldx #0
 *   lda #$00  ; start loop
-    sta reg5
+    sta ppu_data
     inx
     cpx #64
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$2b
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
 
     ldx #0
 *   lda #$00  ; start loop
-    sta reg5
+    sta ppu_data
     inx
     cpx #64
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     jsr sub15
     lda #$02
     sta $014d
@@ -1731,9 +1731,9 @@ sub40_2:
     lda #$00
     sta $89
     lda #$18
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1741,7 +1741,7 @@ sub40_2:
 sub41:
 
     lda #$05
-    sta reg17
+    sta oam_dma
     lda $a2
     cmp #$08
     bne sub41_01
@@ -1761,9 +1761,9 @@ sub41_01:
     lda #$03
     sta $01
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     lda $a2
     cmp #$08
     beq sub41_04
@@ -1776,41 +1776,41 @@ sub41_01:
     beq +     ; why?
 
 *   lda #$34
-    sta reg5
+    sta ppu_data
     lda #$24
-    sta reg5
+    sta ppu_data
     lda #$14
-    sta reg5
+    sta ppu_data
     lda #$04
-    sta reg5
+    sta ppu_data
 
 sub41_02:
     lda #$38
-    sta reg5
+    sta ppu_data
     lda #$28
-    sta reg5
+    sta ppu_data
     lda #$18
-    sta reg5
+    sta ppu_data
     lda #$08
-    sta reg5
+    sta ppu_data
 
 sub41_03:
     lda #$32
-    sta reg5
+    sta ppu_data
     lda #$22
-    sta reg5
+    sta ppu_data
     lda #$12
-    sta reg5
+    sta ppu_data
     lda #$02
-    sta reg5
+    sta ppu_data
 
 sub41_04:
     inc $89
     lda $89
-    sta reg3
+    sta ppu_scroll
     ldx $89
     lda table20,x
-    sta reg3
+    sta ppu_scroll
     inc $a1
     lda $a1
     cmp #$b4
@@ -1974,9 +1974,9 @@ sub41_15:
     jsr sub15
     `chr_bankswitch 1
     lda #$98
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1989,22 +1989,22 @@ sub42:
     jsr sub56
     jsr sub15
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     lda #$20
     sta $014a
     lda #$21
     sta $014b
     lda #$20
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
 
     ldy #0
 sub42_loop1:  ; start outer loop
 
     ldx #0
-*   sty reg5  ; start first inner loop
+*   sty ppu_data  ; start first inner loop
     iny
     inx
     cpx #16
@@ -2012,7 +2012,7 @@ sub42_loop1:  ; start outer loop
 
     ldx #0
 *   lda #$7f  ; start second inner loop
-    sta reg5
+    sta ppu_data
     inx
     cpx #16
     bne -
@@ -2026,7 +2026,7 @@ sub42_loop1:  ; start outer loop
 sub42_loop2:  ; start outer loop
 
     ldx #0
-*   sty reg5  ; start first inner loop
+*   sty ppu_data  ; start first inner loop
     iny
     inx
     cpx #16
@@ -2034,7 +2034,7 @@ sub42_loop2:  ; start outer loop
 
     ldx #0
 *   lda #$7f  ; start second inner loop
-    sta reg5
+    sta ppu_data
     inx
     cpx #16
     bne -
@@ -2043,54 +2043,54 @@ sub42_loop2:  ; start outer loop
     bne sub42_loop2
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$23
-    sta reg4
+    sta ppu_addr
     lda #$aa
-    sta reg4
+    sta ppu_addr
     lda #$e0
-    sta reg5
+    sta ppu_data
     lda #$e1
-    sta reg5
+    sta ppu_data
     lda #$e2
-    sta reg5
+    sta ppu_data
     lda #$e3
-    sta reg5
+    sta ppu_data
     lda #$e4
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     ldx #$00
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$25
-    sta reg5
+    sta ppu_data
     lda #$17
-    sta reg5
+    sta ppu_data
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$11
-    sta reg4
+    sta ppu_addr
     lda #$02
-    sta reg5
+    sta ppu_data
     lda #$12
-    sta reg5
+    sta ppu_data
     lda #$22
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$00
-    sta reg3
-    sta reg3
+    sta ppu_scroll
+    sta ppu_scroll
     lda #$00
     sta $89
     sta $8a
@@ -2103,7 +2103,7 @@ sub42_loop2:  ; start outer loop
     lda #$00
     sta $a3
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2111,7 +2111,7 @@ sub42_loop2:  ; start outer loop
 sub43:
 
     lda #$05
-    sta reg17
+    sta oam_dma
     inc $8a
     inc $8b
     ldx #$18
@@ -2205,7 +2205,7 @@ sub43_loop2:
 
     `chr_bankswitch 3
     lda #$88
-    sta reg0
+    sta ppu_ctrl
     ldx #$ff
     jsr sub19
     jsr sub19
@@ -2217,9 +2217,9 @@ sub43_loop2:
     nop
     nop
     lda #$98
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
     lda $8b
     cmp #$fa
     bne sub43_exit
@@ -2253,56 +2253,56 @@ sub43_exit:
     jsr sub18
     jsr sub15
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda #$0a
-    sta reg4
+    sta ppu_addr
 
     ldx #$50
     ldy #0
-*   stx reg5  ; start loop
+*   stx ppu_data  ; start loop
     inx
     iny
     cpy #12
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda #$2a
-    sta reg4
+    sta ppu_addr
 
     ldy #0
     ldx #$5c
-*   stx reg5  ; start loop
+*   stx ppu_data  ; start loop
     inx
     iny
     cpy #12
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda #$4a
-    sta reg4
+    sta ppu_addr
 
     ldy #0
     ldx #$68
-*   stx reg5  ; start loop
+*   stx ppu_data  ; start loop
     inx
     iny
     cpy #12
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$01
     sta $02
     lda #$00
@@ -2311,20 +2311,20 @@ sub43_exit:
     lda #$00
     sta $8a
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$1a
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg5
+    sta ppu_data
     lda #$10
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
     lda #$00
     sta $0130
     rts
@@ -2334,43 +2334,43 @@ sub43_exit:
     beq sub43_1
 
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$10
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$10
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
 
 sub43_1:
     lda #$01
     sta $0130
     lda #$1e
-    sta reg1
+    sta ppu_mask
     lda #$10
-    sta reg0
+    sta ppu_ctrl
     inc $8a
     lda $8a
     cmp #8
@@ -2388,9 +2388,9 @@ sub43_1:
     lda #$07
     sta $01
 *   lda #$23
-    sta reg4
+    sta ppu_addr
     lda #$61
-    sta reg4
+    sta ppu_addr
 
     ldx #0
 *   txa           ; start loop
@@ -2399,14 +2399,14 @@ sub43_1:
     lda table11,y
     clc
     sbc #$36
-    sta reg5
+    sta ppu_data
     inx
     cpx #31
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
 
 sub43_2:
     `chr_bankswitch 2
@@ -2415,15 +2415,15 @@ sub43_2:
     lda table20,x
     clc
     sbc #$1e
-    sta reg3
+    sta ppu_scroll
     lda #$00
-    sta reg3
+    sta ppu_scroll
     lda #$10
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
     lda #$05
-    sta reg17
+    sta oam_dma
     ldx #$ff
     jsr sub19
     jsr sub19
@@ -2433,12 +2433,12 @@ sub43_2:
     ldx #$d0
     jsr sub19
     lda #$00
-    sta reg0
+    sta ppu_ctrl
     `chr_bankswitch 0
     lda $8a
-    sta reg3
+    sta ppu_scroll
     lda #$00
-    sta reg3
+    sta ppu_scroll
     lda #$d7
     sta $0500
     lda #$25
@@ -2513,9 +2513,9 @@ sub43_2:
     lda #$00
     sta $0137
 *   lda #$88
-    sta reg0
+    sta ppu_ctrl
     lda #$18
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2531,20 +2531,20 @@ sub44:
 
 sub44_loop1:  ; start outer loop
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda $9a
-    sta reg4
+    sta ppu_addr
     ldy #0
 
-*   stx reg5  ; start inner loop
+*   stx ppu_data  ; start inner loop
     inx
     iny
     cpy #$03
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda $9a
     `add_imm 32
     sta $9a
@@ -2558,20 +2558,20 @@ sub44_loop1:  ; start outer loop
 
 sub44_loop2:  ; start outer loop
     lda #$22
-    sta reg4
+    sta ppu_addr
     lda $9a
-    sta reg4
+    sta ppu_addr
     ldy #0
 
-*   stx reg5  ; start inner loop
+*   stx ppu_data  ; start inner loop
     inx
     iny
     cpy #3
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda $9a
     `add_imm 32
     sta $9a
@@ -2580,59 +2580,59 @@ sub44_loop2:  ; start outer loop
     bne sub44_loop2
 
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$10
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$01
-    sta reg5
+    sta ppu_data
     lda #$1c
-    sta reg5
+    sta ppu_data
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg5
+    sta ppu_data
     lda #$10
-    sta reg5
+    sta ppu_data
     lda #$20
-    sta reg5
+    sta ppu_data
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$19
-    sta reg5
+    sta ppu_data
     lda #$26
-    sta reg5
+    sta ppu_data
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$22
-    sta reg5
+    sta ppu_data
     lda #$16
-    sta reg5
+    sta ppu_data
     lda #$27
-    sta reg5
+    sta ppu_data
     lda #$18
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$20
-    sta reg5
+    sta ppu_data
     lda #$10
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
 
     ldx data3
 *   lda table31,x  ; start loop
@@ -2695,9 +2695,9 @@ sub44_loop2:  ; start outer loop
     lda #$01
     sta $02
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     lda #$12
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2705,7 +2705,7 @@ sub44_loop2:  ; start outer loop
 sub45:
 
     lda #$05
-    sta reg17
+    sta oam_dma
     inc $0100
     ldx $0100
     lda table19,x
@@ -2838,13 +2838,13 @@ sub45_4:
     bne -
 
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     lda #$1a
-    sta reg1
+    sta ppu_mask
     lda #$00
-    sta reg3
+    sta ppu_scroll
     lda #$32
-    sta reg3
+    sta ppu_scroll
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2858,23 +2858,23 @@ sub46:
     jsr sub16
     jsr sub18
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
 
     ldx #0
 *   lda table13,x  ; start loop
     clc
     sbc #$10
-    sta reg5
+    sta ppu_data
     inx
     cpx #96
     bne -
 
     lda #$02
-    sta reg0
+    sta ppu_ctrl
     lda #$00
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2882,13 +2882,13 @@ sub46:
 sub47:
 
     lda #$00
-    sta reg3
+    sta ppu_scroll
     lda #$00
-    sta reg3
+    sta ppu_scroll
     lda #$90
-    sta reg0
+    sta ppu_ctrl
     lda #$0e
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2902,30 +2902,30 @@ sub48:
     jsr sub17
     jsr sub18
     lda #$02
-    sta reg0
+    sta ppu_ctrl
     lda #$00
-    sta reg1
+    sta ppu_mask
     lda #$00
     sta $9a
     ldx #$00
 
 sub48_loop:   ; start outer loop
     lda #$20
-    sta reg4
+    sta ppu_addr
     lda $9a
     `add_imm $69
-    sta reg4
+    sta ppu_addr
     ldy #0
 
-*   stx reg5  ; start inner loop
+*   stx ppu_data  ; start inner loop
     inx
     iny
     cpy #16
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda $9a
     `add_imm 32
     sta $9a
@@ -2933,15 +2933,15 @@ sub48_loop:   ; start outer loop
     bne sub48_loop
 
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
 
     ldx #0
 *   lda table14,x  ; start loop
     clc
     sbc #$10
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
@@ -2949,7 +2949,7 @@ sub48_loop:   ; start outer loop
 *   lda table15,x  ; start loop
     clc
     sbc #$10
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
@@ -2957,14 +2957,14 @@ sub48_loop:   ; start outer loop
 *   lda table16,x  ; start loop
     clc
     sbc #$10
-    sta reg5
+    sta ppu_data
     inx
     cpx #$80
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$01
     sta $02
     lda #$e6
@@ -2985,26 +2985,26 @@ sub49:
     jsr sub16
     jsr sub18
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     lda #$0f
-    sta reg5
+    sta ppu_data
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$1a
-    sta reg5
+    sta ppu_data
     lda #$09
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
 *   lda #$00
-    sta reg3
+    sta ppu_scroll
     ldx $0153
     lda table19,x
     `add_mem $0153
-    sta reg3
+    sta ppu_scroll
     lda $0153
     cmp #$00
     beq +
@@ -3026,9 +3026,9 @@ sub49:
 *   lda #$0c
     sta $01
     lda #$90
-    sta reg0
+    sta ppu_ctrl
     lda #$0e
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3041,39 +3041,39 @@ sub50:
     ldy #$00
     jsr sub56
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     lda #$00
     sta $89
     sta $8a
     sta $8b
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     lda #$05
-    sta reg5
+    sta ppu_data
     lda #$25
-    sta reg5
+    sta ppu_data
     lda #$15
-    sta reg5
+    sta ppu_data
     lda #$30
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$c8
     sta $013d
     lda #$00
-    sta reg3
+    sta ppu_scroll
     lda #$c8
-    sta reg3
+    sta ppu_scroll
     lda #$00
     sta $014c
     lda #$01
     sta $02
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3088,13 +3088,13 @@ sub51:
 
 sub51_loop1:  ; start outer loop
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda #$04
     `add_mem $013b
-    sta reg4
+    sta ppu_addr
 
     ldx #0
-*   sty reg5  ; start inner loop
+*   sty ppu_data  ; start inner loop
     iny
     inx
     cpx #8
@@ -3108,13 +3108,13 @@ sub51_loop1:  ; start outer loop
 
 sub51_loop2:  ; start outer loop
     lda #$22
-    sta reg4
+    sta ppu_addr
     lda #$04
     `add_mem $013b
-    sta reg4
+    sta ppu_addr
 
     ldx #0
-*   sty reg5  ; start inner loop
+*   sty ppu_data  ; start inner loop
     iny
     inx
     cpx #8
@@ -3127,20 +3127,20 @@ sub51_loop2:  ; start outer loop
     bne sub51_loop2
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$00
     sta $013b
 
 sub51_loop3:  ; start outer loop
     lda #$21
-    sta reg4
+    sta ppu_addr
     lda #$14
     `add_mem $013b
-    sta reg4
+    sta ppu_addr
 
     ldx #0
-*   sty reg5  ; start inner loop
+*   sty ppu_data  ; start inner loop
     iny
     inx
     cpx #8
@@ -3154,13 +3154,13 @@ sub51_loop3:  ; start outer loop
 
 sub51_loop4:  ; start outer loop
     lda #$22
-    sta reg4
+    sta ppu_addr
     lda #$14
     `add_mem $013b
-    sta reg4
+    sta ppu_addr
 
     ldx #0
-*   sty reg5  ; start inner loop
+*   sty ppu_data  ; start inner loop
     iny
     inx
     cpx #8
@@ -3173,8 +3173,8 @@ sub51_loop4:  ; start outer loop
     bne sub51_loop4
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
 
 sub51_1:
     lda $013c
@@ -3182,11 +3182,11 @@ sub51_1:
     bcc +
     jmp sub51_2
 *   lda #$00
-    sta reg3
+    sta ppu_scroll
     lda $013d
     clc
     sbc $013c
-    sta reg3
+    sta ppu_scroll
 
 sub51_2:
     lda $00
@@ -3229,18 +3229,18 @@ sub51_loop5:
     bcs ++
 
 *   lda #$0e
-    sta reg1
+    sta ppu_mask
     jmp sub51_6  ; why jump to another JMP?
 *   lda $89
     cmp $9b
     bcs +
     lda #$ee
-    sta reg1
+    sta ppu_mask
 
 sub51_6:
     jmp ++
 *   lda #$0e
-    sta reg1
+    sta ppu_mask
 *   lda $89
     `add_mem $8b
     adc $8a
@@ -3249,12 +3249,12 @@ sub51_6:
     tax
     lda table19,x
     `add_mem $8b
-    sta reg3
+    sta ppu_scroll
     lda $89
     `add_mem $8b
     tax
     lda table20,x
-    sta reg3
+    sta ppu_scroll
     ldx $8a
     lda table20,x
     `add_imm 60
@@ -3266,9 +3266,9 @@ sub51_6:
 
 sub51_7:
     lda #$90
-    sta reg0
+    sta ppu_ctrl
     lda #$0e
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3276,7 +3276,7 @@ sub51_7:
 sub52:
 
     ldy #0
-*   stx reg5
+*   stx ppu_data
     iny
     cpy #32
     bne -
@@ -3289,7 +3289,7 @@ sub53:
     ; Why identical to the previous subroutine?
 
     ldy #0
-*   stx reg5
+*   stx ppu_data
     iny
     cpy #32
     bne -
@@ -3304,12 +3304,12 @@ sub54:
     jsr sub59
     jsr sub15
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     lda #$20
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     ldx #$25
     jsr sub52
     ldx #$25
@@ -3359,38 +3359,38 @@ sub54:
     ldx #$38
     jsr sub52
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     lda table18+4
-    sta reg5
+    sta ppu_data
     lda table18+5
-    sta reg5
+    sta ppu_data
     lda table18+6
-    sta reg5
+    sta ppu_data
     lda table18+7
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$3f
-    sta reg4
+    sta ppu_addr
     lda #$10
-    sta reg4
+    sta ppu_addr
     lda table18+8
-    sta reg5
+    sta ppu_data
     lda table18+9
-    sta reg5
+    sta ppu_data
     lda table18+10
-    sta reg5
+    sta ppu_data
     lda table18+11
-    sta reg5
+    sta ppu_data
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
 
     ldx data7
 *   txa        ; start loop
@@ -3433,7 +3433,7 @@ sub55:
     lda table22,x
     sta $9b
     lda #$05
-    sta reg17
+    sta oam_dma
     ldx data7
 
 *   txa  ; start loop
@@ -3486,9 +3486,9 @@ sub55:
 
 sub55_1:
     lda #$22
-    sta reg4
+    sta ppu_addr
     lda #$61
-    sta reg4
+    sta ppu_addr
     ldx #$00
 
 *   txa           ; start loop
@@ -3497,22 +3497,22 @@ sub55_1:
     lda table11,y
     clc
     sbc #$36
-    sta reg5
+    sta ppu_data
     inx
     cpx #31
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
 
 sub55_2:
     inc $89
     ldx $89
     lda $8a
-    sta reg3
+    sta ppu_scroll
     lda table20,x
-    sta reg3
+    sta ppu_scroll
     lda table20,x
     sta $9a
     lda #$94
@@ -3576,9 +3576,9 @@ sub55_2:
     lda #$00
     sta $0517
     lda #$80
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3586,28 +3586,28 @@ sub55_2:
 sub56:
 
     lda #$23
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
 
     ldx #64
-*   sty reg5
+*   sty ppu_data
     dex
     bne -
 
     lda #$2b
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
 
     ldx #64
-*   sty reg5
+*   sty ppu_data
     dex
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3615,53 +3615,53 @@ sub56:
 sub57:
 
     lda #$23
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
 
     ldx #32
-*   sty reg5
+*   sty ppu_data
     dex
     bne -
 
     lda #$2b
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
 
     ldx #32
-*   sty reg5
+*   sty ppu_data
     dex
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     rts
 
     lda #$23
-    sta reg4
+    sta ppu_addr
     lda #$e0
-    sta reg4
+    sta ppu_addr
 
     ldx #32
-*   sty reg5
+*   sty ppu_data
     dex
     bne -
 
     lda #$2b
-    sta reg4
+    sta ppu_addr
     lda #$e0
-    sta reg4
+    sta ppu_addr
 
     ldx #32
-*   sty reg5
+*   sty ppu_data
     dex
     bne -
 
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3673,43 +3673,43 @@ sub58:
     lda #$3c
     sta $9a
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     lda #$20
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
 
     ldx #0
     ldy #0  ; why?
 *   lda $8e
-    sta reg5
-    sta reg5
-    sta reg5
-    sta reg5
+    sta ppu_data
+    sta ppu_data
+    sta ppu_data
+    sta ppu_data
     inx
     bne -
 
     lda #$28
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
 
     ldx #0
     ldy #0  ; why?
 *   lda $8e
-    sta reg5
-    sta reg5
-    sta reg5
-    sta reg5
+    sta ppu_data
+    sta ppu_data
+    sta ppu_data
+    sta ppu_data
     inx
     bne -
 
     lda #$01
     sta $02
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3721,112 +3721,112 @@ sub59:
     lda #$3c
     sta $9a
     lda #$00
-    sta reg0
-    sta reg1
+    sta ppu_ctrl
+    sta ppu_mask
     lda #$23
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
     ldx #$00
 
 *   lda #$00
-    sta reg5
+    sta ppu_data
     inx
     cpx #64
     bne -
 
     lda #$27
-    sta reg4
+    sta ppu_addr
     lda #$c0
-    sta reg4
+    sta ppu_addr
     ldx #$00
 
 *   lda #$00
-    sta reg5
+    sta ppu_data
     inx
     cpx #64
     bne -
 
     lda #$20
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     ldx #$00
     ldy #$00
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     cpx #192
     bne -
 
     lda #$24
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     ldx #$00
     ldy #$00
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     cpx #192
     bne -
 
     lda #$28
-    sta reg4
+    sta ppu_addr
     lda #$00
-    sta reg4
+    sta ppu_addr
     ldx #$00
     ldy #$00
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     bne -
 
 *   lda $8e
-    sta reg5
+    sta ppu_data
     inx
     cpx #192
     bne -
@@ -3836,15 +3836,15 @@ sub59:
     lda #$72
     sta $96
     lda #$00
-    sta reg4
-    sta reg4
+    sta ppu_addr
+    sta ppu_addr
     lda #$00
-    sta reg3
-    sta reg3
+    sta ppu_scroll
+    sta ppu_scroll
     lda #$00
-    sta reg0
+    sta ppu_ctrl
     lda #$1e
-    sta reg1
+    sta ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3853,7 +3853,7 @@ nmi:
     ; Note: why not just RTI instead of a JMP to one (or even JMP to another
     ; JMP to RTI)?
 
-    lda reg2
+    lda ppu_status
     lda $01
     cmp #0
     beq nmi_jump_table+1*3

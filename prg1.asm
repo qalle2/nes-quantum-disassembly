@@ -23,56 +23,53 @@ init:
     jsr sub15
     jsr sub16
     jsr sub18
-    lda #$3f
-    sta ppu_addr
-    lda #$1c
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$1c
-    sta ppu_data
-    lda #$2b
-    sta ppu_data
-    lda #$39
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `set_ppu_addr vram_palette+7*4
+    `write_ppu_data $0f
+    `write_ppu_data $1c
+    `write_ppu_data $2b
+    `write_ppu_data $39
+    `reset_ppu_addr
+
     lda #$00
     sta $01
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
+
     ldx #$ff
     jsr sub59
     jsr sub28
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
+
     ldy #$00
     jsr sub56
     lda #$ff
     sta pulse1_ctrl
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `reset_ppu_addr
+
     lda #$00
     ldx #$01
     jsr sub13
     jsr sub14
-    lda #$80
+    lda #%10000000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
 
 *   lda $01
     cmp #$09
     bne +
-        lda #$0d
-        sta dmc_addr
-        lda #$fa
-        sta dmc_length
+    lda #$0d
+    sta dmc_addr
+    lda #$fa
+    sta dmc_length
 *   jmp --
 
 ; -----------------------------------------------------------------------------
@@ -99,10 +96,10 @@ sub15:
     bne -
     rts
 
-    lda #$00
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
-    lda #$00
+    lda #%00000000
     sta ppu_ctrl
 
     lda #$00
@@ -148,10 +145,7 @@ sub17:
 
 sub18:
 
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+    `set_ppu_addr vram_palette
 
     ldx #0
 *   lda $07c0,x
@@ -160,9 +154,7 @@ sub18:
     cpx #32
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -244,18 +236,15 @@ sub20:
 
 sub21:
 
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+    `set_ppu_addr vram_palette
+
     lda $e8
     cmp #8
     bcc +
     lda $e8
     sta ppu_data
     jmp sub21_exit
-*   lda #$3f
-    sta ppu_data
+*   `write_ppu_data $3f
 sub21_exit:
     rts
 
@@ -476,10 +465,12 @@ sub26:
 
     stx $91
     sty $92
+
     lda $91
     sta ppu_addr
     lda $92
     sta ppu_addr
+
     ldx #$00
     ldy #$00
     stx $90
@@ -518,9 +509,7 @@ sub26:
     cmp #$10
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -606,15 +595,16 @@ sub29_01:
     lda table19,x
     `add_mem $96
     sta ppu_scroll
+
     lda $96
     cmp #$dc
     bne +
     jmp ++
 *   inc $96
     inc $96
-*   lda #$80
+*   lda #%10000000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
 
 sub29_jump_table:
@@ -640,10 +630,12 @@ sub29_02:
     ldx #$20
     ldy #$00
     jsr sub26
+
     lda #$00
     sta ppu_scroll
     lda $96
     sta ppu_scroll
+
     dec $96
     lda $96
     cmp #$f0
@@ -828,73 +820,43 @@ sub30:
     jsr sub58
     ldy #$00
     ldy #$00
-    lda #$28
-    sta ppu_addr
-    lda #$20
-    sta ppu_addr
+
+    `set_ppu_addr vram_name_table2+32
 
     ldx #0
 *   stx ppu_data
     inx
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$3f
-    sta ppu_addr
-    lda #$10
-    sta ppu_addr
-    lda #$00
-    sta ppu_data
-    lda #$30
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$3f
-    sta ppu_addr
-    lda #$15
-    sta ppu_addr
-    lda #$3d
-    sta ppu_data
-    lda #$0c
-    sta ppu_data
-    lda #$3c
-    sta ppu_data
-    lda #$0f
-    sta ppu_data
-    lda #$3c
-    sta ppu_data
-    lda #$0c
-    sta ppu_data
-    lda #$1a
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
-    lda #$38
-    sta ppu_data
-    lda #$01
-    sta ppu_data
-    lda #$26
-    sta ppu_data
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+    `set_ppu_addr vram_palette+4*4
+    `write_ppu_data $00
+    `write_ppu_data $30
+    `reset_ppu_addr
+    `set_ppu_addr vram_palette+5*4+1
+    `write_ppu_data $3d
+    `write_ppu_data $0c
+    `write_ppu_data $3c
+    `write_ppu_data $0f
+    `write_ppu_data $3c
+    `write_ppu_data $0c
+    `write_ppu_data $1a
+    `reset_ppu_addr
+    `set_ppu_addr vram_palette
+    `write_ppu_data $38
+    `write_ppu_data $01
+    `write_ppu_data $26
+    `write_ppu_data $0f
+    `reset_ppu_addr
+
     lda #$01
     sta $02
     lda #$8e
     sta $012e
     lda #$19
     sta $012f
-    lda #$1e
+
+    lda #%00011110
     sta ppu_mask
     rts
 
@@ -905,23 +867,21 @@ sub31:
     `chr_bankswitch 0
     lda #$05
     sta oam_dma
-    lda #$90
+
+    lda #%10010000
     sta ppu_ctrl
-    lda #$3f
-    sta ppu_addr
-    lda #$03
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$00
+
+    `set_ppu_addr vram_palette+3
+    `write_ppu_data $0f
+    `reset_ppu_addr
+
+    lda #0
     sta ppu_scroll
     ldx $014e
     lda table19,x
     `add_mem $014e
     sta ppu_scroll
+
     lda $014e
     cmp #$c1
     beq +
@@ -976,15 +936,10 @@ sub31:
     sta $0566
     lda #$e6
     sta $0567
-    lda #$3f
-    sta ppu_addr
-    lda #$03
-    sta ppu_addr
-    lda #$30
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `set_ppu_addr vram_palette+3
+    `write_ppu_data $30
+    `reset_ppu_addr
 
 sub31_1:
     lda $ac
@@ -1088,8 +1043,10 @@ sub33:
     ldx $8a
     lda table20,x
     sta $8d
-    lda #$84
+
+    lda #%10000100
     sta ppu_ctrl
+
     lda #$00
     sta $89
     ldy #$9f
@@ -1100,10 +1057,8 @@ sub33_loop:
 *   dex
     bne -
 
-    ldx #$3f
-    stx ppu_addr
-    ldx #$00
-    stx ppu_addr
+    `set_ppu_addr_via_x vram_palette
+
     inc $8c
     lda $8c
     cmp #$05
@@ -1129,9 +1084,9 @@ sub33_loop:
     dey
     bne sub33_loop
 
-    lda #$06
+    lda #%00000110
     sta ppu_mask
-    lda #$90
+    lda #%10010000
     sta ppu_ctrl
     rts
 
@@ -1141,23 +1096,21 @@ sub34:
 
     ldx #$00
     jsr sub58
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
+
     ldy #$14
     jsr sub56
     jsr sub12
     jsr sub16
     jsr sub18
-    lda #$3f
-    sta ppu_addr
-    lda #$0c
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `set_ppu_addr vram_palette+3*4
+    `write_ppu_data $0f
+    `reset_ppu_addr
+
     lda #$01
     sta $02
     lda #$05
@@ -1200,8 +1153,8 @@ sub35_loop1:  ; start outer loop
     sta ppu_addr
     lda $9a
     sta ppu_addr
-    ldy #$00
 
+    ldy #0
 *   lda $0600,x  ; start inner loop
     sta ppu_data
     lda $0600,x
@@ -1254,8 +1207,8 @@ sub35_loop2:  ; start outer loop
     sta ppu_addr
     lda $9a
     sta ppu_addr
-    ldy #$00
 
+    ldy #0
 *   lda $0600,x  ; start inner loop
     sta ppu_data
     lda $0600,x
@@ -1281,9 +1234,8 @@ sub35_loop2:  ; start outer loop
     sta $0148
 
 sub35_2:
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     lda #$00
     sta $89
 
@@ -1314,9 +1266,10 @@ sub35_2:
     lda #$e6
     sta ppu_scroll
     dec $8b
-    lda #$0e
+
+    lda #%00001110
     sta ppu_mask
-    lda #$80
+    lda #%10000000
     sta ppu_ctrl
     rts
 
@@ -1328,22 +1281,20 @@ sub36:
     jsr sub58
     jsr sub16
     jsr sub18
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
+
     ldy #$ff
     jsr sub56
     ldy #$55
     jsr sub57
-    lda #$3f
-    sta ppu_addr
-    lda #$0c
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `set_ppu_addr vram_palette+3*4
+    `write_ppu_data $0f
+    `reset_ppu_addr
+
     lda #$01
     sta $02
     rts
@@ -1421,8 +1372,8 @@ sub37_loop2:  ; start outer loop
     sta ppu_addr
     lda $9a
     sta ppu_addr
-    ldy #0
 
+    ldy #0
 *   lda $0600,x  ; start inner loop
     sta ppu_data
     lda $0600,x
@@ -1447,9 +1398,8 @@ sub37_loop2:  ; start outer loop
     sta $0148
 
 sub37_2:
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     ldx $8b
     lda table22,x
     sbc $8b
@@ -1465,9 +1415,10 @@ sub37_2:
     sbc #10
     sta ppu_scroll
     dec $8b
-    lda #$0e
+
+    lda #%00001110
     sta ppu_mask
-    lda #$80
+    lda #%10000000
     sta ppu_ctrl
     rts
 
@@ -1488,9 +1439,10 @@ sub38:
     sta $8a
     sta $8b
     sta $8c
-    lda #$00
+
+    lda #%00000000
     sta ppu_mask
-    lda #$80
+    lda #%10000000
     sta ppu_ctrl
     rts
 
@@ -1506,30 +1458,23 @@ sub39:
     lda #$00
     sta $8b
     dec $8a
-*   lda #$84
+
+*   lda #%10000100
     sta ppu_ctrl
-    ldx #$3f
-    stx ppu_addr
-    ldx #$00
-    stx ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `set_ppu_addr_via_x vram_palette
+    `write_ppu_data $0f
+    `reset_ppu_addr
+
     ldx #$ff
     jsr sub19
     ldx #$01
     jsr sub19
-    ldx #$3f
-    stx ppu_addr
-    ldx #$00
-    stx ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `set_ppu_addr_via_x vram_palette
+    `write_ppu_data $0f
+    `reset_ppu_addr
+
     lda #$00
     sta $89
 
@@ -1540,10 +1485,8 @@ sub39_loop:  ; start outer loop
 *   dex      ; start inner loop
     bne -
 
-    ldx #$3f
-    stx ppu_addr
-    ldx #$00
-    stx ppu_addr
+    `set_ppu_addr_via_x vram_palette
+
     ldx $8a
     lda table22,x
     sta $9a
@@ -1561,18 +1504,10 @@ sub39_loop:  ; start outer loop
     dey
     bne sub39_loop
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    ldx #$3f
-    stx ppu_addr
-    ldx #$00
-    stx ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+    `set_ppu_addr_via_x vram_palette
+    `write_ppu_data $0f
+    `reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1583,25 +1518,14 @@ sub40:
     jsr sub58
     jsr sub16
     jsr sub18
-    lda #$3f
-    sta ppu_addr
-    lda #$1c
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$19
-    sta ppu_data
-    lda #$33
-    sta ppu_data
-    lda #$30
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$20
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+
+    `set_ppu_addr vram_palette+7*4
+    `write_ppu_data $0f
+    `write_ppu_data $19
+    `write_ppu_data $33
+    `write_ppu_data $30
+    `reset_ppu_addr
+    `set_ppu_addr vram_name_table0
 
 sub40_1:
     lda #$00
@@ -1676,25 +1600,20 @@ sub40_loop5:  ; start outer loop
     cpy #8
     bne sub40_loop5
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     inc $a0
     lda $a0
     cmp #$02
     bne +
     jmp sub40_2
-*   lda #$28
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+
+*   `set_ppu_addr vram_name_table2
+
     jmp sub40_1
 
 sub40_2:
-    lda #$23
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
+    `set_ppu_addr vram_attr_table0
 
     ldx #0
 *   lda #$00  ; start loop
@@ -1703,13 +1622,8 @@ sub40_2:
     cpx #64
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$2b
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
+    `reset_ppu_addr
+    `set_ppu_addr vram_attr_table2
 
     ldx #0
 *   lda #$00  ; start loop
@@ -1718,9 +1632,8 @@ sub40_2:
     cpx #64
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     jsr sub15
     lda #$02
     sta $014d
@@ -1730,9 +1643,10 @@ sub40_2:
     sta $02
     lda #$00
     sta $89
-    lda #$18
+
+    lda #%00011000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
     rts
 
@@ -1760,10 +1674,9 @@ sub41:
 sub41_01:
     lda #$03
     sta $01
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+
+    `set_ppu_addr vram_palette
+
     lda $a2
     cmp #$08
     beq sub41_04
@@ -1775,34 +1688,22 @@ sub41_01:
     cmp #2
     beq +     ; why?
 
-*   lda #$34
-    sta ppu_data
-    lda #$24
-    sta ppu_data
-    lda #$14
-    sta ppu_data
-    lda #$04
-    sta ppu_data
+*   `write_ppu_data $34
+    `write_ppu_data $24
+    `write_ppu_data $14
+    `write_ppu_data $04
 
 sub41_02:
-    lda #$38
-    sta ppu_data
-    lda #$28
-    sta ppu_data
-    lda #$18
-    sta ppu_data
-    lda #$08
-    sta ppu_data
+    `write_ppu_data $38
+    `write_ppu_data $28
+    `write_ppu_data $18
+    `write_ppu_data $08
 
 sub41_03:
-    lda #$32
-    sta ppu_data
-    lda #$22
-    sta ppu_data
-    lda #$12
-    sta ppu_data
-    lda #$02
-    sta ppu_data
+    `write_ppu_data $32
+    `write_ppu_data $22
+    `write_ppu_data $12
+    `write_ppu_data $02
 
 sub41_04:
     inc $89
@@ -1973,9 +1874,10 @@ sub41_14:
 sub41_15:
     jsr sub15
     `chr_bankswitch 1
-    lda #$98
+
+    lda #%10011000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
     rts
 
@@ -1988,17 +1890,17 @@ sub42:
     ldy #$00
     jsr sub56
     jsr sub15
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
+
     lda #$20
     sta $014a
     lda #$21
     sta $014b
-    lda #$20
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+
+    `set_ppu_addr vram_name_table0
 
     ldy #0
 sub42_loop1:  ; start outer loop
@@ -2011,8 +1913,7 @@ sub42_loop1:  ; start outer loop
     bne -
 
     ldx #0
-*   lda #$7f  ; start second inner loop
-    sta ppu_data
+*   `write_ppu_data $7f  ; start second inner loop
     inx
     cpx #16
     bne -
@@ -2033,8 +1934,7 @@ sub42_loop2:  ; start outer loop
     bne -
 
     ldx #0
-*   lda #$7f  ; start second inner loop
-    sta ppu_data
+*   `write_ppu_data $7f  ; start second inner loop
     inx
     cpx #16
     bne -
@@ -2042,55 +1942,29 @@ sub42_loop2:  ; start outer loop
     cpy #$e0
     bne sub42_loop2
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$23
-    sta ppu_addr
-    lda #$aa
-    sta ppu_addr
-    lda #$e0
-    sta ppu_data
-    lda #$e1
-    sta ppu_data
-    lda #$e2
-    sta ppu_data
-    lda #$e3
-    sta ppu_data
-    lda #$e4
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+    `reset_ppu_addr
+    `set_ppu_addr vram_name_table0+29*32+10
+    `write_ppu_data $e0
+    `write_ppu_data $e1
+    `write_ppu_data $e2
+    `write_ppu_data $e3
+    `write_ppu_data $e4
+    `reset_ppu_addr
+    `set_ppu_addr vram_palette
+
     ldx #$00
-    lda #$30
-    sta ppu_data
-    lda #$25
-    sta ppu_data
-    lda #$17
-    sta ppu_data
-    lda #$0f
-    sta ppu_data
-    lda #$3f
-    sta ppu_addr
-    lda #$11
-    sta ppu_addr
-    lda #$02
-    sta ppu_data
-    lda #$12
-    sta ppu_data
-    lda #$22
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$00
-    sta ppu_scroll
-    sta ppu_scroll
+
+    `write_ppu_data $30
+    `write_ppu_data $25
+    `write_ppu_data $17
+    `write_ppu_data $0f
+    `set_ppu_addr vram_palette+4*4+1
+    `write_ppu_data $02
+    `write_ppu_data $12
+    `write_ppu_data $22
+    `reset_ppu_addr
+    `reset_ppu_scroll
+
     lda #$00
     sta $89
     sta $8a
@@ -2102,7 +1976,8 @@ sub42_loop2:  ; start outer loop
     sta $02
     lda #$00
     sta $a3
-    lda #$80
+
+    lda #%10000000
     sta ppu_ctrl
     rts
 
@@ -2204,8 +2079,10 @@ sub43_loop2:
     bne sub43_loop2
 
     `chr_bankswitch 3
-    lda #$88
+
+    lda #%10001000
     sta ppu_ctrl
+
     ldx #$ff
     jsr sub19
     jsr sub19
@@ -2216,10 +2093,12 @@ sub43_loop2:
     nop
     nop
     nop
-    lda #$98
+
+    lda #%10011000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
+
     lda $8b
     cmp #$fa
     bne sub43_exit
@@ -2252,13 +2131,12 @@ sub43_exit:
     jsr sub16
     jsr sub18
     jsr sub15
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
-    lda #$21
-    sta ppu_addr
-    lda #$0a
-    sta ppu_addr
+
+    `set_ppu_addr vram_name_table0+8*32+10
 
     ldx #$50
     ldy #0
@@ -2268,13 +2146,8 @@ sub43_exit:
     cpy #12
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$21
-    sta ppu_addr
-    lda #$2a
-    sta ppu_addr
+    `reset_ppu_addr
+    `set_ppu_addr vram_name_table0+9*32+10
 
     ldy #0
     ldx #$5c
@@ -2284,13 +2157,8 @@ sub43_exit:
     cpy #12
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$21
-    sta ppu_addr
-    lda #$4a
-    sta ppu_addr
+    `reset_ppu_addr
+    `set_ppu_addr vram_name_table0+10*32+10
 
     ldy #0
     ldx #$68
@@ -2300,9 +2168,8 @@ sub43_exit:
     cpy #12
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     lda #$01
     sta $02
     lda #$00
@@ -2310,21 +2177,17 @@ sub43_exit:
     sta $89
     lda #$00
     sta $8a
-    lda #$3f
-    sta ppu_addr
-    lda #$1a
-    sta ppu_addr
-    lda #$00
-    sta ppu_data
-    lda #$10
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$80
+
+    `set_ppu_addr vram_palette+6*4+2
+    `write_ppu_data $00
+    `write_ppu_data $10
+    `reset_ppu_addr
+
+    lda #%10000000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
+
     lda #$00
     sta $0130
     rts
@@ -2333,44 +2196,28 @@ sub43_exit:
     cmp #$01
     beq sub43_1
 
-    lda #$3f
-    sta ppu_addr
-    lda #$10
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$0f
-    sta ppu_data
-    lda #$0f
-    sta ppu_data
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$30
-    sta ppu_data
-    lda #$10
-    sta ppu_data
-    lda #$00
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `set_ppu_addr vram_palette+4*4
+    `write_ppu_data $0f
+    `write_ppu_data $0f
+    `write_ppu_data $0f
+    `write_ppu_data $0f
+    `reset_ppu_addr
+    `set_ppu_addr vram_palette
+    `write_ppu_data $0f
+    `write_ppu_data $30
+    `write_ppu_data $10
+    `write_ppu_data $00
+    `reset_ppu_addr
 
 sub43_1:
     lda #$01
     sta $0130
-    lda #$1e
+
+    lda #%00011110
     sta ppu_mask
-    lda #$10
+    lda #%00010000
     sta ppu_ctrl
+
     inc $8a
     lda $8a
     cmp #8
@@ -2387,10 +2234,8 @@ sub43_1:
     sta $02
     lda #$07
     sta $01
-*   lda #$23
-    sta ppu_addr
-    lda #$61
-    sta ppu_addr
+
+*   `set_ppu_addr vram_name_table0+27*32+1
 
     ldx #0
 *   txa           ; start loop
@@ -2404,9 +2249,7 @@ sub43_1:
     cpx #31
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
 
 sub43_2:
     `chr_bankswitch 2
@@ -2418,10 +2261,12 @@ sub43_2:
     sta ppu_scroll
     lda #$00
     sta ppu_scroll
-    lda #$10
+
+    lda #%00010000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
+
     lda #$05
     sta oam_dma
     ldx #$ff
@@ -2432,13 +2277,17 @@ sub43_2:
     jsr sub19
     ldx #$d0
     jsr sub19
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
+
     `chr_bankswitch 0
+
     lda $8a
     sta ppu_scroll
     lda #$00
     sta ppu_scroll
+
     lda #$d7
     sta $0500
     lda #$25
@@ -2512,9 +2361,10 @@ sub43_2:
     bne +
     lda #$00
     sta $0137
-*   lda #$88
+
+*   lda #%10001000
     sta ppu_ctrl
-    lda #$18
+    lda #%00011000
     sta ppu_mask
     rts
 
@@ -2534,17 +2384,16 @@ sub44_loop1:  ; start outer loop
     sta ppu_addr
     lda $9a
     sta ppu_addr
-    ldy #0
 
+    ldy #0
 *   stx ppu_data  ; start inner loop
     inx
     iny
-    cpy #$03
+    cpy #3
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     lda $9a
     `add_imm 32
     sta $9a
@@ -2561,17 +2410,16 @@ sub44_loop2:  ; start outer loop
     sta ppu_addr
     lda $9a
     sta ppu_addr
-    ldy #0
 
+    ldy #0
 *   stx ppu_data  ; start inner loop
     inx
     iny
     cpy #3
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     lda $9a
     `add_imm 32
     sta $9a
@@ -2579,60 +2427,31 @@ sub44_loop2:  ; start outer loop
     cmp #$68
     bne sub44_loop2
 
-    lda #$3f
-    sta ppu_addr
-    lda #$10
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$01
-    sta ppu_data
-    lda #$1c
-    sta ppu_data
-    lda #$30
-    sta ppu_data
-    lda #$0f
-    sta ppu_data
-    lda #$00
-    sta ppu_data
-    lda #$10
-    sta ppu_data
-    lda #$20
-    sta ppu_data
-    lda #$0f
-    sta ppu_data
-    lda #$19
-    sta ppu_data
-    lda #$26
-    sta ppu_data
-    lda #$30
-    sta ppu_data
-    lda #$22
-    sta ppu_data
-    lda #$16
-    sta ppu_data
-    lda #$27
-    sta ppu_data
-    lda #$18
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$20
-    sta ppu_data
-    lda #$10
-    sta ppu_data
-    lda #$00
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `set_ppu_addr vram_palette+4*4
+
+    `write_ppu_data $0f
+    `write_ppu_data $01
+    `write_ppu_data $1c
+    `write_ppu_data $30
+    `write_ppu_data $0f
+    `write_ppu_data $00
+    `write_ppu_data $10
+    `write_ppu_data $20
+    `write_ppu_data $0f
+    `write_ppu_data $19
+    `write_ppu_data $26
+    `write_ppu_data $30
+    `write_ppu_data $22
+    `write_ppu_data $16
+    `write_ppu_data $27
+    `write_ppu_data $18
+    `reset_ppu_addr
+    `set_ppu_addr vram_palette
+    `write_ppu_data $0f
+    `write_ppu_data $20
+    `write_ppu_data $10
+    `write_ppu_data $00
+    `reset_ppu_addr
 
     ldx data3
 *   lda table31,x  ; start loop
@@ -2694,9 +2513,10 @@ sub44_loop2:  ; start outer loop
     sta $0102
     lda #$01
     sta $02
-    lda #$80
+
+    lda #%10000000
     sta ppu_ctrl
-    lda #$12
+    lda #%00010010
     sta ppu_mask
     rts
 
@@ -2837,14 +2657,12 @@ sub45_4:
     cpx #255
     bne -
 
-    lda #$80
+    lda #%10000000
     sta ppu_ctrl
-    lda #$1a
+    lda #%00011010
     sta ppu_mask
-    lda #$00
-    sta ppu_scroll
-    lda #$32
-    sta ppu_scroll
+
+    `set_ppu_scroll 0, 50
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2857,10 +2675,8 @@ sub46:
     jsr sub56
     jsr sub16
     jsr sub18
-    lda #$21
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
+
+    `set_ppu_addr vram_name_table0+14*32
 
     ldx #0
 *   lda table13,x  ; start loop
@@ -2871,9 +2687,9 @@ sub46:
     cpx #96
     bne -
 
-    lda #$02
+    lda #%00000010
     sta ppu_ctrl
-    lda #$00
+    lda #%00000000
     sta ppu_mask
     rts
 
@@ -2881,13 +2697,11 @@ sub46:
 
 sub47:
 
-    lda #$00
-    sta ppu_scroll
-    lda #$00
-    sta ppu_scroll
-    lda #$90
+    `set_ppu_scroll 0, 0
+
+    lda #%10010000
     sta ppu_ctrl
-    lda #$0e
+    lda #%00001110
     sta ppu_mask
     rts
 
@@ -2901,10 +2715,12 @@ sub48:
     jsr sub56
     jsr sub17
     jsr sub18
-    lda #$02
+
+    lda #%00000010
     sta ppu_ctrl
-    lda #$00
+    lda #%00000000
     sta ppu_mask
+
     lda #$00
     sta $9a
     ldx #$00
@@ -2915,27 +2731,23 @@ sub48_loop:   ; start outer loop
     lda $9a
     `add_imm $69
     sta ppu_addr
-    ldy #0
 
+    ldy #0
 *   stx ppu_data  ; start inner loop
     inx
     iny
     cpy #16
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     lda $9a
     `add_imm 32
     sta $9a
     cmp #96
     bne sub48_loop
 
-    lda #$21
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+    `set_ppu_addr vram_name_table0+8*32
 
     ldx #0
 *   lda table14,x  ; start loop
@@ -2962,9 +2774,8 @@ sub48_loop:   ; start outer loop
     cpx #$80
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     lda #$01
     sta $02
     lda #$e6
@@ -2984,27 +2795,21 @@ sub49:
     bne +
     jsr sub16
     jsr sub18
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
-    lda #$0f
-    sta ppu_data
-    lda #$30
-    sta ppu_data
-    lda #$1a
-    sta ppu_data
-    lda #$09
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-*   lda #$00
+
+    `set_ppu_addr vram_palette
+    `write_ppu_data $0f
+    `write_ppu_data $30
+    `write_ppu_data $1a
+    `write_ppu_data $09
+    `reset_ppu_addr
+
+*   lda #0
     sta ppu_scroll
     ldx $0153
     lda table19,x
     `add_mem $0153
     sta ppu_scroll
+
     lda $0153
     cmp #$00
     beq +
@@ -3025,9 +2830,10 @@ sub49:
     sta $a3
 *   lda #$0c
     sta $01
-    lda #$90
+
+    lda #%10010000
     sta ppu_ctrl
-    lda #$0e
+    lda #%00001110
     sta ppu_mask
     rts
 
@@ -3040,39 +2846,34 @@ sub50:
     jsr sub15
     ldy #$00
     jsr sub56
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
+
     lda #$00
     sta $89
     sta $8a
     sta $8b
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
-    lda #$05
-    sta ppu_data
-    lda #$25
-    sta ppu_data
-    lda #$15
-    sta ppu_data
-    lda #$30
-    sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `set_ppu_addr vram_palette
+    `write_ppu_data $05
+    `write_ppu_data $25
+    `write_ppu_data $15
+    `write_ppu_data $30
+    `reset_ppu_addr
+
     lda #$c8
     sta $013d
-    lda #$00
-    sta ppu_scroll
-    lda #$c8
-    sta ppu_scroll
+
+    `set_ppu_scroll 0, 200
+
     lda #$00
     sta $014c
     lda #$01
     sta $02
-    lda #$80
+
+    lda #%10000000
     sta ppu_ctrl
     rts
 
@@ -3087,9 +2888,9 @@ sub51:
 *   ldy #$80
 
 sub51_loop1:  ; start outer loop
-    lda #$21
+    lda #>[vram_name_table0+8*32+4]
     sta ppu_addr
-    lda #$04
+    lda #<[vram_name_table0+8*32+4]
     `add_mem $013b
     sta ppu_addr
 
@@ -3107,9 +2908,9 @@ sub51_loop1:  ; start outer loop
     bne sub51_loop1
 
 sub51_loop2:  ; start outer loop
-    lda #$22
+    lda #>[vram_name_table0+16*32+4]
     sta ppu_addr
-    lda #$04
+    lda #<[vram_name_table0+16*32+4]
     `add_mem $013b
     sta ppu_addr
 
@@ -3126,16 +2927,15 @@ sub51_loop2:  ; start outer loop
     cpy #$00
     bne sub51_loop2
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
+
     lda #$00
     sta $013b
 
 sub51_loop3:  ; start outer loop
-    lda #$21
+    lda #>[vram_name_table0+8*32+20]
     sta ppu_addr
-    lda #$14
+    lda #<[vram_name_table0+8*32+20]
     `add_mem $013b
     sta ppu_addr
 
@@ -3153,9 +2953,9 @@ sub51_loop3:  ; start outer loop
     bne sub51_loop3
 
 sub51_loop4:  ; start outer loop
-    lda #$22
+    lda #>[vram_name_table0+16*32+20]
     sta ppu_addr
-    lda #$14
+    lda #<[vram_name_table0+16*32+20]
     `add_mem $013b
     sta ppu_addr
 
@@ -3172,15 +2972,14 @@ sub51_loop4:  ; start outer loop
     cpy #0
     bne sub51_loop4
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
 
 sub51_1:
     lda $013c
     cmp #$a0
     bcc +
     jmp sub51_2
+
 *   lda #$00
     sta ppu_scroll
     lda $013d
@@ -3209,7 +3008,7 @@ sub51_3:
     ldy #$00
     lda $013e
     cmp #$00
-    beq sub51_7
+    beq sub51_5
     inc $8b
     inc $8a
 
@@ -3228,19 +3027,22 @@ sub51_loop5:
     bcc +   ; why?
     bcs ++
 
-*   lda #$0e
+*   lda #%00001110
     sta ppu_mask
-    jmp sub51_6  ; why jump to another JMP?
+    jmp sub51_4  ; why jump to another JMP?
+
 *   lda $89
     cmp $9b
     bcs +
-    lda #$ee
+    lda #%11101110
     sta ppu_mask
 
-sub51_6:
+sub51_4:
     jmp ++
-*   lda #$0e
+
+*   lda #%00001110
     sta ppu_mask
+
 *   lda $89
     `add_mem $8b
     adc $8a
@@ -3255,6 +3057,7 @@ sub51_6:
     tax
     lda table20,x
     sta ppu_scroll
+
     ldx $8a
     lda table20,x
     `add_imm 60
@@ -3264,10 +3067,10 @@ sub51_6:
     cpy #$91
     bne sub51_loop5
 
-sub51_7:
-    lda #$90
+sub51_5:
+    lda #%10010000
     sta ppu_ctrl
-    lda #$0e
+    lda #%00001110
     sta ppu_mask
     rts
 
@@ -3303,13 +3106,13 @@ sub54:
     ldx #$25
     jsr sub59
     jsr sub15
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
-    lda #$20
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+
+    `set_ppu_addr vram_name_table0
+
     ldx #$25
     jsr sub52
     ldx #$25
@@ -3358,13 +3161,10 @@ sub54:
     jsr sub52
     ldx #$38
     jsr sub52
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$3f
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+
+    `reset_ppu_addr
+    `set_ppu_addr vram_palette
+
     lda table18+4
     sta ppu_data
     lda table18+5
@@ -3373,13 +3173,10 @@ sub54:
     sta ppu_data
     lda table18+7
     sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$3f
-    sta ppu_addr
-    lda #$10
-    sta ppu_addr
+
+    `reset_ppu_addr
+    `set_ppu_addr vram_palette+4*4
+
     lda table18+8
     sta ppu_data
     lda table18+9
@@ -3388,9 +3185,8 @@ sub54:
     sta ppu_data
     lda table18+11
     sta ppu_data
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `reset_ppu_addr
 
     ldx data7
 *   txa        ; start loop
@@ -3485,12 +3281,12 @@ sub55:
     sta $01
 
 sub55_1:
-    lda #$22
+    lda #>[vram_name_table0+19*32+1]
     sta ppu_addr
-    lda #$61
+    lda #<[vram_name_table0+19*32+1]
     sta ppu_addr
-    ldx #$00
 
+    ldx #0
 *   txa           ; start loop
     `add_mem $8f
     tay
@@ -3502,9 +3298,7 @@ sub55_1:
     cpx #31
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
 
 sub55_2:
     inc $89
@@ -3513,6 +3307,7 @@ sub55_2:
     sta ppu_scroll
     lda table20,x
     sta ppu_scroll
+
     lda table20,x
     sta $9a
     lda #$94
@@ -3575,9 +3370,10 @@ sub55_2:
     sta $0516
     lda #$00
     sta $0517
-    lda #$80
+
+    lda #%10000000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
     rts
 
@@ -3585,83 +3381,59 @@ sub55_2:
 
 sub56:
 
-    lda #$23
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
+    `set_ppu_addr vram_attr_table0
 
     ldx #64
 *   sty ppu_data
     dex
     bne -
 
-    lda #$2b
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
+    `set_ppu_addr vram_attr_table2
 
     ldx #64
 *   sty ppu_data
     dex
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
 
 sub57:
 
-    lda #$23
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
+    `set_ppu_addr vram_attr_table0
 
     ldx #32
 *   sty ppu_data
     dex
     bne -
 
-    lda #$2b
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
+    `set_ppu_addr vram_attr_table2
 
     ldx #32
 *   sty ppu_data
     dex
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
     rts
 
-    lda #$23
-    sta ppu_addr
-    lda #$e0
-    sta ppu_addr
+    `set_ppu_addr vram_attr_table0+4*8
 
     ldx #32
 *   sty ppu_data
     dex
     bne -
 
-    lda #$2b
-    sta ppu_addr
-    lda #$e0
-    sta ppu_addr
+    `set_ppu_addr vram_attr_table2+4*8
 
     ldx #32
 *   sty ppu_data
     dex
     bne -
 
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+    `reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3672,13 +3444,12 @@ sub58:
     ldy #$00
     lda #$3c
     sta $9a
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
-    lda #$20
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+
+    `set_ppu_addr vram_name_table0
 
     ldx #0
     ldy #0  ; why?
@@ -3690,10 +3461,7 @@ sub58:
     inx
     bne -
 
-    lda #$28
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
+    `set_ppu_addr vram_name_table2
 
     ldx #0
     ldy #0  ; why?
@@ -3707,9 +3475,8 @@ sub58:
 
     lda #$01
     sta $02
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
+
+    `reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3720,40 +3487,31 @@ sub59:
     ldy #$00
     lda #$3c
     sta $9a
-    lda #$00
+
+    lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
-    lda #$23
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
-    ldx #$00
 
-*   lda #$00
-    sta ppu_data
+    `set_ppu_addr vram_attr_table0
+
+    ldx #0
+*   `write_ppu_data $00
     inx
     cpx #64
     bne -
 
-    lda #$27
-    sta ppu_addr
-    lda #$c0
-    sta ppu_addr
-    ldx #$00
+    `set_ppu_addr vram_attr_table1
 
-*   lda #$00
-    sta ppu_data
+    ldx #0
+*   `write_ppu_data $00
     inx
     cpx #64
     bne -
 
-    lda #$20
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
-    ldx #$00
-    ldy #$00
+    `set_ppu_addr vram_name_table0
 
+    ldx #0
+    ldy #0
 *   lda $8e
     sta ppu_data
     inx
@@ -3775,13 +3533,10 @@ sub59:
     cpx #192
     bne -
 
-    lda #$24
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
-    ldx #$00
-    ldy #$00
+    `set_ppu_addr vram_name_table1
 
+    ldx #0
+    ldy #0
 *   lda $8e
     sta ppu_data
     inx
@@ -3803,13 +3558,10 @@ sub59:
     cpx #192
     bne -
 
-    lda #$28
-    sta ppu_addr
-    lda #$00
-    sta ppu_addr
-    ldx #$00
-    ldy #$00
+    `set_ppu_addr vram_name_table2
 
+    ldx #0
+    ldy #0
 *   lda $8e
     sta ppu_data
     inx
@@ -3835,15 +3587,13 @@ sub59:
     sta $02
     lda #$72
     sta $96
-    lda #$00
-    sta ppu_addr
-    sta ppu_addr
-    lda #$00
-    sta ppu_scroll
-    sta ppu_scroll
-    lda #$00
+
+    `reset_ppu_addr
+    `reset_ppu_scroll
+
+    lda #%00000000
     sta ppu_ctrl
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
     rts
 

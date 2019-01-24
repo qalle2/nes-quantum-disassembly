@@ -7,20 +7,20 @@
     cld
     ldx #$ff
     txs
-    lda #$40
+    lda #%01000000
     sta ppu_ctrl
-    lda #$9e
+    lda #%10011110
     sta ppu_mask
     lda ppu_status
     lda ppu_status
-    lda #$00
+    lda #%00000000
     sta ppu_mask
     lda #$68
     ldx #$8b
     jsr sub01
-    lda #$1e
+    lda #%00011110
     sta ppu_mask
-    lda #$80
+    lda #%10000000
     sta ppu_ctrl
 *   jmp -
 
@@ -561,7 +561,7 @@ sub07_6:
     sta ptr2+0
     lda word_hi-1,y
     sta ptr2+1
-    
+
     sec
     lda $dc,x
     sbc ptr2+0

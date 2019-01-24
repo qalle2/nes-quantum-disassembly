@@ -75,12 +75,15 @@ sub01:
     tya
     `add_imm $80
     sta $cb
+
+    ; ptr4 + [$cb] -> ptr5
     lda ptr4+0
     adc $cb
     sta ptr5+0
     lda ptr4+1
     adc #0
     sta ptr5+1
+
     lda $d6
     asl
     asl
@@ -89,12 +92,14 @@ sub01:
     lda #$00
     adc #0
     sta $cc
+
     lda ptr4+0
     adc $cb
     sta $0364
     lda ptr4+1
     adc $cc
     sta $0369
+
     lda $03e0
     asl
     adc $0364
@@ -551,10 +556,12 @@ sub07_6:
     beq +
     sta $0318,x
 *   ldy $0314,x
-    lda table06,y
+
+    lda word_lo-1,y
     sta ptr2+0
-    lda table07,y
+    lda word_hi-1,y
     sta ptr2+1
+    
     sec
     lda $dc,x
     sbc ptr2+0
@@ -633,10 +640,10 @@ sub08_1:
     rts
 
 *   ldy $e9,x
-    lda table07,y
+    lda word_hi-1,y
     sta $0308,x
     sta $cb
-    lda table06,y
+    lda word_lo-1,y
     sta $dc,x
     jmp sub03
 
@@ -645,10 +652,10 @@ sub08_2:
     clc
     adc $0328,x
     tay
-    lda table07,y
+    lda word_hi-1,y
     sta $0308,x
     sta $cb
-    lda table06,y
+    lda word_lo-1,y
     sta $dc,x
     jmp sub03
 
@@ -657,10 +664,10 @@ sub08_3:
     clc
     adc $03a4,x
     tay
-    lda table07,y
+    lda word_hi-1,y
     sta $0308,x
     sta $cb
-    lda table06,y
+    lda word_lo-1,y
     sta $dc,x
     jmp sub03
 
@@ -669,10 +676,10 @@ sub08_4:
     clc
     adc $032c,x
     tay
-    lda table07,y
+    lda word_hi-1,y
     sta $0308,x
     sta $cb
-    lda table06,y
+    lda word_lo-1,y
     sta $dc,x
     jmp sub03
 
@@ -767,9 +774,9 @@ sub10:
 
 sub10_01:
     ldy $e9,x
-    lda table06,y
+    lda word_lo-1,y
     sta $dc,x
-    lda table07,y
+    lda word_hi-1,y
     sta $0308,x
     rts
 
@@ -779,9 +786,9 @@ sub10_02:
     clc
     adc $e9,x
     tay
-    lda table06,y
+    lda word_lo-1,y
     sta $dc,x
-    lda table07,y
+    lda word_hi-1,y
     sta $0308,x
     rts
 
@@ -791,9 +798,9 @@ sub10_03:
     clc
     adc $e9,x
     tay
-    lda table06,y
+    lda word_lo-1,y
     sta $dc,x
-    lda table07,y
+    lda word_hi-1,y
     sta $0308,x
     rts
 
@@ -949,9 +956,9 @@ sub10_11:
     sta $0330,x
     cpx #$03
     beq sub10_15
-    lda table06,y
+    lda word_lo-1,y
     sta $dc,x
-    lda table07,y
+    lda word_hi-1,y
 
 sub10_12:
     sta $0308,x

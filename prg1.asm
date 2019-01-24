@@ -594,12 +594,12 @@ sub29:
     cmp #8
     beq sub29_jump_table+8*3
     cmp #9
-    beq sub29_1
+    beq sub29_01
     cmp #10
     beq sub29_jump_table+10*3
     jmp sub29_11
 
-sub29_1:
+sub29_01:
     lda #$00
     sta reg3
     ldx $96
@@ -619,18 +619,18 @@ sub29_1:
 
 sub29_jump_table:
     jmp sub29_11
-    jmp sub29_2
-    jmp sub29_3
-    jmp sub29_4
-    jmp sub29_5
-    jmp sub29_6
-    jmp sub29_7
-    jmp sub29_8
-    jmp sub29_9
+    jmp sub29_02
+    jmp sub29_03
+    jmp sub29_04
+    jmp sub29_05
+    jmp sub29_06
+    jmp sub29_07
+    jmp sub29_08
+    jmp sub29_09
     jmp sub29_11
     jmp sub29_10
 
-sub29_2:
+sub29_02:
     ; pointer 0 -> ptr1
     lda pointers+0*2+0
     sta ptr1+0
@@ -653,12 +653,12 @@ sub29_2:
     sta $96
     jmp sub29_11
 
-sub29_3:
+sub29_03:
     lda #$00
     sta $96
     jmp sub29_11
 
-sub29_4:
+sub29_04:
     ; pointer 1 -> ptr1
     lda pointers+1*2+0
     sta ptr1+0
@@ -670,7 +670,7 @@ sub29_4:
     jsr sub26
     jmp sub29_11
 
-sub29_5:
+sub29_05:
     ; pointer 2 -> ptr1
     lda pointers+2*2+0
     sta ptr1+0
@@ -682,7 +682,7 @@ sub29_5:
     jsr sub26
     jmp sub29_11
 
-sub29_6:
+sub29_06:
     ; pointer 3 -> ptr1
     lda pointers+3*2+0
     sta ptr1+0
@@ -694,7 +694,7 @@ sub29_6:
     jsr sub26
     jmp sub29_11
 
-sub29_7:
+sub29_07:
     ; pointer 4 -> ptr1
     lda pointers+4*2+0
     sta ptr1+0
@@ -706,7 +706,7 @@ sub29_7:
     jsr sub26
     jmp sub29_11
 
-sub29_8:
+sub29_08:
     ; pointer 5 -> ptr1
     lda pointers+5*2+0
     sta ptr1+0
@@ -718,7 +718,7 @@ sub29_8:
     jsr sub26
     jmp sub29_11
 
-sub29_9:
+sub29_09:
     ; pointer 6 -> ptr1
     lda pointers+6*2+0
     sta ptr1+0
@@ -1744,20 +1744,20 @@ sub41:
     sta reg17
     lda $a2
     cmp #$08
-    bne sub41_1
+    bne sub41_01
     lda $a1
     cmp #$8c
-    bcc sub41_1
+    bcc sub41_01
     inc $a3
     lda $a3
     cmp #$04
-    bne sub41_1
+    bne sub41_01
     jsr sub20
     jsr sub18
     lda #$00
     sta $a3
 
-sub41_1:
+sub41_01:
     lda #$03
     sta $01
     lda #$3f
@@ -1766,12 +1766,12 @@ sub41_1:
     sta reg4
     lda $a2
     cmp #$08
-    beq sub41_4
+    beq sub41_04
     lda $014d
     cmp #0
-    beq sub41_3
+    beq sub41_03
     cmp #1
-    beq sub41_2
+    beq sub41_02
     cmp #2
     beq +     ; why?
 
@@ -1784,7 +1784,7 @@ sub41_1:
     lda #$04
     sta reg5
 
-sub41_2:
+sub41_02:
     lda #$38
     sta reg5
     lda #$28
@@ -1794,7 +1794,7 @@ sub41_2:
     lda #$08
     sta reg5
 
-sub41_3:
+sub41_03:
     lda #$32
     sta reg5
     lda #$22
@@ -1804,7 +1804,7 @@ sub41_3:
     lda #$02
     sta reg5
 
-sub41_4:
+sub41_04:
     inc $89
     lda $89
     sta reg3
@@ -1815,12 +1815,12 @@ sub41_4:
     lda $a1
     cmp #$b4
     beq +
-    jmp sub41_5
+    jmp sub41_05
 *   inc $a2
     lda #$00
     sta $a1
 
-sub41_5:
+sub41_05:
     lda $a2
     cmp #1
     beq sub41_jump_table+1*3
@@ -1839,27 +1839,27 @@ sub41_5:
     cmp #8
     beq sub41_jump_table+8*3
     cmp #9
-    beq sub41_6
+    beq sub41_06
 
 sub41_jump_table:
     jmp sub41_15
-    jmp sub41_7
-    jmp sub41_8
-    jmp sub41_9
+    jmp sub41_07
+    jmp sub41_08
+    jmp sub41_09
     jmp sub41_10
     jmp sub41_11
     jmp sub41_12
     jmp sub41_13
     jmp sub41_14
 
-sub41_6:
+sub41_06:
     lda #$0a
     sta $01
     lda #$00
     sta $02
     jmp $ea7e
 
-sub41_7:
+sub41_07:
     jsr sub15
     ldx #$5c
     ldy #$6a
@@ -1868,7 +1868,7 @@ sub41_7:
     jsr sub22
     jmp $ea7e
 
-sub41_8:
+sub41_08:
     jsr sub15
     ldx #$75
     ldy #$73
@@ -1882,7 +1882,7 @@ sub41_8:
     jsr sub24
     jmp $ea7e
 
-sub41_9:
+sub41_09:
     jsr sub15
     ldx #$75
     ldy #$73
@@ -3856,49 +3856,49 @@ nmi:
     lda reg2
     lda $01
     cmp #0
-    beq jump_table+1*3
+    beq nmi_jump_table+1*3
     cmp #1
-    beq jump_table+2*3
+    beq nmi_jump_table+2*3
     cmp #2
-    beq jump_table+3*3
+    beq nmi_jump_table+3*3
     cmp #3
-    beq jump_table+4*3
+    beq nmi_jump_table+4*3
     cmp #4
-    beq jump_table+5*3
+    beq nmi_jump_table+5*3
     cmp #5
-    beq jump_table+6*3
+    beq nmi_jump_table+6*3
     cmp #6
-    beq jump_table+7*3
+    beq nmi_jump_table+7*3
     cmp #7
-    beq jump_table+8*3
+    beq nmi_jump_table+8*3
     cmp #9
-    beq jump_table+9*3
+    beq nmi_jump_table+9*3
     cmp #10
-    beq jump_table+10*3
+    beq nmi_jump_table+10*3
     cmp #11
-    beq jump_table+11*3
+    beq nmi_jump_table+11*3
     cmp #12
-    beq jump_table+12*3
+    beq nmi_jump_table+12*3
     cmp #13
-    beq jump_table+13*3
+    beq nmi_jump_table+13*3
 
-jump_table:
+nmi_jump_table:
     jmp nmi_exit  ; $01 was none of the below
-    jmp nmi_1     ; $01 was 0
-    jmp nmi_2     ; $01 was 1
-    jmp nmi_3     ; $01 was 2
-    jmp nmi_4     ; $01 was 3
-    jmp nmi_5     ; $01 was 4
-    jmp nmi_6     ; $01 was 5
-    jmp nmi_7     ; $01 was 6
-    jmp nmi_8     ; $01 was 7
-    jmp nmi_9     ; $01 was 9
+    jmp nmi_01    ; $01 was 0
+    jmp nmi_02    ; $01 was 1
+    jmp nmi_03    ; $01 was 2
+    jmp nmi_04    ; $01 was 3
+    jmp nmi_05    ; $01 was 4
+    jmp nmi_06    ; $01 was 5
+    jmp nmi_07    ; $01 was 6
+    jmp nmi_08    ; $01 was 7
+    jmp nmi_09    ; $01 was 9
     jmp nmi_10    ; $01 was 10
     jmp nmi_11    ; $01 was 11
     jmp nmi_12    ; $01 was 12
     jmp nmi_13    ; $01 was 13
 
-nmi_1:
+nmi_01:
     lda $02
     cmp #$00
     beq +
@@ -3920,7 +3920,7 @@ nmi_1:
     sta $94
 *   jmp nmi_exit
 
-nmi_2:
+nmi_02:
     lda $02
     cmp #$00
     beq +
@@ -3944,7 +3944,7 @@ nmi_2:
     sta $02
 *   jmp nmi_exit
 
-nmi_3:
+nmi_03:
     lda $02
     cmp #$00
     beq +
@@ -3968,7 +3968,7 @@ nmi_3:
     sta $02
 *   jmp nmi_exit
 
-nmi_4:
+nmi_04:
     lda $02
     cmp #$00
     beq +
@@ -3978,7 +3978,7 @@ nmi_4:
     jsr sub12
     jmp nmi_exit
 
-nmi_5:
+nmi_05:
     lda $02
     cmp #$00
     beq +
@@ -4002,7 +4002,7 @@ nmi_5:
     sta $02
 *   jmp nmi_exit
 
-nmi_6:
+nmi_06:
     lda $02
     cmp #$00
     beq +
@@ -4012,7 +4012,7 @@ nmi_6:
     jsr sub12
     jmp nmi_exit
 
-nmi_7:
+nmi_07:
     lda $02
     cmp #$00
     beq +
@@ -4036,7 +4036,7 @@ nmi_7:
     sta $02
 *   jmp nmi_exit
 
-nmi_8:
+nmi_08:
     lda $02
     cmp #$00
     beq +
@@ -4062,7 +4062,7 @@ nmi_8:
     sta $02
 *   jmp nmi_exit
 
-nmi_9:
+nmi_09:
     lda $02
     cmp #$00
     beq +

@@ -1,6 +1,7 @@
     ; second half of PRG ROM, minus the interrupt vectors
 
-init:  ; c000
+init:
+
     sei
     cld
     jsr sub14
@@ -80,7 +81,8 @@ init:  ; c000
 
 ; -----------------------------------------------------------------------------
 
-sub14:  ; dc96
+sub14:
+
     bit reg2
     bpl sub14
     rts
@@ -259,7 +261,7 @@ sub21_exit:
 
 ; -----------------------------------------------------------------------------
 
-sub22:  ; dd8b
+sub22:
 
     stx $a5
     sty $a6
@@ -615,7 +617,7 @@ sub29_1:
     lda #$1e
     sta reg1
 
-sub29_jump_table:  ; dff8
+sub29_jump_table:
     jmp sub29_11
     jmp sub29_2
     jmp sub29_3
@@ -821,6 +823,7 @@ sub29_13:
 ; -----------------------------------------------------------------------------
 
 sub30:
+
     ldx #$00
     jsr sub58
     ldy #$00
@@ -1135,6 +1138,7 @@ sub33_loop:
 ; -----------------------------------------------------------------------------
 
 sub34:
+
     ldx #$00
     jsr sub58
     lda #$00
@@ -1318,7 +1322,8 @@ sub35_2:
 
 ; -----------------------------------------------------------------------------
 
-sub36:  ; e59a
+sub36:
+
     ldx #$00
     jsr sub58
     jsr sub16
@@ -2716,18 +2721,18 @@ sub45_loop1:
     dec $0104,x
     lda $0104,x
     cmp #$00
-    bne sub45_1
+    bne sub45_2
     lda $0108,x
     cmp table33,x
     beq +
     inc $0108,x
-    jmp sub45_0
+    jmp sub45_1
 *   lda table32,x
     sta $0108,x
-sub45_0:
+sub45_1:
     lda table31,x
     sta $0104,x
-sub45_1:
+sub45_2:
     dex
     cpx #255
     bne sub45_loop1
@@ -2760,7 +2765,7 @@ sub45_1:
 *   lda $0100
     ldx $0101
     cmp table38,x
-    bne sub45_2
+    bne sub45_3
 
     inc $0101
     lda $0101
@@ -2779,25 +2784,25 @@ sub45_1:
     sta $011a,x
     inc $0102
     cpx data5
-    bne sub45_2
+    bne sub45_3
     lda #$00
     sta $0102
 
-sub45_2:
+sub45_3:
     ldx data5
 sub45_loop2:
     lda $0116,x
     cmp #$f0
-    beq sub45_3
+    beq sub45_4
     lda $0112,x
     clc
     sbc $011a,x
     bcc +
     sta $0112,x
-    jmp sub45_3
+    jmp sub45_4
 *   lda #$f0
     sta $0116,x
-sub45_3:
+sub45_4:
     dex
     cpx #255
     bne sub45_loop2
@@ -3028,7 +3033,8 @@ sub49:
 
 ; -----------------------------------------------------------------------------
 
-sub50:  ; f315
+sub50:
+
     ldx #$80
     jsr sub58
     jsr sub15
@@ -3077,7 +3083,7 @@ sub51:
     lda $013c
     cmp #$02
     beq +
-    jmp sub51_0
+    jmp sub51_1
 *   ldy #$80
 
 sub51_loop1:  ; start outer loop
@@ -3170,11 +3176,11 @@ sub51_loop4:  ; start outer loop
     sta reg4
     sta reg4
 
-sub51_0:
+sub51_1:
     lda $013c
     cmp #$a0
     bcc +
-    jmp sub51_1
+    jmp sub51_2
 *   lda #$00
     sta reg3
     lda $013d
@@ -3182,28 +3188,28 @@ sub51_0:
     sbc $013c
     sta reg3
 
-sub51_1:
+sub51_2:
     lda $00
     `chr_bankswitch 2
     lda #$00
     sta $89
     lda $013e
     cmp #$01
-    beq sub51_2
+    beq sub51_3
     inc $013c
     lda $013c
     cmp #$c8
     beq +
-    jmp sub51_2
+    jmp sub51_3
 *   lda #$01
     sta $013e
 
-sub51_2:
+sub51_3:
     ldx #$00
     ldy #$00
     lda $013e
     cmp #$00
-    beq sub51_10
+    beq sub51_7
     inc $8b
     inc $8a
 
@@ -3224,14 +3230,14 @@ sub51_loop5:
 
 *   lda #$0e
     sta reg1
-    jmp sub51_5  ; why jump to another JMP?
+    jmp sub51_6  ; why jump to another JMP?
 *   lda $89
     cmp $9b
     bcs +
     lda #$ee
     sta reg1
 
-sub51_5:
+sub51_6:
     jmp ++
 *   lda #$0e
     sta reg1
@@ -3258,7 +3264,7 @@ sub51_5:
     cpy #$91
     bne sub51_loop5
 
-sub51_10:
+sub51_7:
     lda #$90
     sta reg0
     lda #$0e
@@ -3843,7 +3849,7 @@ sub59:
 
 ; -----------------------------------------------------------------------------
 
-nmi:  ; f947
+nmi:
     ; Note: why not just RTI instead of a JMP to one (or even JMP to another
     ; JMP to RTI)?
 
@@ -4185,5 +4191,5 @@ nmi_exit:
 
 ; -----------------------------------------------------------------------------
 
-irq:  ; fc26
+irq:
     rti

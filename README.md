@@ -3,7 +3,7 @@
 An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA.
 
 Notes:
-* This disassembly is at an early stage.
+* This disassembly is at an **early stage**.
 * I have not been involved with wAMMA or in the making of this demo.
 * This project had an incorrect license for a short time by mistake.
 

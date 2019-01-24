@@ -71,6 +71,7 @@ table11:
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
     .byte $5b, $5b, $0d, $0a
 
+    ; Attribute Table data? (a lot of $55/$aa)
 table12:
     .byte $2f, $10, $00, $20, $0f, $05, $26, $30
     .byte $0f, $20, $10, $00, $0f, $13, $23, $33

@@ -3543,7 +3543,7 @@ sub55_loop3:
     inx
     cpx #31
     bne sub55_loop3
-    
+
     lda #$00
     sta reg4
     sta reg4
@@ -3760,22 +3760,7 @@ sub58_loop2:
 
 ; -----------------------------------------------------------------------------
 
-sub59:  ; f858
-    ; jmp/bra targets:
-    ; f874
-    ; f88a
-    ; f8a2
-    ; f8aa
-    ; f8b2
-    ; f8ba
-    ; f8d2
-    ; f8da
-    ; f8e2
-    ; f8ea
-    ; f902
-    ; f90a
-    ; f912
-    ; f91a
+sub59:
 
     stx $8e
     ldy #$00
@@ -3789,22 +3774,24 @@ sub59:  ; f858
     lda #$c0
     sta reg4
     ldx #$00
-    lda #$00
+
+*   lda #$00
     sta reg5
     inx
-    cpx #$40
-    bne $f874
+    cpx #64
+    bne -
 
     lda #$27
     sta reg4
     lda #$c0
     sta reg4
     ldx #$00
-    lda #$00
+
+*   lda #$00
     sta reg5
     inx
-    cpx #$40
-    bne $f88a
+    cpx #64
+    bne -
 
     lda #$20
     sta reg4
@@ -3812,26 +3799,27 @@ sub59:  ; f858
     sta reg4
     ldx #$00
     ldy #$00
-    lda $8e
-    sta reg5
-    inx
-    bne $f8a2
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    bne $f8aa
+    bne -
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    bne $f8b2
+    bne -
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    cpx #$c0
-    bne $f8ba
+    bne -
+
+*   lda $8e
+    sta reg5
+    inx
+    cpx #192
+    bne -
 
     lda #$24
     sta reg4
@@ -3839,26 +3827,27 @@ sub59:  ; f858
     sta reg4
     ldx #$00
     ldy #$00
-    lda $8e
-    sta reg5
-    inx
-    bne $f8d2
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    bne $f8da
+    bne -
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    bne $f8e2
+    bne -
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    cpx #$c0
-    bne $f8ea
+    bne -
+
+*   lda $8e
+    sta reg5
+    inx
+    cpx #192
+    bne -
 
     lda #$28
     sta reg4
@@ -3866,26 +3855,27 @@ sub59:  ; f858
     sta reg4
     ldx #$00
     ldy #$00
-    lda $8e
-    sta reg5
-    inx
-    bne $f902
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    bne $f90a
+    bne -
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    bne $f912
+    bne -
 
-    lda $8e
+*   lda $8e
     sta reg5
     inx
-    cpx #$c0
-    bne $f91a
+    bne -
+
+*   lda $8e
+    sta reg5
+    inx
+    cpx #192
+    bne -
 
     lda #$01
     sta $02

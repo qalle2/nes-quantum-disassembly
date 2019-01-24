@@ -1,7 +1,6 @@
 @echo off
 cls
 
-
 echo *** Assembling iNES file ***
 ophis -v -o quantum.nes quantum.asm
 if errorlevel 1 goto end

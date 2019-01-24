@@ -1,3 +1,5 @@
+    ; NES memory-mapped registers
+
     .alias ppu_ctrl   $2000
     .alias ppu_mask   $2001
     .alias ppu_status $2002
@@ -19,6 +21,19 @@
     .alias oam_dma       $4014
     .alias apu_ctrl      $4015
     .alias apu_counter   $4017
+
+; -----------------------------------------------------------------------------
+
+    ; video RAM
+    .alias vram_name_table0 $2000
+    .alias vram_attr_table0 $23c0
+    .alias vram_name_table1 $2400
+    .alias vram_attr_table1 $27c0
+    .alias vram_name_table2 $2800
+    .alias vram_attr_table2 $2bc0
+    .alias vram_palette     $3f00
+
+; -----------------------------------------------------------------------------
 
     ; memory pointers (2 bytes each)
     .alias ptr1 $03

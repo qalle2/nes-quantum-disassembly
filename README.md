@@ -549,7 +549,7 @@ ef-ff: yes
 ```
 
 ## References
-* [NESDev Wiki](http://wiki.nesdev.com)
+* [NESDev Wiki](http://wiki.nesdev.com):
   * [APU registers](http://wiki.nesdev.com/w/index.php/APU_registers)
   * [CNROM](http://wiki.nesdev.com/w/index.php/CNROM)
   * [PPU registers](http://wiki.nesdev.com/w/index.php/PPU_registers)

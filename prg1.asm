@@ -4,11 +4,11 @@ init:  ; c000
     sei
     cld
     jsr sub14
-    ldx #$00
-    txa
 
-ram_clear_loop:
-    sta $00,x
+    ; clear RAM (fill $0000-$07ff with $00)
+    ldx #0
+    txa
+*   sta $00,x
     sta $0100,x
     sta $0200,x
     sta $0300,x
@@ -17,7 +17,7 @@ ram_clear_loop:
     sta $0600,x
     sta $0700,x
     inx
-    bne ram_clear_loop
+    bne -
 
     jsr sub15
     jsr sub16
@@ -88,13 +88,13 @@ sub14:  ; dc96
 ; -----------------------------------------------------------------------------
 
 sub15:
+    ; This sub could be optimized in many places.
 
     ldx #0
-sub15_loop1:
-    lda #$f5
+*   lda #$f5
     sta $0500,x
     `inx4
-    bne sub15_loop1
+    bne -
     rts
 
     lda #$00
@@ -102,14 +102,13 @@ sub15_loop1:
     sta reg1
     lda #$00
     sta reg0
+
     lda #$00
     ldx #0
-
-sub15_loop2:
-    sta reg6,x
+*   sta reg6,x
     inx
     cpx #15
-    bne sub15_loop2
+    bne -
 
     lda #$c0
     sta reg19
@@ -122,27 +121,24 @@ sub15_loop2:
 sub16:
 
     ldx #0
-
-sub16_loop:
-    lda table12,x
+*   lda table12,x
     sta $07c0,x
     inx
     cpx #32
-    bne sub16_loop
+    bne -
 
     rts
 
 ; -----------------------------------------------------------------------------
 
 sub17:
-    ldx #0
 
-sub17_loop:
-    lda #$0f
+    ldx #0
+*   lda #$0f
     sta $07c0,x
     inx
     cpx #32
-    bne sub17_loop
+    bne -
 
     rts
 
@@ -154,14 +150,13 @@ sub18:
     sta reg4
     lda #$00
     sta reg4
-    ldx #0
 
-sub18_loop:
-    lda $07c0,x
+    ldx #0
+*   lda $07c0,x
     sta reg5
     inx
-    cpx #$20
-    bne sub18_loop
+    cpx #32
+    bne -
 
     lda #$00
     sta reg4
@@ -178,18 +173,18 @@ sub19:
 sub19_loop1:
     lda $86
     `add_imm $55
-    bcc +  ; why?
+    bcc +         ; why?
 *   sta $86
     inc $87
     lda $87
     cmp $88
     bne sub19_loop1
+
     rts
 
     stx $88
     ldx #0
-sub19_loop2:
-    `add_imm $55
+*   `add_imm $55  ; start loop
     clc
     nop
     nop
@@ -197,36 +192,38 @@ sub19_loop2:
     sbc #15
     inx
     cpx $88
-    bne sub19_loop2
+    bne -
+
     rts
 
     stx $88
     ldy #0
     ldx #0
-sub19_loop3:
+sub19_loop2:  ; start outer loop
     ldy #0
-sub19_loop4:
-    nop
+
+*   nop  ; start inner loop
     nop
     nop
     nop
     nop
     iny
     cpy #11
-    bne sub19_loop4
+    bne -
+
     nop
     inx
     cpx $88
-    bne sub19_loop3
+    bne sub19_loop2
+
     rts
 
 ; -----------------------------------------------------------------------------
 
 sub20:
-    ldy #0
 
-sub20_loop:
-    lda $07c0,y
+    ldy #0
+*   lda $07c0,y     ; start loop
     sta $01
     and #%00110000
     `lsr4
@@ -236,8 +233,8 @@ sub20_loop:
     ora table18,x
     sta $07c0,y
     iny
-    cpy #$20
-    bne sub20_loop
+    cpy #32
+    bne -
 
     rts
 
@@ -254,10 +251,11 @@ sub21:
     bcc +
     lda $e8
     sta reg5
-    jmp ++
+    jmp sub21_exit
 *   lda #$3f
     sta reg5
-*   rts
+sub21_exit:
+    rts
 
 ; -----------------------------------------------------------------------------
 
@@ -272,13 +270,12 @@ sub22:  ; dd8b
     sta $9b
     sta $9c
 
-sub22_loop1:
+sub22_loop:   ; start outer loop
     ldx #$00
     lda #$00
     sta $9a
 
-sub22_loop2:
-    lda $9c
+*   lda $9c       ; start inner loop
     `add_mem $a7
     ldy $a8
     sta $0501,y
@@ -303,14 +300,14 @@ sub22_loop2:
     `add_imm 8
     tax
     cpx #64
-    bne sub22_loop2
+    bne -
 
     lda $9b
     `add_imm 8
     sta $9b
     lda $9b
     cmp #16
-    bne sub22_loop1
+    bne sub22_loop
 
     sty $a8
     rts
@@ -328,13 +325,12 @@ sub23:
     sta $9b
     sta $9c
 
-sub23_loop1:
+sub23_loop:   ; start outer loop
     ldx #$00
     lda #$00
     sta $9a
 
-sub23_loop2:
-    lda $9c
+*   lda $9c       ; start inner loop
     `add_mem $a7
     ldy $a8
     sta $0501,y
@@ -359,14 +355,14 @@ sub23_loop2:
     `add_imm 8
     tax
     cpx #24
-    bne sub23_loop2
+    bne -
 
     lda $9b
     `add_imm 8
     sta $9b
     lda $9b
     cmp #16
-    bne sub23_loop1
+    bne sub23_loop
 
     sty $a8
     rts
@@ -384,13 +380,12 @@ sub24:
     sta $9b
     sta $9c
 
-sub24_loop1:
+sub24_loop:   ; start outer loop
     ldx #$00
     lda #$00
     sta $9a
 
-sub24_loop2:
-    lda $9c
+*   lda $9c       ; start inner loop
     `add_mem $a7
     ldy $a8
     sta $0501,y
@@ -415,14 +410,14 @@ sub24_loop2:
     `add_imm 8
     tax
     cpx #32
-    bne sub24_loop2
+    bne -
 
     lda $9b
     `add_imm 8
     sta $9b
     lda $9b
     cmp #16
-    bne sub24_loop1
+    bne sub24_loop
 
     sty $a8
     rts
@@ -487,8 +482,7 @@ sub26:
     ldy #$00
     stx $90
 
-sub26_loop1:
-    ldy $90
+*   ldy $90        ; start loop
     lda (ptr1),y
     clc
     sbc #$40
@@ -500,13 +494,12 @@ sub26_loop1:
     inc $90
     lda $90
     cmp #$10
-    bne sub26_loop1
+    bne -
 
     lda #$00
     sta $90
 
-sub26_loop2:
-    ldy $90
+*   ldy $90       ; start loop
     lda (ptr1),y
     clc
     sbc #$40
@@ -521,7 +514,7 @@ sub26_loop2:
     inc $90
     lda $90
     cmp #$10
-    bne sub26_loop2
+    bne -
 
     lda #$00
     sta reg4
@@ -536,8 +529,7 @@ sub27:
     sta $9a
 
     ldx data8
-sub27_loop:
-    txa
+*   txa        ; start loop
     asl
     asl
     tay
@@ -547,7 +539,7 @@ sub27_loop:
     sta $05b4,y
     dex
     cpx #$ff
-    bne sub27_loop
+    bne -
 
     rts
 
@@ -556,8 +548,7 @@ sub27_loop:
 sub28:
 
     ldx data8
-sub28_loop:
-    txa
+*   txa        ; start loop
     asl
     asl
     tay
@@ -573,7 +564,7 @@ sub28_loop:
     sta $011e,x
     dex
     cpx #$ff
-    bne sub28_loop
+    bne -
 
     rts
 
@@ -840,10 +831,9 @@ sub30:
     sta reg4
 
     ldx #0
-sub30_loop:
-    stx reg5
+*   stx reg5
     inx
-    bne sub30_loop
+    bne -
 
     lda #$00
     sta reg4
@@ -948,8 +938,7 @@ sub31:
     bne sub31_1
     ldx data1
 
-sub31_loop1:
-    txa
+*   txa  ; start loop
     asl
     asl
     tay
@@ -966,7 +955,7 @@ sub31_loop1:
     cpx #$00
     beq +
     dex
-    jmp sub31_loop1
+    jmp -
 
 *   lda #$81
     sta $0560
@@ -1004,7 +993,7 @@ sub31_1:
     ldx #$00
     ldy #$00
 
-sub31_loop2:
+sub31_loop:
     lda $0180,x
     cmp #$01
     bne +
@@ -1034,7 +1023,7 @@ sub31_loop2:
 *   inx
     `iny4
     cpx #$16
-    bne sub31_loop2
+    bne sub31_loop
 
 sub31_2:
     lda $ac
@@ -1062,11 +1051,10 @@ sub32:
 
     lda #$00
     ldx #0
-sub32_loop:
-    sta reg6,x
+*   sta reg6,x
     inx
     cpx #15
-    bne sub32_loop
+    bne -
 
     lda #$0a
     sta reg15
@@ -1103,12 +1091,11 @@ sub33:
     sta $89
     ldy #$9f
 
-sub33_loop1:
+sub33_loop:
 
     ldx #25
-sub33_loop2:
-    dex
-    bne sub33_loop2
+*   dex
+    bne -
 
     ldx #$3f
     stx reg4
@@ -1137,7 +1124,7 @@ sub33_loop2:
     lda table19,x
     tax
     dey
-    bne sub33_loop1
+    bne sub33_loop
 
     lda #$06
     sta reg1
@@ -1187,8 +1174,7 @@ sub35:
     lda #$00
     sta $89
 
-sub35_loop1:
-    lda $89
+*   lda $89  ; start loop
     adc $8a
     tay
     lda table19,y
@@ -1198,22 +1184,21 @@ sub35_loop1:
     sta $89
     inx
     cpx #64
-    bne sub35_loop1
+    bne -
 
     ldx #$00
     ldy #$00
     lda #$00
     sta $9a
 
-sub35_loop2:
+sub35_loop1:  ; start outer loop
     lda #$21
     sta reg4
     lda $9a
     sta reg4
     ldy #$00
 
-sub35_loop3:
-    lda $0600,x
+*   lda $0600,x  ; start inner loop
     sta reg5
     lda $0600,x
     sta reg5
@@ -1225,14 +1210,14 @@ sub35_loop3:
     inx
     iny
     cpy #8
-    bne sub35_loop3
+    bne -
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
     cmp #$00
-    bne sub35_loop2
+    bne sub35_loop1
 
     lda #$01
     sta $0148
@@ -1244,8 +1229,7 @@ sub35_1:
     lda #$00
     sta $89
 
-sub35_loop4:
-    lda $89
+*   lda $89  ; start loop
     adc $8a
     tay
     lda table19,y
@@ -1255,21 +1239,20 @@ sub35_loop4:
     sta $89
     inx
     cpx #128
-    bne sub35_loop4
+    bne -
 
     ldx #$7f
     lda #$00
     sta $9a
 
-sub35_loop5:
+sub35_loop2:  ; start outer loop
     lda #$22
     sta reg4
     lda $9a
     sta reg4
     ldy #$00
 
-sub35_loop6:
-    lda $0600,x
+*   lda $0600,x  ; start inner loop
     sta reg5
     lda $0600,x
     sta reg5
@@ -1281,14 +1264,14 @@ sub35_loop6:
     dex
     iny
     cpy #8
-    bne sub35_loop6
+    bne -
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
     cmp #$00
-    bne sub35_loop5
+    bne sub35_loop2
 
     lda #$00
     sta $0148
@@ -1300,8 +1283,7 @@ sub35_2:
     lda #$00
     sta $89
 
-sub35_loop7:
-    ldx #$04
+*   ldx #$04   ; start loop
     jsr sub19
     lda $89
     `add_mem $8b
@@ -1313,7 +1295,7 @@ sub35_loop7:
     inc $89
     iny
     cpy #$98
-    bne sub35_loop7
+    bne -
 
     ldx $8b
     lda table22,x
@@ -1373,8 +1355,7 @@ sub37:
     ldx #0
     lda #0
     sta $89
-sub37_loop1:
-    lda $89
+*   lda $89  ; start loop
     adc $8a
     tay
     lda table19,y
@@ -1383,7 +1364,7 @@ sub37_loop1:
     inc $89
     inx
     cpx #$80
-    bne sub37_loop1
+    bne -
 
     lda $0148
     cmp #$00
@@ -1394,15 +1375,14 @@ sub37_loop1:
     lda #$00
 
     sta $9a
-sub37_loop2:
+sub37_loop1:  ; start outer loop
     lda #$21
     sta reg4
     lda $9a
     sta reg4
 
     ldy #0
-sub37_loop3:
-    lda $0600,x
+*   lda $0600,x  ; start inner loop
     sta reg5
     lda $0600,x
     sta reg5
@@ -1413,14 +1393,14 @@ sub37_loop3:
     inx
     iny
     cpy #8
-    bne sub37_loop3
+    bne -
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
     cmp #$00
-    bne sub37_loop2
+    bne sub37_loop1
 
     lda #$01
     sta $0148
@@ -1431,15 +1411,14 @@ sub37_1:
     lda #$20
     sta $9a
 
-sub37_loop4:
+sub37_loop2:  ; start outer loop
     lda #$22
     sta reg4
     lda $9a
     sta reg4
     ldy #0
 
-sub37_loop5:
-    lda $0600,x
+*   lda $0600,x  ; start inner loop
     sta reg5
     lda $0600,x
     sta reg5
@@ -1450,14 +1429,14 @@ sub37_loop5:
     dex
     iny
     cpy #8
-    bne sub37_loop5
+    bne -
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
     cmp #$00
-    bne sub37_loop4
+    bne sub37_loop2
 
     lda #$00
     sta $0148
@@ -1550,12 +1529,11 @@ sub39:
     sta $89
 
     ldy #85
-sub39_loop1:
+sub39_loop:  ; start outer loop
 
     ldx #25
-sub39_loop2:
-    dex
-    bne sub39_loop2
+*   dex      ; start inner loop
+    bne -
 
     ldx #$3f
     stx reg4
@@ -1576,7 +1554,7 @@ sub39_loop2:
     lda table23,x
     sta reg5
     dey
-    bne sub39_loop1
+    bne sub39_loop
 
     lda #$00
     sta reg4
@@ -1625,20 +1603,23 @@ sub40_1:
     sta $9e
     lda #$00
     sta $9f
-sub40_loop1:
+sub40_loop1:  ; start outermost loop
+
     ldy #0
-sub40_loop2:
+sub40_loop2:  ; start middle loop
+
     ldx #0
-sub40_loop3:
-    txa
+*   txa           ; start innermost loop
     `add_mem $9e
     sta reg5
     inx
     cpx #8
-    bne sub40_loop3
+    bne -
+
     iny
     cpy #$04
     bne sub40_loop2
+
     lda $9e
     `add_imm 8
     sta $9e
@@ -1652,39 +1633,43 @@ sub40_loop3:
     cmp #$03
     bne sub40_loop1
 
-    ldx #0  ; why?
-sub40_loop4:
+    ldx #0    ; why?
+sub40_loop3:  ; start outermost loop
+
     ldy #0
-sub40_loop5:
+sub40_loop4:  ; start middle loop
+
     ldx #0
-sub40_loop6:
-    txa
+*   txa           ; start innermost loop
     `add_mem $9e
     sta reg5
     inx
     cpx #8
-    bne sub40_loop6
+    bne -
+
     iny
     cpy #4
-    bne sub40_loop5
+    bne sub40_loop4
+
     lda $9e
     `add_imm 8
     sta $9e
     cmp #$28
-    bne sub40_loop4
+    bne sub40_loop3
 
     lda #$f0  ; why?
     ldy #0
-sub40_loop7:
+sub40_loop5:  ; start outer loop
+
     ldx #$f0
-sub40_loop8:
-    stx reg5
+*   stx reg5  ; start inner loop
     inx
     cpx #$f8
-    bne sub40_loop8
+    bne -
+
     iny
     cpy #8
-    bne sub40_loop7
+    bne sub40_loop5
 
     lda #$00
     sta reg4
@@ -1707,12 +1692,11 @@ sub40_2:
     sta reg4
 
     ldx #0
-sub40_loop9:
-    lda #$00
+*   lda #$00  ; start loop
     sta reg5
     inx
     cpx #64
-    bne sub40_loop9
+    bne -
 
     lda #$00
     sta reg4
@@ -1723,12 +1707,11 @@ sub40_loop9:
     sta reg4
 
     ldx #0
-sub40_loop10:
-    lda #$00
+*   lda #$00  ; start loop
     sta reg5
     inx
     cpx #64
-    bne sub40_loop10
+    bne -
 
     lda #$00
     sta reg4
@@ -2012,50 +1995,47 @@ sub42:
     lda #$00
     sta reg4
 
-    ldy #$00
-sub42_loop1:
+    ldy #0
+sub42_loop1:  ; start outer loop
 
     ldx #0
-sub42_loop2:
-    sty reg5
+*   sty reg5  ; start first inner loop
     iny
     inx
     cpx #16
-    bne sub42_loop2
+    bne -
 
     ldx #0
-sub42_loop3:
-    lda #$7f
+*   lda #$7f  ; start second inner loop
     sta reg5
     inx
     cpx #16
-    bne sub42_loop3
+    bne -
 
     cpy #0
     bne sub42_loop1
 
     jsr sub12
-    ldy #$00
-sub42_loop4:
+
+    ldy #0
+sub42_loop2:  ; start outer loop
 
     ldx #0
-sub42_loop5:
-    sty reg5
+*   sty reg5  ; start first inner loop
     iny
     inx
     cpx #16
-    bne sub42_loop5
+    bne -
 
     ldx #0
-sub42_loop6:
-    lda #$7f
+*   lda #$7f  ; start second inner loop
     sta reg5
     inx
     cpx #16
-    bne sub42_loop6
+    bne -
 
     cpy #$e0
-    bne sub42_loop4
+    bne sub42_loop2
 
     lda #$00
     sta reg4
@@ -2274,15 +2254,14 @@ sub43_exit:
     sta reg4
     lda #$0a
     sta reg4
-    ldx #$50
-    ldy #$00
 
-sub43_loop3:
-    stx reg5
+    ldx #$50
+    ldy #0
+*   stx reg5  ; start loop
     inx
     iny
     cpy #12
-    bne sub43_loop3
+    bne -
 
     lda #$00
     sta reg4
@@ -2291,15 +2270,14 @@ sub43_loop3:
     sta reg4
     lda #$2a
     sta reg4
-    ldy #$00
-    ldx #$5c
 
-sub43_loop4:
-    stx reg5
+    ldy #0
+    ldx #$5c
+*   stx reg5  ; start loop
     inx
     iny
     cpy #12
-    bne sub43_loop4
+    bne -
 
     lda #$00
     sta reg4
@@ -2308,15 +2286,14 @@ sub43_loop4:
     sta reg4
     lda #$4a
     sta reg4
-    ldy #$00
-    ldx #$68
 
-sub43_loop5:
-    stx reg5
+    ldy #0
+    ldx #$68
+*   stx reg5  ; start loop
     inx
     iny
     cpy #12
-    bne sub43_loop5
+    bne -
 
     lda #$00
     sta reg4
@@ -2409,10 +2386,9 @@ sub43_1:
     sta reg4
     lda #$61
     sta reg4
-    ldx #0
 
-sub43_loop6:
-    txa
+    ldx #0
+*   txa           ; start loop
     `add_mem $8f
     tay
     lda table11,y
@@ -2421,7 +2397,7 @@ sub43_loop6:
     sta reg5
     inx
     cpx #31
-    bne sub43_loop6
+    bne -
 
     lda #$00
     sta reg4
@@ -2484,8 +2460,7 @@ sub43_2:
     sta $050b
     ldx data2
 
-sub43_loop7:
-    txa
+*   txa  ; start loop
     asl
     asl
     tay
@@ -2510,7 +2485,7 @@ sub43_loop7:
     cpx #0
     beq +
     dex
-    jmp sub43_loop7
+    jmp -
 
 *   inc $013a
     lda $013a
@@ -2549,19 +2524,18 @@ sub44:
     sta $9a
     ldx #$60
 
-sub44_loop1:
+sub44_loop1:  ; start outer loop
     lda #$21
     sta reg4
     lda $9a
     sta reg4
     ldy #0
 
-sub44_loop2:
-    stx reg5
+*   stx reg5  ; start inner loop
     inx
     iny
     cpy #$03
-    bne sub44_loop2
+    bne -
 
     lda #$00
     sta reg4
@@ -2577,19 +2551,18 @@ sub44_loop2:
     sta $9a
     ldx #$80
 
-sub44_loop3:
+sub44_loop2:  ; start outer loop
     lda #$22
     sta reg4
     lda $9a
     sta reg4
     ldy #0
 
-sub44_loop4:
-    stx reg5
+*   stx reg5  ; start inner loop
     inx
     iny
     cpy #3
-    bne sub44_loop4
+    bne -
 
     lda #$00
     sta reg4
@@ -2599,7 +2572,7 @@ sub44_loop4:
     sta $9a
     lda $9a
     cmp #$68
-    bne sub44_loop3
+    bne sub44_loop2
 
     lda #$3f
     sta reg4
@@ -2655,30 +2628,27 @@ sub44_loop4:
     lda #$00
     sta reg4
     sta reg4
-    ldx data3
 
-sub44_loop5:
-    lda table31,x
+    ldx data3
+*   lda table31,x  ; start loop
     sta $0104,x
     lda table32,x
     sta $0108,x
     dex
     cpx #255
-    bne sub44_loop5
+    bne -
 
     ldx data5
-sub44_loop6:
-    lda #$00
+*   lda #$00     ; start loop
     sta $0112,x
     lda #$f0
     sta $0116,x
     dex
     cpx #$ff
-    bne sub44_loop6
+    bne -
 
     ldx data7
-sub44_loop7:
-    txa
+*   txa        ; start loop
     asl
     asl
     tay
@@ -2692,7 +2662,7 @@ sub44_loop7:
     sta $011e,x
     dex
     cpx #255
-    bne sub44_loop7
+    bne -
 
     lda #$7a
     sta $0111
@@ -2700,8 +2670,7 @@ sub44_loop7:
     sta $0110
 
     ldx data4
-sub44_loop8:
-    txa
+*   txa        ; start loop
     asl
     asl
     tay
@@ -2712,7 +2681,7 @@ sub44_loop8:
     cpx #0
     beq +
     dex
-    jmp sub44_loop8
+    jmp -
 
 *   lda #$00
     sta $0100
@@ -2752,10 +2721,11 @@ sub45_loop1:
     cmp table33,x
     beq +
     inc $0108,x
-    jmp ++
+    jmp sub45_0
 *   lda table32,x
     sta $0108,x
-*   lda table31,x
+sub45_0:
+    lda table31,x
     sta $0104,x
 sub45_1:
     dex
@@ -2772,8 +2742,7 @@ sub45_1:
     sta $0535
     ldx data4
 
-sub45_loop2:
-    txa
+*   txa  ; start loop
     asl
     asl
     tay
@@ -2786,7 +2755,7 @@ sub45_loop2:
     cpx #0
     beq +
     dex
-    jmp sub45_loop2
+    jmp -
 
 *   lda $0100
     ldx $0101
@@ -2816,7 +2785,7 @@ sub45_loop2:
 
 sub45_2:
     ldx data5
-sub45_loop3:
+sub45_loop2:
     lda $0116,x
     cmp #$f0
     beq sub45_3
@@ -2831,11 +2800,10 @@ sub45_loop3:
 sub45_3:
     dex
     cpx #255
-    bne sub45_loop3
+    bne sub45_loop2
 
     ldx data5
-sub45_loop4:
-    txa
+*   txa        ; start loop
     asl
     asl
     tay
@@ -2849,11 +2817,10 @@ sub45_loop4:
     sta $054b,y
     dex
     cpx #255
-    bne sub45_loop4
+    bne -
 
     ldx data7
-sub45_loop5:
-    txa
+*   txa        ; start loop
     asl
     asl
     tay
@@ -2863,7 +2830,7 @@ sub45_loop5:
     sta $05c3,y
     dex
     cpx #255
-    bne sub45_loop5
+    bne -
 
     lda #$80
     sta reg0
@@ -2891,14 +2858,13 @@ sub46:
     sta reg4
 
     ldx #0
-sub46_loop:
-    lda table13,x
+*   lda table13,x  ; start loop
     clc
     sbc #$10
     sta reg5
     inx
     cpx #96
-    bne sub46_loop
+    bne -
 
     lda #$02
     sta reg0
@@ -2938,7 +2904,7 @@ sub48:
     sta $9a
     ldx #$00
 
-sub48_loop1:
+sub48_loop:   ; start outer loop
     lda #$20
     sta reg4
     lda $9a
@@ -2946,12 +2912,11 @@ sub48_loop1:
     sta reg4
     ldy #0
 
-sub48_loop2:
-    stx reg5
+*   stx reg5  ; start inner loop
     inx
     iny
     cpy #16
-    bne sub48_loop2
+    bne -
 
     lda #$00
     sta reg4
@@ -2960,7 +2925,7 @@ sub48_loop2:
     `add_imm 32
     sta $9a
     cmp #96
-    bne sub48_loop1
+    bne sub48_loop
 
     lda #$21
     sta reg4
@@ -2968,32 +2933,29 @@ sub48_loop2:
     sta reg4
 
     ldx #0
-sub48_loop3:
-    lda table14,x
+*   lda table14,x  ; start loop
     clc
     sbc #$10
     sta reg5
     inx
-    bne sub48_loop3
+    bne -
 
     ldx #0
-sub48_loop4:
-    lda table15,x
+*   lda table15,x  ; start loop
     clc
     sbc #$10
     sta reg5
     inx
-    bne sub48_loop4
+    bne -
 
     ldx #0
-sub48_loop5:
-    lda table16,x
+*   lda table16,x  ; start loop
     clc
     sbc #$10
     sta reg5
     inx
     cpx #$80
-    bne sub48_loop5
+    bne -
 
     lda #$00
     sta reg4
@@ -3118,7 +3080,7 @@ sub51:
     jmp sub51_0
 *   ldy #$80
 
-sub51_loop1:
+sub51_loop1:  ; start outer loop
     lda #$21
     sta reg4
     lda #$04
@@ -3126,12 +3088,11 @@ sub51_loop1:
     sta reg4
 
     ldx #0
-sub51_loop2:
-    sty reg5
+*   sty reg5  ; start inner loop
     iny
     inx
     cpx #8
-    bne sub51_loop2
+    bne -
 
     lda $013b
     `add_imm 32
@@ -3139,7 +3100,7 @@ sub51_loop2:
     cpy #$c0
     bne sub51_loop1
 
-sub51_loop3:
+sub51_loop2:  ; start outer loop
     lda #$22
     sta reg4
     lda #$04
@@ -3147,18 +3108,17 @@ sub51_loop3:
     sta reg4
 
     ldx #0
-sub51_loop4:
-    sty reg5
+*   sty reg5  ; start inner loop
     iny
     inx
     cpx #8
-    bne sub51_loop4
+    bne -
 
     lda $013b
     `add_imm 32
     sta $013b
     cpy #$00
-    bne sub51_loop3
+    bne sub51_loop2
 
     lda #$00
     sta reg4
@@ -3166,28 +3126,27 @@ sub51_loop4:
     lda #$00
     sta $013b
 
-sub51_loop5:
+sub51_loop3:  ; start outer loop
     lda #$21
     sta reg4
     lda #$14
     `add_mem $013b
     sta reg4
-    ldx #0
 
-sub51_loop6:
-    sty reg5
+    ldx #0
+*   sty reg5  ; start inner loop
     iny
     inx
     cpx #8
-    bne sub51_loop6
+    bne -
 
     lda $013b
     `add_imm 32
     sta $013b
     cpy #$c0
-    bne sub51_loop5
+    bne sub51_loop3
 
-sub51_loop7:
+sub51_loop4:  ; start outer loop
     lda #$22
     sta reg4
     lda #$14
@@ -3195,18 +3154,17 @@ sub51_loop7:
     sta reg4
 
     ldx #0
-sub51_loop8:
-    sty reg5
+*   sty reg5  ; start inner loop
     iny
     inx
     cpx #8
-    bne sub51_loop8
+    bne -
 
     lda $013b
     `add_imm 32
     sta $013b
     cpy #0
-    bne sub51_loop7
+    bne sub51_loop4
 
     lda #$00
     sta reg4
@@ -3249,7 +3207,7 @@ sub51_2:
     inc $8b
     inc $8a
 
-sub51_loop9:
+sub51_loop5:
     ldx #$01
     jsr sub19
     ldx $8a
@@ -3261,7 +3219,7 @@ sub51_loop9:
     sta $9b
     lda $89
     cmp $9a
-    bcc +   ; could probably be omitted (timed code?)
+    bcc +   ; why?
     bcs ++
 
 *   lda #$0e
@@ -3298,7 +3256,7 @@ sub51_5:
     inc $89
     iny
     cpy #$91
-    bne sub51_loop9
+    bne sub51_loop5
 
 sub51_10:
     lda #$90
@@ -3312,11 +3270,10 @@ sub51_10:
 sub52:
 
     ldy #0
-sub52_loop:
-    stx reg5
+*   stx reg5
     iny
     cpy #32
-    bne sub52_loop
+    bne -
 
     rts
 
@@ -3326,11 +3283,10 @@ sub53:
     ; Why identical to the previous subroutine?
 
     ldy #0
-sub53_loop:
-    stx reg5
+*   stx reg5
     iny
     cpy #32
-    bne sub53_loop
+    bne -
 
     rts
 
@@ -3431,8 +3387,7 @@ sub54:
     sta reg4
 
     ldx data7
-sub54_loop:
-    txa
+*   txa        ; start loop
     asl
     asl
     tay
@@ -3448,7 +3403,7 @@ sub54_loop:
     sta $011e,x
     dex
     cpx #255
-    bne sub54_loop
+    bne -
 
     lda #$00
     sta $0100
@@ -3475,8 +3430,7 @@ sub55:
     sta reg17
     ldx data7
 
-sub55_loop1:
-    txa
+*   txa  ; start loop
     asl
     asl
     tay
@@ -3489,10 +3443,9 @@ sub55_loop1:
     sta $05c3,y
     dex
     cpx #7
-    bne sub55_loop1
+    bne -
 
-sub55_loop2:
-    txa
+*   txa  ; start loop
     asl
     asl
     tay
@@ -3505,7 +3458,7 @@ sub55_loop2:
     sta $05c3,y
     dex
     cpx #255
-    bne sub55_loop2
+    bne -
 
     `chr_bankswitch 0
     inc $8a
@@ -3532,8 +3485,7 @@ sub55_1:
     sta reg4
     ldx #$00
 
-sub55_loop3:
-    txa
+*   txa           ; start loop
     `add_mem $8f
     tay
     lda table11,y
@@ -3542,7 +3494,7 @@ sub55_loop3:
     sta reg5
     inx
     cpx #31
-    bne sub55_loop3
+    bne -
 
     lda #$00
     sta reg4
@@ -3633,10 +3585,9 @@ sub56:
     sta reg4
 
     ldx #64
-sub56_loop1:
-    sty reg5
+*   sty reg5
     dex
-    bne sub56_loop1
+    bne -
 
     lda #$2b
     sta reg4
@@ -3644,10 +3595,9 @@ sub56_loop1:
     sta reg4
 
     ldx #64
-sub56_loop2:
-    sty reg5
+*   sty reg5
     dex
-    bne sub56_loop2
+    bne -
 
     lda #$00
     sta reg4
@@ -3725,15 +3675,14 @@ sub58:
     sta reg4
 
     ldx #0
-    ldy #$00  ; why?
-sub58_loop1:
-    lda $8e
+    ldy #0  ; why?
+*   lda $8e
     sta reg5
     sta reg5
     sta reg5
     sta reg5
     inx
-    bne sub58_loop1
+    bne -
 
     lda #$28
     sta reg4
@@ -3741,15 +3690,14 @@ sub58_loop1:
     sta reg4
 
     ldx #0
-    ldy #$00  ; why?
-sub58_loop2:
-    lda $8e
+    ldy #0  ; why?
+*   lda $8e
     sta reg5
     sta reg5
     sta reg5
     sta reg5
     inx
-    bne sub58_loop2
+    bne -
 
     lda #$01
     sta $02

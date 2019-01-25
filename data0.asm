@@ -5,7 +5,7 @@
     .byte 255, 254, 253, 252, 251, 250, 249, 248
     .byte 247, 246, 245, 244, 243, 242, 241
 
-table01:
+apu_reg_offsets:
     .byte 0, 4, 8, 12
 
 table02:
@@ -14,7 +14,7 @@ table02:
 table03:
     .byte 254, 253, 251, 247
 
-table04:
+or_masks:
     .byte $00, $10, $20, $30, $40, $50, $60, $70
     .byte $80, $90, $a0, $b0, $c0, $d0, $e0, $f0
     .byte $e0, $d0, $c0, $b0, $a0, $90, $80, $70
@@ -69,22 +69,20 @@ word_hi:
     .byte   >34,   >32,   >30,   >28,   >27,   >25,   >24,   >22
     .byte   >21,   >20,   >19,   >18,   >17,   >16,   >15,   >14
 
-table08:  ; 8b46
-    .byte $68
+pointer_lo:
+    .byte <indirect_data1
+pointer_hi:
+    .byte >indirect_data1
 
-table09:  ; 8b47
-    .byte $8b
-
-    ; 8b48: $8d, $a0, repeat.
+    ; 8b48: $8d, $a0, repeat (perhaps $a08d, i.e. the address after the last
+    ; byte of this file?)
     .byte $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
     .byte $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
     .byte $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
     .byte $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
 
-    ; 8b68
+indirect_data1:  ; 8b68
     .byte $20, $10, $00
-
-    ; 8b6b (indirect)
     .byte $05, $3a, $10, $00, $3c, $15, $1c, $0c
     .byte $0a, $01, $f9, $12, $00, $90, $00, $00
     .byte $00, $02, $5f, $01, $00, $50, $00, $00

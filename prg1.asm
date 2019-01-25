@@ -4,9 +4,9 @@ init:
 
     sei
     cld
-    jsr sub14
+    jsr wait_vbl
 
-    ; clear RAM (fill $0000-$07ff with $00)
+    ; clear RAM
     ldx #0
     txa
 *   sta $00,x
@@ -14,7 +14,7 @@ init:
     sta $0200,x
     sta $0300,x
     sta $0400,x
-    sta $0500,x
+    sta sprite_page,x
     sta $0600,x
     sta $0700,x
     inx
@@ -24,11 +24,12 @@ init:
     jsr sub16
     jsr sub18
 
+    ; write subpalette 7
     `set_ppu_addr vram_palette+7*4
-    `write_ppu_data $0f
-    `write_ppu_data $1c
-    `write_ppu_data $2b
-    `write_ppu_data $39
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $1c  ; medium-dark cyan
+    `write_ppu_data $2b  ; medium-light green
+    `write_ppu_data $39  ; light yellow
     `reset_ppu_addr
 
     lda #$00
@@ -57,7 +58,7 @@ init:
     lda #$00
     ldx #$01
     jsr sub13
-    jsr sub14
+    jsr wait_vbl
     lda #%10000000
     sta ppu_ctrl
     lda #%00011110
@@ -78,10 +79,11 @@ init:
 
 ; -----------------------------------------------------------------------------
 
-sub14:
+wait_vbl:
+    ; Wait for VBlank.
 
-    bit ppu_status
-    bpl sub14
+*   bit ppu_status
+    bpl -
     rts
 
 ; -----------------------------------------------------------------------------
@@ -89,9 +91,10 @@ sub14:
 sub15:
     ; This sub could be optimized in many places.
 
+    ; hide all sprites (set Y position outside screen)
     ldx #0
-*   lda #$f5
-    sta $0500,x
+*   lda #245
+    sta sprite_page,x
     `inx4
     bne -
     rts
@@ -144,6 +147,8 @@ sub17:
 ; -----------------------------------------------------------------------------
 
 sub18:
+
+    ; update entire palette from $07c0...$07df
 
     `set_ppu_addr vram_palette
 
@@ -269,18 +274,20 @@ sub22_loop:   ; start outer loop
 *   lda $9c       ; start inner loop
     `add_mem $a7
     ldy $a8
-    sta $0501,y
+    sta sprite_page+1,y
     txa
     adc $a5
     ldy $a8
-    sta $0503,y
+    sta sprite_page+3,y
     lda $9b
     `add_mem $a6
+
     ldy $a8
-    sta $0500,y
+    sta sprite_page,y
+
     lda #$03
     ldy $a8
-    sta $0502,y
+    sta sprite_page+2,y
     lda $9a
     `add_imm 4
     sta $9a
@@ -324,18 +331,20 @@ sub23_loop:   ; start outer loop
 *   lda $9c       ; start inner loop
     `add_mem $a7
     ldy $a8
-    sta $0501,y
+    sta sprite_page+1,y
     txa
     adc $a5
     ldy $a8
-    sta $0503,y
+    sta sprite_page+3,y
     lda $9b
     `add_mem $a6
+
     ldy $a8
-    sta $0500,y
+    sta sprite_page,y
+
     lda #$02
     ldy $a8
-    sta $0502,y
+    sta sprite_page+2,y
     lda $9a
     `add_imm 4
     sta $9a
@@ -379,18 +388,20 @@ sub24_loop:   ; start outer loop
 *   lda $9c       ; start inner loop
     `add_mem $a7
     ldy $a8
-    sta $0501,y
+    sta sprite_page+1,y
     txa
     adc $a5
     ldy $a8
-    sta $0503,y
+    sta sprite_page+3,y
     lda $9b
     `add_mem $a6
+
     ldy $a8
-    sta $0500,y
+    sta sprite_page,y
+
     lda #$02
     ldy $a8
-    sta $0502,y
+    sta sprite_page+2,y
     lda $9a
     `add_imm 4
     sta $9a
@@ -434,19 +445,19 @@ sub25_loop:
 
 *   lda #$e1
     `add_mem $9b
-    sta $0500,x
+    sta sprite_page,x
     sta $0154,y
     lda $9b
     sta $016a,y
     lda #$01
     sta $0180,y
     lda table10,y
-    sta $0501,x
+    sta sprite_page+1,x
     lda #$00
-    sta $0502,x
+    sta sprite_page+2,x
     lda $9a
     `add_imm 40
-    sta $0503,x
+    sta sprite_page+3,x
 
 sub25_1:
     `inx4
@@ -524,10 +535,12 @@ sub27:
     asl
     asl
     tay
-    lda $05b4,y
+
+    lda sprite_page+45*4+0,y
     clc
     sbc table46,x
-    sta $05b4,y
+    sta sprite_page+45*4+0,y
+
     dex
     cpx #$ff
     bne -
@@ -543,18 +556,24 @@ sub28:
     asl
     asl
     tay
+
     lda table45,x
-    sta $05b4,y
+    sta sprite_page+45*4+0,y
+
     lda table47,x
-    sta $05b5,y
-    lda #$03
-    sta $05b6,y
+    sta sprite_page+45*4+1,y
+
+    lda #%00000011
+    sta sprite_page+45*4+2,y
+
     lda table44,x
-    sta $05b7,y
+    sta sprite_page+45*4+3,y
+
     lda table46,x
     sta $011e,x
+
     dex
-    cpx #$ff
+    cpx #255
     bne -
 
     rts
@@ -738,78 +757,108 @@ sub29_11:
     bcc +
     jmp sub29_12
 *   ldx $93
+
     lda table19,x
     `add_imm $58
-    sta $0500
+    sta sprite_page+0*4+0
+
     lda table20,x
     `add_imm $6e
-    sta $0503
+    sta sprite_page+0*4+3
+
     lda table19,x
     `add_imm $58
-    sta $0504
+    sta sprite_page+1*4+0
+
     lda table20,x
     `add_imm $76
-    sta $0507
+    sta sprite_page+1*4+3
+
     lda table19,x
     `add_imm $60
-    sta $0508
+    sta sprite_page+2*4+0
+
     lda table20,x
     `add_imm $6e
-    sta $050b
+    sta sprite_page+2*4+3
+
     lda table19,x
     `add_imm $60
-    sta $050c
+    sta sprite_page+3*4+0
+
     lda table20,x
     `add_imm $76
-    sta $050f
+    sta sprite_page+3*4+3
+
     lda table20,x
     `add_imm $58
-    sta $0510
+    sta sprite_page+4*4+0
+
     lda table19,x
     `add_imm $6e
-    sta $0513
+    sta sprite_page+4*4+3
+
     lda table20,x
     `add_imm $58
-    sta $0514
+    sta sprite_page+5*4+0
+
     lda table19,x
     `add_imm $76
-    sta $0517
+    sta sprite_page+5*4+3
+
     lda table20,x
     `add_imm $60
-    sta $0518
+    sta sprite_page+6*4+0
+
     lda table19,x
     `add_imm $6e
-    sta $051b
+    sta sprite_page+6*4+3
+
     lda table20,x
     `add_imm $60
-    sta $051c
+    sta sprite_page+7*4+0
+
     lda table19,x
     `add_imm $75
-    sta $051f
+    sta sprite_page+7*4+3
+
     jmp sub29_13
 
 sub29_12:
-    dec $0500
-    dec $0503
-    dec $0504
-    inc $0507
-    inc $0508
-    dec $050b
-    inc $050c
-    inc $050f
-    dec $0510
-    dec $0513
-    dec $0514
-    inc $0517
-    inc $0518
-    dec $051b
-    inc $051c
-    inc $051f
+    ; move sprites 0...7:
+    ; 0, 4: up left
+    ; 1, 5: up right
+    ; 2, 6: down left
+    ; 3, 7: down right
+
+    dec sprite_page+0*4+0
+    dec sprite_page+0*4+3
+
+    dec sprite_page+1*4+0
+    inc sprite_page+1*4+3
+
+    inc sprite_page+2*4+0
+    dec sprite_page+2*4+3
+
+    inc sprite_page+3*4+0
+    inc sprite_page+3*4+3
+
+    dec sprite_page+4*4+0
+    dec sprite_page+4*4+3
+
+    dec sprite_page+5*4+0
+    inc sprite_page+5*4+3
+
+    inc sprite_page+6*4+0
+    dec sprite_page+6*4+3
+
+    inc sprite_page+7*4+0
+    inc sprite_page+7*4+3
 
 sub29_13:
     jsr sub27
-    lda #$05
-    sta oam_dma
+
+    `sprite_dma
     rts
 
 ; -----------------------------------------------------------------------------
@@ -821,32 +870,37 @@ sub30:
     ldy #$00
     ldy #$00
 
+    ; fill rows 1-8 of Name Table 2 with $00...$ff
     `set_ppu_addr vram_name_table2+32
-
     ldx #0
 *   stx ppu_data
     inx
     bne -
+    `reset_ppu_addr
 
-    `reset_ppu_addr
+    ; update two first colors in subpalette 4
     `set_ppu_addr vram_palette+4*4
-    `write_ppu_data $00
-    `write_ppu_data $30
+    `write_ppu_data $00  ; dark gray
+    `write_ppu_data $30  ; white
     `reset_ppu_addr
+
+    ; update subpalettes 5 and 6
     `set_ppu_addr vram_palette+5*4+1
-    `write_ppu_data $3d
-    `write_ppu_data $0c
-    `write_ppu_data $3c
-    `write_ppu_data $0f
-    `write_ppu_data $3c
-    `write_ppu_data $0c
-    `write_ppu_data $1a
+    `write_ppu_data $3d  ; light gray
+    `write_ppu_data $0c  ; dark cyan
+    `write_ppu_data $3c  ; light cyan
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $3c  ; light cyan
+    `write_ppu_data $0c  ; dark cyan
+    `write_ppu_data $1a  ; medium-dark green
     `reset_ppu_addr
+
+    ; update subpalette 0
     `set_ppu_addr vram_palette
-    `write_ppu_data $38
-    `write_ppu_data $01
-    `write_ppu_data $26
-    `write_ppu_data $0f
+    `write_ppu_data $38  ; light yellow
+    `write_ppu_data $01  ; dark purple
+    `write_ppu_data $26  ; medium-light red
+    `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
     lda #$01
@@ -865,14 +919,14 @@ sub30:
 sub31:
 
     `chr_bankswitch 0
-    lda #$05
-    sta oam_dma
+    `sprite_dma
 
     lda #%10010000
     sta ppu_ctrl
 
+    ; update last color of subpalette 0
     `set_ppu_addr vram_palette+3
-    `write_ppu_data $0f
+    `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
     lda #0
@@ -905,40 +959,44 @@ sub31:
     asl
     asl
     tay
+
     lda table24,x
     `add_mem $012f
-    sta $055c,y
+    sta sprite_page+23*4+0,y
     lda table25,x
-    sta $055d,y
+    sta sprite_page+23*4+1,y
     lda table26,x
-    sta $055e,y
+    sta sprite_page+23*4+2,y
     lda table27,x
     `add_mem $012e
-    sta $055f,y
-    cpx #$00
+    sta sprite_page+23*4+3,y
+
+    cpx #0
     beq +
     dex
     jmp -
 
-*   lda #$81
-    sta $0560
+*   lda #129
+    sta sprite_page+24*4+0
     lda #$e5
-    sta $0561
-    lda #$01
-    sta $0562
-    lda #$d6
-    sta $0563
-    lda #$61
-    sta $0564
-    lda #$f0
-    sta $0565
-    lda #$02
-    sta $0566
-    lda #$e6
-    sta $0567
+    sta sprite_page+24*4+1
+    lda #%00000001
+    sta sprite_page+24*4+2
+    lda #214
+    sta sprite_page+24*4+3
 
+    lda #97
+    sta sprite_page+25*4+0
+    lda #$f0
+    sta sprite_page+25*4+1
+    lda #%00000010
+    sta sprite_page+25*4+2
+    lda #230
+    sta sprite_page+25*4+3
+
+    ; update last color of subpalette 0
     `set_ppu_addr vram_palette+3
-    `write_ppu_data $30
+    `write_ppu_data $30  ; white
     `reset_ppu_addr
 
 sub31_1:
@@ -960,7 +1018,7 @@ sub31_loop:
     adc $016a,x
     sta $9a
     lda $0154,x
-    sta $0500,y
+    sta sprite_page,y
     cmp $9a
     bcc +
     txa
@@ -1107,8 +1165,9 @@ sub34:
     jsr sub16
     jsr sub18
 
+    ; update first color of subpalette 3
     `set_ppu_addr vram_palette+3*4
-    `write_ppu_data $0f
+    `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
     lda #$01
@@ -1291,8 +1350,9 @@ sub36:
     ldy #$55
     jsr sub57
 
+    ; update first color of subpalette 3
     `set_ppu_addr vram_palette+3*4
-    `write_ppu_data $0f
+    `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
     lda #$01
@@ -1519,12 +1579,14 @@ sub40:
     jsr sub16
     jsr sub18
 
+    ; update subpalette 7
     `set_ppu_addr vram_palette+7*4
-    `write_ppu_data $0f
-    `write_ppu_data $19
-    `write_ppu_data $33
-    `write_ppu_data $30
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $19  ; medium-dark green
+    `write_ppu_data $33  ; light purple
+    `write_ppu_data $30  ; white
     `reset_ppu_addr
+
     `set_ppu_addr vram_name_table0
 
 sub40_1:
@@ -1613,25 +1675,24 @@ sub40_loop5:  ; start outer loop
     jmp sub40_1
 
 sub40_2:
+    ; clear Attribute Table 0
     `set_ppu_addr vram_attr_table0
-
     ldx #0
-*   lda #$00  ; start loop
+*   lda #$00
     sta ppu_data
     inx
     cpx #64
     bne -
-
     `reset_ppu_addr
-    `set_ppu_addr vram_attr_table2
 
+    ; clear Attribute Table 2
+    `set_ppu_addr vram_attr_table2
     ldx #0
-*   lda #$00  ; start loop
+*   lda #$00
     sta ppu_data
     inx
     cpx #64
     bne -
-
     `reset_ppu_addr
 
     jsr sub15
@@ -1654,8 +1715,8 @@ sub40_2:
 
 sub41:
 
-    lda #$05
-    sta oam_dma
+    `sprite_dma
+
     lda $a2
     cmp #$08
     bne sub41_01
@@ -1686,24 +1747,24 @@ sub41_01:
     cmp #1
     beq sub41_02
     cmp #2
-    beq +     ; why?
+    beq +
 
-*   `write_ppu_data $34
-    `write_ppu_data $24
-    `write_ppu_data $14
-    `write_ppu_data $04
+*   `write_ppu_data $34  ; light purple
+    `write_ppu_data $24  ; medium-light purple
+    `write_ppu_data $14  ; medium-dark purple
+    `write_ppu_data $04  ; dark purple
 
 sub41_02:
-    `write_ppu_data $38
-    `write_ppu_data $28
-    `write_ppu_data $18
-    `write_ppu_data $08
+    `write_ppu_data $38  ; light yellow
+    `write_ppu_data $28  ; medium-light yellow
+    `write_ppu_data $18  ; medium-dark yellow
+    `write_ppu_data $08  ; dark yellow
 
 sub41_03:
-    `write_ppu_data $32
-    `write_ppu_data $22
-    `write_ppu_data $12
-    `write_ppu_data $02
+    `write_ppu_data $32  ; light blue
+    `write_ppu_data $22  ; medium-light blue
+    `write_ppu_data $12  ; medium-dark blue
+    `write_ppu_data $02  ; dark blue
 
 sub41_04:
     inc $89
@@ -1900,48 +1961,56 @@ sub42:
     lda #$21
     sta $014b
 
+    ; write 16 rows to Name Table 0;
+    ; the left half consists of tiles $00, $01, ..., $ff;
+    ; the right half consists of tile $7f
     `set_ppu_addr vram_name_table0
-
+    ; start outer loop
     ldy #0
-sub42_loop1:  ; start outer loop
-
+sub42_loop1:
+    ; write Y...Y+15
     ldx #0
-*   sty ppu_data  ; start first inner loop
+*   sty ppu_data
     iny
     inx
     cpx #16
     bne -
-
+    ; write 16 * byte $7f
     ldx #0
-*   `write_ppu_data $7f  ; start second inner loop
+*   `write_ppu_data $7f
     inx
     cpx #16
     bne -
-
+    ; end outer loop
     cpy #0
     bne sub42_loop1
 
     jsr sub12
 
+    ; write another 7 rows to Name Table 0;
+    ; the left half consists of tiles $00, $01, ..., $df
+    ; the right half consists of tile $7f
+    ; start outer loop
     ldy #0
-sub42_loop2:  ; start outer loop
-
+sub42_loop2:
+    ; first inner loop
     ldx #0
-*   sty ppu_data  ; start first inner loop
+*   sty ppu_data
     iny
     inx
     cpx #16
     bne -
-
+    ; second inner loop
     ldx #0
-*   `write_ppu_data $7f  ; start second inner loop
+*   `write_ppu_data $7f
     inx
     cpx #16
     bne -
-
-    cpy #$e0
+    ; end outer loop
+    cpy #7*32
     bne sub42_loop2
 
+    ; write bytes $e0...$e4 to Name Table 0, row 29, columns 10...14
     `reset_ppu_addr
     `set_ppu_addr vram_name_table0+29*32+10
     `write_ppu_data $e0
@@ -1950,19 +2019,20 @@ sub42_loop2:  ; start outer loop
     `write_ppu_data $e3
     `write_ppu_data $e4
     `reset_ppu_addr
+
+    ; update subpalettes 0 and 4
     `set_ppu_addr vram_palette
-
-    ldx #$00
-
-    `write_ppu_data $30
-    `write_ppu_data $25
-    `write_ppu_data $17
-    `write_ppu_data $0f
+    ldx #0
+    `write_ppu_data $30  ; white
+    `write_ppu_data $25  ; medium-light red
+    `write_ppu_data $17  ; medium-dark orange
+    `write_ppu_data $0f  ; black
     `set_ppu_addr vram_palette+4*4+1
-    `write_ppu_data $02
-    `write_ppu_data $12
-    `write_ppu_data $22
+    `write_ppu_data $02  ; dark blue
+    `write_ppu_data $12  ; medium-dark blue
+    `write_ppu_data $22  ; medium-light blue
     `reset_ppu_addr
+
     `reset_ppu_scroll
 
     lda #$00
@@ -1985,8 +2055,8 @@ sub42_loop2:  ; start outer loop
 
 sub43:
 
-    lda #$05
-    sta oam_dma
+    `sprite_dma
+
     inc $8a
     inc $8b
     ldx #$18
@@ -1998,12 +2068,13 @@ sub43:
 
 sub43_loop1:
     txa
-    sta $0500,y
+    sta sprite_page,y
+
     lda #$f0
     `add_mem $8c
-    sta $0501,y
+    sta sprite_page+1,y
     lda $014a
-    sta $0502,y
+    sta sprite_page+2,y
     txa
     pha
     inc $89
@@ -2014,7 +2085,7 @@ sub43_loop1:
     tax
     lda table21,x
     `add_imm $c2
-    sta $0503,y
+    sta sprite_page+3,y
     pla
     tax
     `iny4
@@ -2046,12 +2117,13 @@ sub43_loop1:
 
 sub43_loop2:
     txa
-    sta $0500,y
+    sta sprite_page,y
+
     lda #$f0
     `add_mem $8c
-    sta $0501,y
+    sta sprite_page+1,y
     lda $014b
-    sta $0502,y
+    sta sprite_page+2,y
     txa
     pha
     dec $89
@@ -2061,7 +2133,7 @@ sub43_loop2:
     tax
     lda table21,x
     `add_imm $c2
-    sta $0503,y
+    sta sprite_page+3,y
     pla
     tax
     `iny4
@@ -2267,8 +2339,8 @@ sub43_2:
     lda #%00011110
     sta ppu_mask
 
-    lda #$05
-    sta oam_dma
+    `sprite_dma
+
     ldx #$ff
     jsr sub19
     jsr sub19
@@ -2285,57 +2357,65 @@ sub43_2:
 
     lda $8a
     sta ppu_scroll
-    lda #$00
+    lda #0
     sta ppu_scroll
 
-    lda #$d7
-    sta $0500
+    lda #215
+    sta sprite_page+0*4+0
     lda #$25
-    sta $0501
-    lda #$00
-    sta $0502
-    lda #$f8
-    sta $0503
-    lda #$cf
-    sta $0504
-    lda #$25
-    sta $0505
-    lda #$00
-    sta $0506
-    lda #$f8
-    sta $0507
-    lda #$df
-    sta $0508
-    lda #$27
-    sta $0509
-    lda #$00
-    sta $050a
-    lda #$f8
-    sta $050b
-    ldx data2
+    sta sprite_page+0*4+1
+    lda #%00000000
+    sta sprite_page+0*4+2
+    lda #248
+    sta sprite_page+0*4+3
 
+    lda #207
+    sta sprite_page+1*4+0
+    lda #$25
+    sta sprite_page+1*4+1
+    lda #%00000000
+    sta sprite_page+1*4+2
+    lda #248
+    sta sprite_page+1*4+3
+
+    lda #223
+    sta sprite_page+2*4+0
+    lda #$27
+    sta sprite_page+2*4+1
+    lda #%00000000
+    sta sprite_page+2*4+2
+    lda #248
+    sta sprite_page+2*4+3
+
+    ldx data2
 *   txa  ; start loop
     asl
     asl
     tay
+
     lda table28,x
     `add_imm $9b
-    sta $055c,y
+    sta sprite_page+23*4+0,y
+
     txa
     pha
     ldx $0137
     lda table52,x
     sta $9a
     pla
+
     tax
     lda table29,x
     `add_mem $9a
-    sta $055d,y
-    lda #$02
-    sta $055e,y
+    sta sprite_page+23*4+1,y
+
+    lda #%00000010
+    sta sprite_page+23*4+2,y
+
     lda table30,x
     `add_mem $0139
-    sta $055f,y
+    sta sprite_page+23*4+3,y
+
     cpx #0
     beq +
     dex
@@ -2476,12 +2556,14 @@ sub44_loop2:  ; start outer loop
     asl
     asl
     tay
+
     lda table41,x
-    sta $05c0,y
+    sta sprite_page+48*4+0,y
     lda table43,x
-    sta $05c1,y
+    sta sprite_page+48*4+1,y
     lda table40,x
-    sta $05c3,y
+    sta sprite_page+48*4+3,y
+
     lda table42,x
     sta $011e,x
     dex
@@ -2498,10 +2580,12 @@ sub44_loop2:  ; start outer loop
     asl
     asl
     tay
+
     lda table35,x
-    sta $0505,y
+    sta sprite_page+1*4+1,y
     lda table36,x
-    sta $0506,y
+    sta sprite_page+1*4+2,y
+
     cpx #0
     beq +
     dex
@@ -2524,8 +2608,8 @@ sub44_loop2:  ; start outer loop
 
 sub45:
 
-    lda #$05
-    sta oam_dma
+    `sprite_dma
+
     inc $0100
     ldx $0100
     lda table19,x
@@ -2558,25 +2642,28 @@ sub45_2:
     bne sub45_loop1
 
     lda $0108
-    sta $0505
+    sta sprite_page+1*4+1
     lda $0109
-    sta $0541
+    sta sprite_page+16*4+1
     lda $010a
-    sta $0545
+    sta sprite_page+17*4+1
     lda $010b
-    sta $0535
-    ldx data4
+    sta sprite_page+13*4+1
 
+    ldx data4
 *   txa  ; start loop
     asl
     asl
     tay
+
     lda table34,x
     `add_mem $0111
-    sta $0504,y
+    sta sprite_page+1*4+0,y
+
     lda table37,x
     `add_mem $0110
-    sta $0507,y
+    sta sprite_page+1*4+3,y
+
     cpx #0
     beq +
     dex
@@ -2632,14 +2719,16 @@ sub45_4:
     asl
     asl
     tay
+
     lda $0116,x
-    sta $0548,y
+    sta sprite_page+18*4+0,y
     lda table39,x
-    sta $0549,y
+    sta sprite_page+18*4+1,y
     lda #$2b
-    sta $054a,y
+    sta sprite_page+18*4+2,y
     lda $0112,x
-    sta $054b,y
+    sta sprite_page+18*4+3,y
+
     dex
     cpx #255
     bne -
@@ -2649,10 +2738,12 @@ sub45_4:
     asl
     asl
     tay
-    lda $05c3,y
+
+    lda sprite_page+48*4+3,y
     clc
     sbc table42,x
-    sta $05c3,y
+    sta sprite_page+48*4+3,y
+
     dex
     cpx #255
     bne -
@@ -2857,10 +2948,10 @@ sub50:
     sta $8b
 
     `set_ppu_addr vram_palette
-    `write_ppu_data $05
-    `write_ppu_data $25
-    `write_ppu_data $15
-    `write_ppu_data $30
+    `write_ppu_data $05  ; dark red
+    `write_ppu_data $25  ; medium-light red
+    `write_ppu_data $15  ; medium-dark red
+    `write_ppu_data $30  ; white
     `reset_ppu_addr
 
     lda #$c8
@@ -3193,14 +3284,16 @@ sub54:
     asl
     asl
     tay
+
     lda table49,x
-    sta $05c0,y
+    sta sprite_page+48*4+0,y
     lda table51,x
-    sta $05c1,y
-    lda #$02
-    sta $05c2,y
+    sta sprite_page+48*4+1,y
+    lda #%00000010
+    sta sprite_page+48*4+2,y
     lda table48,x
-    sta $05c3,y
+    sta sprite_page+48*4+3,y
+
     lda table50,x
     sta $011e,x
     dex
@@ -3228,21 +3321,23 @@ sub55:
     sta $9a
     lda table22,x
     sta $9b
-    lda #$05
-    sta oam_dma
-    ldx data7
 
+    `sprite_dma
+
+    ldx data7
 *   txa  ; start loop
     asl
     asl
     tay
+
     lda table49,x
     `add_mem $9a
-    sta $05c0,y
-    lda $05c3,y
+    sta sprite_page+48*4+0,y
+    lda sprite_page+48*4+3,y
     clc
     adc table50,x
-    sta $05c3,y
+    sta sprite_page+48*4+3,y
+
     dex
     cpx #7
     bne -
@@ -3251,13 +3346,15 @@ sub55:
     asl
     asl
     tay
+
     lda table49,x
     `add_mem $9b
-    sta $05c0,y
-    lda $05c3,y
+    sta sprite_page+48*4+0,y
+    lda sprite_page+48*4+3,y
     clc
     adc table50,x
-    sta $05c3,y
+    sta sprite_page+48*4+3,y
+
     dex
     cpx #255
     bne -
@@ -3310,66 +3407,78 @@ sub55_2:
 
     lda table20,x
     sta $9a
-    lda #$94
+
+    ; set up sprites 0...5
+    ; Y        : (147, 151 or 155) - [$9a]
+    ; tile     : $25
+    ; attribute: %00000000
+    ; X        : 0 or 248
+
+    lda #148
     clc
     sbc $9a
-    sta $0500
+    sta sprite_page+0*4+0
     lda #$25
-    sta $0501
-    lda #$00
-    sta $0502
-    lda #$f8
-    sta $0503
-    lda #$98
+    sta sprite_page+0*4+1
+    lda #%00000000
+    sta sprite_page+0*4+2
+    lda #248
+    sta sprite_page+0*4+3
+
+    lda #152
     clc
     sbc $9a
-    sta $0504
+    sta sprite_page+1*4+0
     lda #$25
-    sta $0505
-    lda #$00
-    sta $0506
-    lda #$f8
-    sta $0507
-    lda #$9c
+    sta sprite_page+1*4+1
+    lda #%00000000
+    sta sprite_page+1*4+2
+    lda #248
+    sta sprite_page+1*4+3
+
+    lda #156
     clc
     sbc $9a
-    sta $0508
+    sta sprite_page+2*4+0
     lda #$25
-    sta $0509
-    lda #$00
-    sta $050a
-    lda #$f8
-    sta $050b
-    lda #$94
+    sta sprite_page+2*4+1
+    lda #%00000000
+    sta sprite_page+2*4+2
+    lda #248
+    sta sprite_page+2*4+3
+
+    lda #148
     clc
     sbc $9a
-    sta $050c
+    sta sprite_page+3*4+0
     lda #$25
-    sta $050d
-    lda #$00
-    sta $050e
-    lda #$00
-    sta $050f
-    lda #$98
+    sta sprite_page+3*4+1
+    lda #%00000000
+    sta sprite_page+3*4+2
+    lda #0
+    sta sprite_page+3*4+3
+
+    lda #152
     clc
     sbc $9a
-    sta $0510
+    sta sprite_page+4*4+0
     lda #$25
-    sta $0511
-    lda #$00
-    sta $0512
-    lda #$00
-    sta $0513
-    lda #$9c
+    sta sprite_page+4*4+1
+    lda #%00000000
+    sta sprite_page+4*4+2
+    lda #0
+    sta sprite_page+4*4+3
+
+    lda #156
     clc
     sbc $9a
-    sta $0514
+    sta sprite_page+5*4+0
     lda #$25
-    sta $0515
-    lda #$00
-    sta $0516
-    lda #$00
-    sta $0517
+    sta sprite_page+5*4+1
+    lda #%00000000
+    sta sprite_page+5*4+2
+    lda #0
+    sta sprite_page+5*4+3
 
     lda #%10000000
     sta ppu_ctrl

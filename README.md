@@ -8,7 +8,7 @@ Notes:
 * This project had an incorrect license for a short time by mistake.
 
 ## How to assemble
-* Install [Ophis](http://michaelcmartin.github.io/Ophis/) (a 6502 assembler for Windows/Linux/Mac).
+* **Install [Ophis](http://michaelcmartin.github.io/Ophis/)** (a 6502 assembler for Windows/Linux/Mac).
 * **Download** the original *Quantum Disco Brothers* from somewhere (see *The original file* below; it should be easy to find).
   * **Extract** the file if it is compressed (`.zip`, `.7z`, etc.).
   * **Rename** the file to `quantum-original.nes` (`assemble.bat` expects to find it).

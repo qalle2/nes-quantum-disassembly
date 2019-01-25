@@ -71,12 +71,17 @@ table11:
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
     .byte $5b, $5b, $0d, $0a
 
+palette_table:
+    .byte $2f, $10, $00, $20
+    .byte $0f, $05, $26, $30
+    .byte $0f, $20, $10, $00
+    .byte $0f, $13, $23, $33
+    .byte $0f, $1c, $2b, $39
+    .byte $0f, $06, $15, $36
+    .byte $0f, $04, $24, $30
+    .byte $0f, $02, $22, $30
+
     ; Attribute Table data? (a lot of $55/$aa)
-table12:
-    .byte $2f, $10, $00, $20, $0f, $05, $26, $30
-    .byte $0f, $20, $10, $00, $0f, $13, $23, $33
-    .byte $0f, $1c, $2b, $39, $0f, $06, $15, $36
-    .byte $0f, $04, $24, $30, $0f, $02, $22, $30
     .byte $a9, $aa, $aa, $aa, $aa, $aa, $aa, $aa
     .byte $aa, $aa, $aa, $42, $f8, $ff, $95, $03
     .byte $00, $c0, $ff, $f9, $eb, $17, $9f, $00

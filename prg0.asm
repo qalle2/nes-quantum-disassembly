@@ -19,8 +19,8 @@
     lda #%00000000
     sta ppu_mask
 
-    lda #$68
-    ldx #$8b
+    lda #<indirect_data1
+    ldx #>indirect_data1
     jsr sub01
 
     lda #%00011110
@@ -33,6 +33,8 @@
 ; -----------------------------------------------------------------------------
 
 sub01:
+    ; Args: A = pointer low, X = pointer high
+    ; Called by: $8000, sub13
 
     sta ptr4+0
     stx ptr4+1
@@ -77,6 +79,7 @@ sub01:
     lda (ptr4),y
     sta $03e4
 
+    ; [$80] + 16 -> $cb
     `iny4
     tya
     `add_imm $80
@@ -195,7 +198,7 @@ sub02:
 *   lsr
     lsr
     ora $0394,x
-    ldy table01,x
+    ldy apu_reg_offsets,x
     sta pulse1_ctrl,y
     rts
 
@@ -207,7 +210,7 @@ sub03:
     beq sub03_1
     cpx #2
     beq sub03_2
-    ldy table01,x
+    ldy apu_reg_offsets,x
     sta pulse1_timer,y
     lda #$08
     sta pulse1_sweep,y
@@ -228,7 +231,7 @@ sub03_1:
     rts
 
 sub03_2:
-    ldy table01,x
+    ldy apu_reg_offsets,x
     sta pulse1_timer,y
     lda $cb
     ora #%00001000
@@ -404,7 +407,7 @@ sub06:
     bmi sub06_1
     dey
     bmi sub06_2
-    ora table04,y
+    ora or_masks,y
     tay
     lda table05,y
     clc
@@ -418,7 +421,7 @@ sub06_1:
     tay
     dey
     pla
-    ora table04,y
+    ora or_masks,y
     tay
     lda table05,y
     eor #%11111111
@@ -1281,7 +1284,7 @@ sub11_loop3:
     lsr
     lsr
     ora $0394,x
-    ldy table01,x
+    ldy apu_reg_offsets,x
     sta pulse1_ctrl,y
 sub11_18:
     dex
@@ -1337,9 +1340,9 @@ sub13:
 *   sty $ff
     asl
     tay
-    lda table09,y
+    lda pointer_hi,y
     tax
-    lda table08,y
+    lda pointer_lo,y
     jsr sub01
     rts
 

@@ -8,18 +8,19 @@ Notes:
 * This project had an incorrect license for a short time by mistake.
 
 ## How to assemble
-* Download the original *Quantum Disco Brothers* from somewhere (see *The original file* below; it should be easy to find).
-* Rename the file to `quantum-original.nes` (`assemble.bat` expects to find it).
-* Extract the original PRG ROM data to `prg-original.bin` (`assemble.bat` expects to find it):
-  * Either use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -p prg-original.bin quantum-original.nes`
-  * &hellip; or, using a hex editor, copy 32,768 or `0x8000` bytes starting from offset 16 or `0x10` to a new file, `prg-original.bin`
-* Extract the original CHR ROM data to `chr.bin` (`assemble.bat` expects to find it):
-  * Either use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -c chr.bin quantum-original.nes`
-  * &hellip; or, using a hex editor, copy 32,768 or `0x8000` bytes starting from offset 32,784 or `0x8010` to a new file, `chr.bin`
-* Install the [Ophis](http://michaelcmartin.github.io/Ophis/) assembler.
-* Assemble:
-  * Either run `assemble.bat` (only works on Windows; also compares the assembled files to the originals)&hellip;
-  * &hellip;or assemble manually: `ophis -v -o quantum.nes quantum.asm`
+* Install [Ophis](http://michaelcmartin.github.io/Ophis/) (a 6502 assembler for Windows/Linux/Mac).
+* **Download** the original *Quantum Disco Brothers* from somewhere (see *The original file* below; it should be easy to find).
+  * **Extract** the file if it is compressed (`.zip`, `.7z`, etc.).
+  * **Rename** the file to `quantum-original.nes` (`assemble.bat` expects to find it).
+* **Extract the PRG ROM** data to `prg-original.bin` (`assemble.bat` expects to find it):
+  * **Either** use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -p prg-original.bin quantum-original.nes`
+  * &hellip; **or**, using a **hex editor**, copy 32,768 or `0x8000` bytes starting from offset 16 or `0x10` to a new file, `prg-original.bin`
+* **Extract the CHR ROM** data to `chr.bin` (`assemble.bat` expects to find it):
+  * **Either** use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -c chr.bin quantum-original.nes`
+  * &hellip; **or**, using a **hex editor**, copy 32,768 or `0x8000` bytes starting from offset 32,784 or `0x8010` to a new file, `chr.bin`
+* **Assemble**:
+  * **Either** run `assemble.bat` (only works on Windows; also compares the assembled files to the originals)&hellip;
+  * &hellip;**or** assemble manually: `ophis -v -o quantum.nes quantum.asm`
 
 ## The original file
 * name: `Quantum Disco Brothers by wAMMA (PD) (PAL).nes`

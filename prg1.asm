@@ -172,7 +172,7 @@ sub19:
 sub19_loop1:
     lda $86
     `add_imm $55
-    bcc +         ; why?
+    bcc +
 *   sta $86
     inc $87
     lda $87
@@ -261,13 +261,14 @@ sub22:
     sty $a6
     lda $9a
     sta $a7
+
     lda #$00
     sta $9a
     sta $9b
     sta $9c
 
 sub22_loop:   ; start outer loop
-    ldx #$00
+    ldx #0
     lda #$00
     sta $9a
 
@@ -324,7 +325,7 @@ sub23:
     sta $9c
 
 sub23_loop:   ; start outer loop
-    ldx #$00
+    ldx #0
     lda #$00
     sta $9a
 
@@ -375,13 +376,14 @@ sub24:
     sty $a6
     lda $9a
     sta $a7
+
     lda #$00
     sta $9a
     sta $9b
     sta $9c
 
 sub24_loop:   ; start outer loop
-    ldx #$00
+    ldx #0
     lda #$00
     sta $9a
 
@@ -428,7 +430,7 @@ sub24_loop:   ; start outer loop
 
 sub25:
 
-    ldx #$00
+    ldx #0
     ldy #0
     stx $9a
     stx $9b
@@ -608,7 +610,7 @@ sub29:
     jmp sub29_11
 
 sub29_01:
-    lda #$00
+    lda #0
     sta ppu_scroll
     ldx $96
     lda table19,x
@@ -650,7 +652,7 @@ sub29_02:
     ldy #$00
     jsr sub26
 
-    lda #$00
+    lda #0
     sta ppu_scroll
     lda $96
     sta ppu_scroll
@@ -746,7 +748,7 @@ sub29_10:
     sta $01
     lda #$00
     sta $02
-    jmp sub29_11  ; why?
+    jmp sub29_11
 
 sub29_11:
     jmp sub29_13
@@ -1006,9 +1008,9 @@ sub31_1:
     lda $ab
     cmp #$32
     bcc sub31_2
-    ldx #$00
-    ldy #$00
 
+    ldx #0
+    ldy #0
 sub31_loop:
     lda $0180,x
     cmp #$01
@@ -1038,7 +1040,7 @@ sub31_loop:
     sta $0154,x
 *   inx
     `iny4
-    cpx #$16
+    cpx #22
     bne sub31_loop
 
 sub31_2:
@@ -1186,10 +1188,10 @@ sub35:
     beq +
     jmp sub35_1
 *   dec $8a
-    ldx #$00
+
+    ldx #0
     lda #$00
     sta $89
-
 *   lda $89  ; start loop
     adc $8a
     tay
@@ -1202,8 +1204,8 @@ sub35:
     cpx #64
     bne -
 
-    ldx #$00
-    ldy #$00
+    ldx #0
+    ldy #0
     lda #$00
     sta $9a
 
@@ -1241,7 +1243,7 @@ sub35_loop1:  ; start outer loop
 
 sub35_1:
     dec $8a
-    ldx #$40
+    ldx #64
     lda #$00
     sta $89
 
@@ -1305,7 +1307,7 @@ sub35_2:
     tax
     lda table19,x
     sta ppu_scroll
-    lda #$00
+    lda #0
     sta ppu_scroll
     inc $89
     iny
@@ -1316,13 +1318,13 @@ sub35_2:
     lda table22,x
     sbc $8b
     sbc $8b
-    lda #$00
+    lda #0
     sta ppu_scroll
     ldx $8b
     lda table20,x
     clc
     sbc #10
-    lda #$e6
+    lda #230
     sta ppu_scroll
     dec $8b
 
@@ -1386,8 +1388,9 @@ sub37:
     cmp #$00
     beq +
     jmp sub37_1
-*   ldx #$00
-    ldy #$00
+
+*   ldx #0
+    ldy #0
     lda #$00
 
     sta $9a
@@ -1494,6 +1497,7 @@ sub38:
     lda #$01
     sta $02
     jsr sub15
+
     lda #$00
     sta $89
     sta $8a
@@ -1515,6 +1519,7 @@ sub39:
     lda $8b
     cmp #$02
     bne +
+
     lda #$00
     sta $8b
     dec $8a
@@ -1624,7 +1629,7 @@ sub40_loop2:  ; start middle loop
     cmp #$03
     bne sub40_loop1
 
-    ldx #0    ; why?
+    ldx #0
 sub40_loop3:  ; start outermost loop
 
     ldy #0
@@ -1648,7 +1653,7 @@ sub40_loop4:  ; start middle loop
     cmp #$28
     bne sub40_loop3
 
-    lda #$f0  ; why?
+    lda #$f0
     ldy #0
 sub40_loop5:  ; start outer loop
 
@@ -2059,8 +2064,8 @@ sub43:
 
     inc $8a
     inc $8b
-    ldx #$18
-    ldy #$00
+    ldx #24
+    ldy #0
     lda #$00
     sta $9a
     sta $89
@@ -2329,9 +2334,9 @@ sub43_2:
     ldx $89
     lda table20,x
     clc
-    sbc #$1e
+    sbc #30
     sta ppu_scroll
-    lda #$00
+    lda #0
     sta ppu_scroll
 
     lda #%00010000
@@ -3104,7 +3109,7 @@ sub51_3:
     inc $8a
 
 sub51_loop5:
-    ldx #$01
+    ldx #1
     jsr sub19
     ldx $8a
     lda table20,x
@@ -3115,12 +3120,12 @@ sub51_loop5:
     sta $9b
     lda $89
     cmp $9a
-    bcc +   ; why?
+    bcc +
     bcs ++
 
 *   lda #%00001110
     sta ppu_mask
-    jmp sub51_4  ; why jump to another JMP?
+    jmp sub51_4
 
 *   lda $89
     cmp $9b
@@ -3561,7 +3566,7 @@ sub58:
     `set_ppu_addr vram_name_table0
 
     ldx #0
-    ldy #0  ; why?
+    ldy #0
 *   lda $8e
     sta ppu_data
     sta ppu_data
@@ -3573,7 +3578,7 @@ sub58:
     `set_ppu_addr vram_name_table2
 
     ldx #0
-    ldy #0  ; why?
+    ldy #0
 *   lda $8e
     sta ppu_data
     sta ppu_data
@@ -3709,8 +3714,6 @@ sub59:
 ; -----------------------------------------------------------------------------
 
 nmi:
-    ; Note: why not just RTI instead of a JMP to one (or even JMP to another
-    ; JMP to RTI)?
 
     lda ppu_status
     lda $01
@@ -4043,7 +4046,7 @@ nmi_13:
     sta $01
     lda #$00
     sta $02
-*   jmp nmi_exit  ; why?
+*   jmp nmi_exit
 
 nmi_exit:
     rti

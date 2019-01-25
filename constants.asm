@@ -24,6 +24,18 @@
 
 ; -----------------------------------------------------------------------------
 
+    ; memory pointers (2 bytes each)
+    .alias ptr1 $03
+    .alias ptr2 $c8
+    .alias ptr3 $ce
+    .alias ptr4 $d0
+    .alias ptr5 $d8
+    .alias ptr6 $da
+
+    .alias sprite_page $0500
+
+; -----------------------------------------------------------------------------
+
     ; video RAM
     .alias vram_name_table0 $2000
     .alias vram_attr_table0 $23c0
@@ -32,13 +44,3 @@
     .alias vram_name_table2 $2800
     .alias vram_attr_table2 $2bc0
     .alias vram_palette     $3f00
-
-; -----------------------------------------------------------------------------
-
-    ; memory pointers (2 bytes each)
-    .alias ptr1 $03
-    .alias ptr2 $c8
-    .alias ptr3 $ce
-    .alias ptr4 $d0
-    .alias ptr5 $d8
-    .alias ptr6 $da

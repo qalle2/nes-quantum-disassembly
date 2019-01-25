@@ -95,7 +95,7 @@ sub01:
     asl
     adc $cb
     sta $cb
-    lda #$00
+    lda #0
     adc #0
     sta $cc
 
@@ -110,28 +110,31 @@ sub01:
     asl
     adc $0364
     sta $0365
-    lda #$00
+    lda #0
     adc $0369
     sta $036a
+
     lda $03e1
     asl
     adc $0365
     sta $0366
-    lda #$00
+    lda #0
     adc $036a
     sta $036b
+
     lda $03e2
     asl
     adc $0366
     sta $0367
-    lda #$00
+    lda #0
     adc $036b
     sta $036c
+
     lda $03e3
     asl
     adc $0367
     sta $0368
-    lda #$00
+    lda #0
     adc $036c
     sta $036d
 
@@ -635,13 +638,13 @@ sub08_1:
     ldy $03a8,x
     bne +
     and #%00000011
-*   cmp #$00
+*   cmp #0
     beq +
-    cmp #$01
+    cmp #1
     beq sub08_2
-    cmp #$02
+    cmp #2
     beq sub08_3
-    cmp #$03
+    cmp #3
     beq sub08_4
     rts
 
@@ -945,14 +948,18 @@ sub10_11:
     cpy #$61
     beq sub10_14
     sty $e9,x
+
     lda #$00
     sta $039c,x
     sta $033c,x
+
     lda $031c,x
     sta $e5,x
+
     lda table02,x
     ora $ef
     sta $ef
+
     lda $035a,x
     cmp #$03
     beq sub10_13
@@ -1087,13 +1094,15 @@ sub11_02:
     adc ptr4+1
     sta $0373,x
     sta ptr3+1
-    ldy #$00
+
+    ldy #0
     lda (ptr3),y
     sta $038a,x
     iny
     lda (ptr3),y
     adc #1
     sta $038f,x
+
     adc #1
     lsr
     `add_imm 2

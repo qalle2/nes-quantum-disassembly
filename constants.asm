@@ -7,6 +7,7 @@
     .alias ppu_addr   $2006
     .alias ppu_data   $2007
 
+    .alias apu_regs      $4000
     .alias pulse1_ctrl   $4000
     .alias pulse1_sweep  $4001
     .alias pulse1_timer  $4002
@@ -32,7 +33,9 @@
     .alias ptr5 $d8
     .alias ptr6 $da
 
-    .alias sprite_page $0500
+    .alias sprite_page $0500  ; 256 bytes
+
+    .alias palette_copy $07c0  ; 32 bytes
 
 ; -----------------------------------------------------------------------------
 

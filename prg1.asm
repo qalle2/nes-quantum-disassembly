@@ -20,9 +20,9 @@ init:
     inx
     bne -
 
-    jsr sub15
-    jsr sub16
-    jsr sub18
+    jsr init_graphics_and_sound
+    jsr init_palette_copy
+    jsr update_palette
 
     ; write subpalette 7
     `set_ppu_addr vram_palette+7*4
@@ -88,8 +88,8 @@ wait_vbl:
 
 ; -----------------------------------------------------------------------------
 
-sub15:
-    ; This sub could be optimized in many places.
+init_graphics_and_sound:
+    ; Called by: init, sub38, sub40, sub41, sub42, sub43, sub44, sub50, sub54
 
     ; hide all sprites (set Y position outside screen)
     ldx #0
@@ -99,61 +99,73 @@ sub15:
     bne -
     rts
 
+    ; disable rendering
     lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
     lda #%00000000
     sta ppu_ctrl
 
+    ; clear sound registers $4000...$400e
     lda #$00
     ldx #0
-*   sta pulse1_ctrl,x
+*   sta apu_regs,x
     inx
     cpx #15
     bne -
 
+    ; more sound stuff
     lda #$c0
     sta apu_counter
-    jsr sub16
-    jsr sub18
+
+    ; initialize palette
+    jsr init_palette_copy
+    jsr update_palette
     rts
 
 ; -----------------------------------------------------------------------------
 
-sub16:
+init_palette_copy:
+    ; Copy the palette_table array to the palette_copy array.
+    ; Args: none
+    ; Called by: init, init_graphics_and_sound, sub34, sub36, sub38, sub40,
+    ; sub43, sub46, sub49
 
     ldx #0
-*   lda table12,x
-    sta $07c0,x
+*   lda palette_table,x
+    sta palette_copy,x
     inx
     cpx #32
     bne -
-
     rts
 
 ; -----------------------------------------------------------------------------
 
-sub17:
+clear_palette_copy:
+    ; Fill the palette_copy array with black.
+    ; Args: none
+    ; Called by: sub48
 
     ldx #0
 *   lda #$0f
-    sta $07c0,x
+    sta palette_copy,x
     inx
     cpx #32
     bne -
-
     rts
 
 ; -----------------------------------------------------------------------------
 
-sub18:
-
-    ; update entire palette from $07c0...$07df
+update_palette:
+    ; Copy the palette_copy array to the PPU.
+    ; Args: none
+    ; Called by: init, init_graphics_and_sound, sub31, sub34, sub36, sub38,
+    ; sub40, sub41, sub43, sub46, sub48, sub49
 
     `set_ppu_addr vram_palette
 
     ldx #0
-*   lda $07c0,x
+*   lda palette_copy,x
     sta ppu_data
     inx
     cpx #32
@@ -222,7 +234,7 @@ sub19_loop2:  ; start outer loop
 sub20:
 
     ldy #0
-*   lda $07c0,y     ; start loop
+*   lda palette_copy,y     ; start loop
     sta $01
     and #%00110000
     `lsr4
@@ -230,7 +242,7 @@ sub20:
     lda $01
     and #%00001111
     ora table18,x
-    sta $07c0,y
+    sta palette_copy,y
     iny
     cpy #32
     bne -
@@ -1055,7 +1067,7 @@ sub31_2:
     cmp #$04
     bne +
     jsr sub20
-    jsr sub18
+    jsr update_palette
     lda #$00
     sta $a3
 *   jsr sub27
@@ -1164,8 +1176,8 @@ sub34:
     ldy #$14
     jsr sub56
     jsr sub12
-    jsr sub16
-    jsr sub18
+    jsr init_palette_copy
+    jsr update_palette
 
     ; update first color of subpalette 3
     `set_ppu_addr vram_palette+3*4
@@ -1340,8 +1352,8 @@ sub36:
 
     ldx #$00
     jsr sub58
-    jsr sub16
-    jsr sub18
+    jsr init_palette_copy
+    jsr update_palette
 
     lda #%00000000
     sta ppu_ctrl
@@ -1492,11 +1504,11 @@ sub38:
     ldx #$ff
     jsr sub59
     jsr sub12
-    jsr sub16
-    jsr sub18
+    jsr init_palette_copy
+    jsr update_palette
     lda #$01
     sta $02
-    jsr sub15
+    jsr init_graphics_and_sound
 
     lda #$00
     sta $89
@@ -1581,8 +1593,8 @@ sub40:
 
     ldx #$ff
     jsr sub58
-    jsr sub16
-    jsr sub18
+    jsr init_palette_copy
+    jsr update_palette
 
     ; update subpalette 7
     `set_ppu_addr vram_palette+7*4
@@ -1700,7 +1712,7 @@ sub40_2:
     bne -
     `reset_ppu_addr
 
-    jsr sub15
+    jsr init_graphics_and_sound
     lda #$02
     sta $014d
     lda #$00
@@ -1733,7 +1745,7 @@ sub41:
     cmp #$04
     bne sub41_01
     jsr sub20
-    jsr sub18
+    jsr update_palette
     lda #$00
     sta $a3
 
@@ -1827,7 +1839,7 @@ sub41_06:
     jmp $ea7e
 
 sub41_07:
-    jsr sub15
+    jsr init_graphics_and_sound
     ldx #$5c
     ldy #$6a
     lda #$90
@@ -1836,7 +1848,7 @@ sub41_07:
     jmp $ea7e
 
 sub41_08:
-    jsr sub15
+    jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
     lda #$60
@@ -1850,7 +1862,7 @@ sub41_08:
     jmp $ea7e
 
 sub41_09:
-    jsr sub15
+    jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
     lda #$80
@@ -1864,7 +1876,7 @@ sub41_09:
     jmp $ea7e
 
 sub41_10:
-    jsr sub15
+    jsr init_graphics_and_sound
     lda #$01
     sta $014d
     ldx #$75
@@ -1880,7 +1892,7 @@ sub41_10:
     jmp $ea7e
 
 sub41_11:
-    jsr sub15
+    jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
     lda #$40
@@ -1894,7 +1906,7 @@ sub41_11:
     jmp $ea7e
 
 sub41_12:
-    jsr sub15
+    jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
     lda #$e0
@@ -1910,7 +1922,7 @@ sub41_12:
 sub41_13:
     lda #$00
     sta $014d
-    jsr sub15
+    jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
     lda #$c0
@@ -1924,7 +1936,7 @@ sub41_13:
     jmp $ea7e
 
 sub41_14:
-    jsr sub15
+    jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
     lda #$70
@@ -1938,7 +1950,7 @@ sub41_14:
     jmp $ea7e
 
 sub41_15:
-    jsr sub15
+    jsr init_graphics_and_sound
     `chr_bankswitch 1
 
     lda #%10011000
@@ -1955,7 +1967,7 @@ sub42:
     jsr sub58
     ldy #$00
     jsr sub56
-    jsr sub15
+    jsr init_graphics_and_sound
 
     lda #%00000000
     sta ppu_ctrl
@@ -2205,9 +2217,9 @@ sub43_exit:
     jsr sub58
     ldy #$00
     jsr sub56
-    jsr sub16
-    jsr sub18
-    jsr sub15
+    jsr init_palette_copy
+    jsr update_palette
+    jsr init_graphics_and_sound
 
     lda #%00000000
     sta ppu_ctrl
@@ -2457,7 +2469,7 @@ sub43_2:
 
 sub44:
 
-    jsr sub15
+    jsr init_graphics_and_sound
     ldy #$aa
     jsr sub56
     lda #$1a
@@ -2769,8 +2781,8 @@ sub46:
     jsr sub58
     ldy #$00
     jsr sub56
-    jsr sub16
-    jsr sub18
+    jsr init_palette_copy
+    jsr update_palette
 
     `set_ppu_addr vram_name_table0+14*32
 
@@ -2809,8 +2821,8 @@ sub48:
     jsr sub58
     ldy #$00
     jsr sub56
-    jsr sub17
-    jsr sub18
+    jsr clear_palette_copy
+    jsr update_palette
 
     lda #%00000010
     sta ppu_ctrl
@@ -2889,8 +2901,8 @@ sub49:
     lda $014f
     cmp #$03
     bne +
-    jsr sub16
-    jsr sub18
+    jsr init_palette_copy
+    jsr update_palette
 
     `set_ppu_addr vram_palette
     `write_ppu_data $0f
@@ -2921,7 +2933,7 @@ sub49:
     cmp #$04
     bne +
     jsr sub20
-    jsr sub18
+    jsr update_palette
     lda #$00
     sta $a3
 *   lda #$0c
@@ -2939,7 +2951,7 @@ sub50:
 
     ldx #$80
     jsr sub58
-    jsr sub15
+    jsr init_graphics_and_sound
     ldy #$00
     jsr sub56
 
@@ -3201,7 +3213,7 @@ sub54:
 
     ldx #$25
     jsr sub59
-    jsr sub15
+    jsr init_graphics_and_sound
 
     lda #%00000000
     sta ppu_ctrl

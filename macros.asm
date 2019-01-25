@@ -69,6 +69,11 @@
         lda #_2
         sta ppu_scroll
     .macend
+    
+    .macro sprite_dma
+        lda #>sprite_page
+        sta oam_dma
+    .macend
 
     .macro sub_imm
         ; subtract immediate without carry

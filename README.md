@@ -9,12 +9,10 @@ Notes:
 
 ## How to assemble
 * **Install [Ophis](http://michaelcmartin.github.io/Ophis/)** (a 6502 assembler for Windows/Linux/Mac).
-* **Download** the original *Quantum Disco Brothers* from somewhere (see *The original file* below; it should be easy to find).
+* **Download the original** *Quantum Disco Brothers* from somewhere (see *The original file* below).
+  * e.g. [scene.org file archive](http://files.scene.org/view/parties/2006/stream06/demo/quantum_disco_brothers_by_wamma.zip)
   * **Extract** the file if it is compressed (`.zip`, `.7z`, etc.).
   * **Rename** the file to `quantum-original.nes` (`assemble.bat` expects to find it).
-* **Extract the PRG ROM** data to `prg-original.bin` (`assemble.bat` expects to find it):
-  * **Either** use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -p prg-original.bin quantum-original.nes`
-  * &hellip; **or**, using a **hex editor**, copy 32,768 or `0x8000` bytes starting from offset 16 or `0x10` to a new file, `prg-original.bin`
 * **Extract the CHR ROM** data to `chr.bin` (`assemble.bat` expects to find it):
   * **Either** use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -c chr.bin quantum-original.nes`
   * &hellip; **or**, using a **hex editor**, copy 32,768 or `0x8000` bytes starting from offset 32,784 or `0x8010` to a new file, `chr.bin`
@@ -23,9 +21,18 @@ Notes:
   * &hellip;**or** assemble manually: `ophis -v -o quantum.nes quantum.asm`
 
 ## The original file
-* name: `Quantum Disco Brothers by wAMMA (PD) (PAL).nes`
+* names:
+  * `Quantum Disco Brothers by wAMMA (PD) (PAL).nes`
+  * `quantum_disco_brothers_by_wAMMA.nes`
+  * etc.
 * size: 65,552 bytes
-* MD5 hash: `2c932e9e8ae7859517905e2539565a89`
+* hashes:
+  * MD5: `2c932e9e8ae7859517905e2539565a89`
+  * SHA-1: `b053482f9ced7a1835fe961cc2373ff9521b74a2`
+  * SHA-256: `53582b185aaef646354b1ba15a4ecca70323e0d0ba9a53a4861f256bbed71e1a`
+
+## The structure of the file
+(from the iNES header)
 * mapper: CNROM (iNES mapper number 3)
 * PRG ROM: 32 KiB (1 &times; 32 KiB)
 * CHR ROM: 32 KiB (4 &times; 8 KiB)

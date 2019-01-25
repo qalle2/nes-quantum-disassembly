@@ -7,21 +7,27 @@
     cld
     ldx #$ff
     txs
+
     lda #%01000000
     sta ppu_ctrl
     lda #%10011110
     sta ppu_mask
+
     lda ppu_status
     lda ppu_status
+
     lda #%00000000
     sta ppu_mask
+
     lda #$68
     ldx #$8b
     jsr sub01
+
     lda #%00011110
     sta ppu_mask
     lda #%10000000
     sta ppu_ctrl
+
 *   jmp -
 
 ; -----------------------------------------------------------------------------

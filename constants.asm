@@ -47,3 +47,7 @@
     .alias vram_name_table2 $2800
     .alias vram_attr_table2 $2bc0
     .alias vram_palette     $3f00
+
+; -----------------------------------------------------------------------------
+
+    .alias pad_byte $00

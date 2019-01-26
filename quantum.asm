@@ -7,14 +7,12 @@
 
     ; iNES header
 
-    .org $0000
-
+    .org $0000                  ; only needed for padding
     .byte "NES", $1a            ; identifier
-    .byte 2                     ; 2*16 KiB PRG-ROM
-    .byte 4                     ; 4*8 KiB CHR-ROM
+    .byte 2                     ; 32 KiB (2*16 KiB) PRG-ROM
+    .byte 4                     ; 32 KiB (4*8 KiB) CHR-ROM
     .byte %00110000, %00000000  ; mapper 3 (CNROM), horizontal mirroring
-
-    .advance $0010, $00
+    .advance $0010, pad_byte    ; pad
 
 ; -----------------------------------------------------------------------------
 
@@ -23,18 +21,18 @@
     ; 16-KiB boundary)
 
     .org $8000
-    .include "prg0.asm"   ; first half
-    .advance $c000, $00
-    .include "prg1.asm"   ; second half minus the interrupt vectors
-    .advance $fffa, $00
-    .word nmi, init, irq  ; interrupt vectors
-    .advance $10000, $00
+    .include "prg0.asm"        ; first half
+    .advance $c000, pad_byte   ; pad with 0x00
+    .include "prg1.asm"        ; second half minus the interrupt vectors
+    .advance $fffa, pad_byte   ; pad with 0x00
+    .word nmi, init, irq       ; interrupt vectors
+    .advance $10000, pad_byte  ; pad
 
 ; -----------------------------------------------------------------------------
 
     ; CHR ROM
     ; 32 KiB (4*8 KiB)
 
-    .org $0000
-    .incbin "chr.bin"
-    .advance $8000, $00
+    .org $0000                ; only needed for padding
+    .incbin "chr.bin"         ; not included; see the readme file
+    .advance $8000, pad_byte  ; pad

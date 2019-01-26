@@ -24,7 +24,7 @@ init:
     jsr init_palette_copy
     jsr update_palette
 
-    ; write subpalette 7
+    ; update fourth sprite subpalette
     `set_ppu_addr vram_palette+7*4
     `write_ppu_data $0f  ; black
     `write_ppu_data $1c  ; medium-dark cyan
@@ -162,7 +162,7 @@ update_palette:
     ; Called by: init, init_graphics_and_sound, sub31, sub34, sub36, sub38,
     ; sub40, sub41, sub43, sub46, sub48, sub49
 
-    `set_ppu_addr vram_palette
+    `set_ppu_addr vram_palette+0*4
 
     ldx #0
 *   lda palette_copy,x
@@ -253,7 +253,7 @@ sub20:
 
 sub21:
 
-    `set_ppu_addr vram_palette
+    `set_ppu_addr vram_palette+0*4
 
     lda $e8
     cmp #8
@@ -261,7 +261,7 @@ sub21:
     lda $e8
     sta ppu_data
     jmp sub21_exit
-*   `write_ppu_data $3f
+*   `write_ppu_data $3f  ; black
 sub21_exit:
     rts
 
@@ -892,13 +892,13 @@ sub30:
     bne -
     `reset_ppu_addr
 
-    ; update two first colors in subpalette 4
+    ; update first and second color in first sprite subpalette
     `set_ppu_addr vram_palette+4*4
     `write_ppu_data $00  ; dark gray
     `write_ppu_data $30  ; white
     `reset_ppu_addr
 
-    ; update subpalettes 5 and 6
+    ; update second and third sprite subpalette
     `set_ppu_addr vram_palette+5*4+1
     `write_ppu_data $3d  ; light gray
     `write_ppu_data $0c  ; dark cyan
@@ -909,8 +909,8 @@ sub30:
     `write_ppu_data $1a  ; medium-dark green
     `reset_ppu_addr
 
-    ; update subpalette 0
-    `set_ppu_addr vram_palette
+    ; update first background subpalette
+    `set_ppu_addr vram_palette+0*4
     `write_ppu_data $38  ; light yellow
     `write_ppu_data $01  ; dark purple
     `write_ppu_data $26  ; medium-light red
@@ -938,8 +938,8 @@ sub31:
     lda #%10010000
     sta ppu_ctrl
 
-    ; update last color of subpalette 0
-    `set_ppu_addr vram_palette+3
+    ; update fourth color of first background subpalette
+    `set_ppu_addr vram_palette+0*4+3
     `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
@@ -1008,8 +1008,8 @@ sub31:
     lda #230
     sta sprite_page+25*4+3
 
-    ; update last color of subpalette 0
-    `set_ppu_addr vram_palette+3
+    ; update fourth color of first background subpalette
+    `set_ppu_addr vram_palette+0*4+3
     `write_ppu_data $30  ; white
     `reset_ppu_addr
 
@@ -1129,7 +1129,7 @@ sub33_loop:
 *   dex
     bne -
 
-    `set_ppu_addr_via_x vram_palette
+    `set_ppu_addr_via_x vram_palette+0*4
 
     inc $8c
     lda $8c
@@ -1179,7 +1179,7 @@ sub34:
     jsr init_palette_copy
     jsr update_palette
 
-    ; update first color of subpalette 3
+    ; update first color of fourth background subpalette
     `set_ppu_addr vram_palette+3*4
     `write_ppu_data $0f  ; black
     `reset_ppu_addr
@@ -1364,7 +1364,7 @@ sub36:
     ldy #$55
     jsr sub57
 
-    ; update first color of subpalette 3
+    ; update first color of fourth background subpalette
     `set_ppu_addr vram_palette+3*4
     `write_ppu_data $0f  ; black
     `reset_ppu_addr
@@ -1539,8 +1539,9 @@ sub39:
 *   lda #%10000100
     sta ppu_ctrl
 
-    `set_ppu_addr_via_x vram_palette
-    `write_ppu_data $0f
+    ; update first color of first background subpalette
+    `set_ppu_addr_via_x vram_palette+0*4
+    `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
     ldx #$ff
@@ -1548,8 +1549,9 @@ sub39:
     ldx #$01
     jsr sub19
 
-    `set_ppu_addr_via_x vram_palette
-    `write_ppu_data $0f
+    ; update first color of first background subpalette
+    `set_ppu_addr_via_x vram_palette+0*4
+    `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
     lda #$00
@@ -1562,7 +1564,7 @@ sub39_loop:  ; start outer loop
 *   dex      ; start inner loop
     bne -
 
-    `set_ppu_addr_via_x vram_palette
+    `set_ppu_addr_via_x vram_palette+0*4
 
     ldx $8a
     lda table22,x
@@ -1582,8 +1584,10 @@ sub39_loop:  ; start outer loop
     bne sub39_loop
 
     `reset_ppu_addr
-    `set_ppu_addr_via_x vram_palette
-    `write_ppu_data $0f
+
+    ; update first color of first background subpalette
+    `set_ppu_addr_via_x vram_palette+0*4
+    `write_ppu_data $0f  ; black
     `reset_ppu_addr
     rts
 
@@ -1596,7 +1600,7 @@ sub40:
     jsr init_palette_copy
     jsr update_palette
 
-    ; update subpalette 7
+    ; update fourth sprite subpalette
     `set_ppu_addr vram_palette+7*4
     `write_ppu_data $0f  ; black
     `write_ppu_data $19  ; medium-dark green
@@ -1753,7 +1757,7 @@ sub41_01:
     lda #$03
     sta $01
 
-    `set_ppu_addr vram_palette
+    `set_ppu_addr vram_palette+0*4
 
     lda $a2
     cmp #$08
@@ -2037,8 +2041,8 @@ sub42_loop2:
     `write_ppu_data $e4
     `reset_ppu_addr
 
-    ; update subpalettes 0 and 4
-    `set_ppu_addr vram_palette
+    ; update first background subpalette and first sprite subpalette
+    `set_ppu_addr vram_palette+0*4
     ldx #0
     `write_ppu_data $30  ; white
     `write_ppu_data $25  ; medium-light red
@@ -2267,9 +2271,10 @@ sub43_exit:
     lda #$00
     sta $8a
 
+    ; update third and fourth color of third sprite subpalette
     `set_ppu_addr vram_palette+6*4+2
-    `write_ppu_data $00
-    `write_ppu_data $10
+    `write_ppu_data $00  ; dark gray
+    `write_ppu_data $10  ; light gray
     `reset_ppu_addr
 
     lda #%10000000
@@ -2285,17 +2290,20 @@ sub43_exit:
     cmp #$01
     beq sub43_1
 
+    ; update first sprite subpalette
     `set_ppu_addr vram_palette+4*4
-    `write_ppu_data $0f
-    `write_ppu_data $0f
-    `write_ppu_data $0f
-    `write_ppu_data $0f
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $0f  ; black
     `reset_ppu_addr
-    `set_ppu_addr vram_palette
-    `write_ppu_data $0f
-    `write_ppu_data $30
-    `write_ppu_data $10
-    `write_ppu_data $00
+
+    ; update first background subpalette
+    `set_ppu_addr vram_palette+0*4
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $30  ; white
+    `write_ppu_data $10  ; light gray
+    `write_ppu_data $00  ; dark gray
     `reset_ppu_addr
 
 sub43_1:
@@ -2524,30 +2532,32 @@ sub44_loop2:  ; start outer loop
     cmp #$68
     bne sub44_loop2
 
+    ; update all sprite subpalettes
     `set_ppu_addr vram_palette+4*4
-
-    `write_ppu_data $0f
-    `write_ppu_data $01
-    `write_ppu_data $1c
-    `write_ppu_data $30
-    `write_ppu_data $0f
-    `write_ppu_data $00
-    `write_ppu_data $10
-    `write_ppu_data $20
-    `write_ppu_data $0f
-    `write_ppu_data $19
-    `write_ppu_data $26
-    `write_ppu_data $30
-    `write_ppu_data $22
-    `write_ppu_data $16
-    `write_ppu_data $27
-    `write_ppu_data $18
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $01  ; dark blue
+    `write_ppu_data $1c  ; medium-dark cyan
+    `write_ppu_data $30  ; white
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $00  ; dark gray
+    `write_ppu_data $10  ; light gray
+    `write_ppu_data $20  ; white
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $19  ; medium-light green
+    `write_ppu_data $26  ; medium-light red
+    `write_ppu_data $30  ; white
+    `write_ppu_data $22  ; medium-light blue
+    `write_ppu_data $16  ; medium-dark red
+    `write_ppu_data $27  ; medium-light orange
+    `write_ppu_data $18  ; medium-dark yellow
     `reset_ppu_addr
-    `set_ppu_addr vram_palette
-    `write_ppu_data $0f
-    `write_ppu_data $20
-    `write_ppu_data $10
-    `write_ppu_data $00
+
+    ; update first background subpalette
+    `set_ppu_addr vram_palette+0*4
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $20  ; white
+    `write_ppu_data $10  ; light gray
+    `write_ppu_data $00  ; dark gray
     `reset_ppu_addr
 
     ldx data3
@@ -2904,11 +2914,12 @@ sub49:
     jsr init_palette_copy
     jsr update_palette
 
-    `set_ppu_addr vram_palette
-    `write_ppu_data $0f
-    `write_ppu_data $30
-    `write_ppu_data $1a
-    `write_ppu_data $09
+    ; update first background subpalette
+    `set_ppu_addr vram_palette+0*4
+    `write_ppu_data $0f  ; black
+    `write_ppu_data $30  ; white
+    `write_ppu_data $1a  ; medium-dark green
+    `write_ppu_data $09  ; dark green
     `reset_ppu_addr
 
 *   lda #0
@@ -2964,7 +2975,8 @@ sub50:
     sta $8a
     sta $8b
 
-    `set_ppu_addr vram_palette
+    ; update first background subpalette
+    `set_ppu_addr vram_palette+0*4
     `write_ppu_data $05  ; dark red
     `write_ppu_data $25  ; medium-light red
     `write_ppu_data $15  ; medium-dark red
@@ -3271,8 +3283,9 @@ sub54:
     jsr sub52
 
     `reset_ppu_addr
-    `set_ppu_addr vram_palette
 
+    ; update first background subpalette from table18
+    `set_ppu_addr vram_palette+0*4
     lda table18+4
     sta ppu_data
     lda table18+5
@@ -3281,10 +3294,10 @@ sub54:
     sta ppu_data
     lda table18+7
     sta ppu_data
-
     `reset_ppu_addr
-    `set_ppu_addr vram_palette+4*4
 
+    ; update first sprite subpalette from table18
+    `set_ppu_addr vram_palette+4*4
     lda table18+8
     sta ppu_data
     lda table18+9
@@ -3293,7 +3306,6 @@ sub54:
     sta ppu_data
     lda table18+11
     sta ppu_data
-
     `reset_ppu_addr
 
     ldx data7
@@ -3618,16 +3630,16 @@ sub59:
     sta ppu_ctrl
     sta ppu_mask
 
+    ; clear Attribute Table 0
     `set_ppu_addr vram_attr_table0
-
     ldx #0
 *   `write_ppu_data $00
     inx
     cpx #64
     bne -
 
+    ; clear Attribute Table 1
     `set_ppu_addr vram_attr_table1
-
     ldx #0
 *   `write_ppu_data $00
     inx

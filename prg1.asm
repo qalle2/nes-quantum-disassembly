@@ -1,4 +1,6 @@
-    ; second half of PRG ROM, minus the interrupt vectors
+; second half of PRG ROM except interrupt routines&vectors
+
+; -----------------------------------------------------------------------------
 
 init:
 
@@ -32,13 +34,10 @@ init:
     `write_ppu_data $39  ; light yellow
     `reset_ppu_addr
 
-    lda #$00
-    sta $01
+    `lda_imm_sta $00, $01
 
-    lda #%00000000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %00000000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
 
     ldx #$ff
     jsr sub59
@@ -50,8 +49,7 @@ init:
 
     ldy #$00
     jsr sub56
-    lda #$ff
-    sta pulse1_ctrl
+    `lda_imm_sta $ff, pulse1_ctrl
 
     `reset_ppu_addr
 
@@ -59,18 +57,14 @@ init:
     ldx #$01
     jsr sub13
     jsr wait_vbl
-    lda #%10000000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+
+    `lda_imm_sta %10000000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
 
 *   lda $01
-    cmp #$09
-    bne +
-    lda #$0d
-    sta dmc_addr
-    lda #$fa
-    sta dmc_length
+    `cmp_bne $09, +
+    `lda_imm_sta $0d, dmc_addr
+    `lda_imm_sta $fa, dmc_length
 *   jmp --
 
 ; -----------------------------------------------------------------------------
@@ -103,20 +97,17 @@ init_graphics_and_sound:
     lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
-    lda #%00000000
-    sta ppu_ctrl
+    `lda_imm_sta %00000000, ppu_ctrl
 
     ; clear sound registers $4000...$400e
     lda #$00
     ldx #0
 *   sta apu_regs,x
     inx
-    cpx #15
-    bne -
+    `cpx_bne 15, -
 
     ; more sound stuff
-    lda #$c0
-    sta apu_counter
+    `lda_imm_sta $c0, apu_counter
 
     ; initialize palette
     jsr init_palette_copy
@@ -135,8 +126,7 @@ init_palette_copy:
 *   lda palette_table,x
     sta palette_copy,x
     inx
-    cpx #32
-    bne -
+    `cpx_bne 32, -
     rts
 
 ; -----------------------------------------------------------------------------
@@ -150,8 +140,7 @@ clear_palette_copy:
 *   lda #$0f
     sta palette_copy,x
     inx
-    cpx #32
-    bne -
+    `cpx_bne 32, -
     rts
 
 ; -----------------------------------------------------------------------------
@@ -168,8 +157,7 @@ update_palette:
 *   lda palette_copy,x
     sta ppu_data
     inx
-    cpx #32
-    bne -
+    `cpx_bne 32, -
 
     `reset_ppu_addr
     rts
@@ -179,15 +167,13 @@ update_palette:
 sub19:
 
     stx $88
-    lda #0
-    sta $87
+    `lda_imm_sta 0, $87
 sub19_loop1:
     lda $86
     `add_imm $55
     bcc +
 *   sta $86
-    inc $87
-    lda $87
+    `inc_lda $87
     cmp $88
     bne sub19_loop1
 
@@ -219,8 +205,7 @@ sub19_loop2:  ; start outer loop
     nop
     nop
     iny
-    cpy #11
-    bne -
+    `cpy_bne 11, -
 
     nop
     inx
@@ -244,8 +229,7 @@ sub20:
     ora table18,x
     sta palette_copy,y
     iny
-    cpy #32
-    bne -
+    `cpy_bne 32, -
 
     rts
 
@@ -258,8 +242,7 @@ sub21:
     lda $e8
     cmp #8
     bcc +
-    lda $e8
-    sta ppu_data
+    `lda_mem_sta $e8, ppu_data
     jmp sub21_exit
 *   `write_ppu_data $3f  ; black
 sub21_exit:
@@ -271,8 +254,7 @@ sub22:
 
     stx $a5
     sty $a6
-    lda $9a
-    sta $a7
+    `lda_mem_sta $9a, $a7
 
     lda #$00
     sta $9a
@@ -281,8 +263,7 @@ sub22:
 
 sub22_loop:   ; start outer loop
     ldx #0
-    lda #$00
-    sta $9a
+    `lda_imm_sta $00, $9a
 
 *   lda $9c       ; start inner loop
     `add_mem $a7
@@ -310,15 +291,13 @@ sub22_loop:   ; start outer loop
     txa
     `add_imm 8
     tax
-    cpx #64
-    bne -
+    `cpx_bne 64, -
 
     lda $9b
     `add_imm 8
     sta $9b
     lda $9b
-    cmp #16
-    bne sub22_loop
+    `cmp_bne 16, sub22_loop
 
     sty $a8
     rts
@@ -329,8 +308,7 @@ sub23:
 
     stx $a5
     sty $a6
-    lda $9a
-    sta $a7
+    `lda_mem_sta $9a, $a7
     lda #$00
     sta $9a
     sta $9b
@@ -338,8 +316,7 @@ sub23:
 
 sub23_loop:   ; start outer loop
     ldx #0
-    lda #$00
-    sta $9a
+    `lda_imm_sta $00, $9a
 
 *   lda $9c       ; start inner loop
     `add_mem $a7
@@ -367,15 +344,13 @@ sub23_loop:   ; start outer loop
     txa
     `add_imm 8
     tax
-    cpx #24
-    bne -
+    `cpx_bne 24, -
 
     lda $9b
     `add_imm 8
     sta $9b
     lda $9b
-    cmp #16
-    bne sub23_loop
+    `cmp_bne 16, sub23_loop
 
     sty $a8
     rts
@@ -386,8 +361,7 @@ sub24:
 
     stx $a5
     sty $a6
-    lda $9a
-    sta $a7
+    `lda_mem_sta $9a, $a7
 
     lda #$00
     sta $9a
@@ -396,8 +370,7 @@ sub24:
 
 sub24_loop:   ; start outer loop
     ldx #0
-    lda #$00
-    sta $9a
+    `lda_imm_sta $00, $9a
 
 *   lda $9c       ; start inner loop
     `add_mem $a7
@@ -425,15 +398,13 @@ sub24_loop:   ; start outer loop
     txa
     `add_imm 8
     tax
-    cpx #32
-    bne -
+    `cpx_bne 32, -
 
     lda $9b
     `add_imm 8
     sta $9b
     lda $9b
-    cmp #16
-    bne sub24_loop
+    `cmp_bne 16, sub24_loop
 
     sty $a8
     rts
@@ -449,8 +420,7 @@ sub25:
 
 sub25_loop:
     lda table10,y
-    cmp #$ff
-    bne +
+    `cmp_bne $ff, +
 
     lda $9b
     `add_imm 14
@@ -479,8 +449,7 @@ sub25_1:
     lda $9a
     `add_imm 8
     sta $9a
-    cpy #22
-    bne sub25_loop
+    `cpy_bne 22, sub25_loop
 
     rts
 
@@ -491,10 +460,8 @@ sub26:
     stx $91
     sty $92
 
-    lda $91
-    sta ppu_addr
-    lda $92
-    sta ppu_addr
+    `lda_mem_sta $91, ppu_addr
+    `lda_mem_sta $92, ppu_addr
 
     ldx #$00
     ldy #$00
@@ -509,13 +476,10 @@ sub26:
     stx ppu_data
     inx
     stx ppu_data
-    inc $90
-    lda $90
-    cmp #$10
-    bne -
+    `inc_lda $90
+    `cmp_bne $10, -
 
-    lda #$00
-    sta $90
+    `lda_imm_sta $00, $90
 
 *   ldy $90       ; start loop
     lda (ptr1),y
@@ -529,10 +493,8 @@ sub26:
     stx ppu_data
     inx
     stx ppu_data
-    inc $90
-    lda $90
-    cmp #$10
-    bne -
+    `inc_lda $90
+    `cmp_bne $10, -
 
     `reset_ppu_addr
     rts
@@ -541,8 +503,7 @@ sub26:
 
 sub27:
 
-    lda #$00
-    sta $9a
+    `lda_imm_sta $00, $9a
 
     ldx data8
 *   txa        ; start loop
@@ -556,8 +517,7 @@ sub27:
     sta sprite_page+45*4+0,y
 
     dex
-    cpx #$ff
-    bne -
+    `cpx_bne $ff, -
 
     rts
 
@@ -587,8 +547,7 @@ sub28:
     sta $011e,x
 
     dex
-    cpx #255
-    bne -
+    `cpx_bne 255, -
 
     rts
 
@@ -599,46 +558,33 @@ sub29:
     `chr_bankswitch 0
     lda $95
 
-    cmp #1
-    beq sub29_jump_table+1*3
-    cmp #2
-    beq sub29_jump_table+2*3
-    cmp #3
-    beq sub29_jump_table+3*3
-    cmp #4
-    beq sub29_jump_table+4*3
-    cmp #5
-    beq sub29_jump_table+5*3
-    cmp #6
-    beq sub29_jump_table+6*3
-    cmp #7
-    beq sub29_jump_table+7*3
-    cmp #8
-    beq sub29_jump_table+8*3
-    cmp #9
-    beq sub29_01
-    cmp #10
-    beq sub29_jump_table+10*3
+    `cmp_beq  1, sub29_jump_table+1*3
+    `cmp_beq  2, sub29_jump_table+2*3
+    `cmp_beq  3, sub29_jump_table+3*3
+    `cmp_beq  4, sub29_jump_table+4*3
+    `cmp_beq  5, sub29_jump_table+5*3
+    `cmp_beq  6, sub29_jump_table+6*3
+    `cmp_beq  7, sub29_jump_table+7*3
+    `cmp_beq  8, sub29_jump_table+8*3
+    `cmp_beq  9, sub29_01
+    `cmp_beq 10, sub29_jump_table+10*3
     jmp sub29_11
 
 sub29_01:
-    lda #0
-    sta ppu_scroll
+    `lda_imm_sta 0, ppu_scroll
     ldx $96
     lda table19,x
     `add_mem $96
     sta ppu_scroll
 
     lda $96
-    cmp #$dc
-    bne +
+    `cmp_bne $dc, +
     jmp ++
 *   inc $96
     inc $96
-*   lda #%10000000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+
+*   `lda_imm_sta %10000000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
 
 sub29_jump_table:
     jmp sub29_11
@@ -655,40 +601,31 @@ sub29_jump_table:
 
 sub29_02:
     ; pointer 0 -> ptr1
-    lda pointers+0*2+0
-    sta ptr1+0
-    lda pointers+0*2+1
-    sta ptr1+1
+    `lda_mem_sta pointers+0*2+0, ptr1+0
+    `lda_mem_sta pointers+0*2+1, ptr1+1
 
     ldx #$20
     ldy #$00
     jsr sub26
 
-    lda #0
-    sta ppu_scroll
-    lda $96
-    sta ppu_scroll
+    `lda_imm_sta 0, ppu_scroll
+    `lda_mem_sta $96, ppu_scroll
 
-    dec $96
-    lda $96
+    `dec_lda $96
     cmp #$f0
     bcs +
     jmp sub29_11
-*   lda #$00
-    sta $96
+*   `lda_imm_sta $00, $96
     jmp sub29_11
 
 sub29_03:
-    lda #$00
-    sta $96
+    `lda_imm_sta $00, $96
     jmp sub29_11
 
 sub29_04:
     ; pointer 1 -> ptr1
-    lda pointers+1*2+0
-    sta ptr1+0
-    lda pointers+1*2+1
-    sta ptr1+1
+    `lda_mem_sta pointers+1*2+0, ptr1+0
+    `lda_mem_sta pointers+1*2+1, ptr1+1
 
     ldx #$20
     ldy #$a0
@@ -697,10 +634,8 @@ sub29_04:
 
 sub29_05:
     ; pointer 2 -> ptr1
-    lda pointers+2*2+0
-    sta ptr1+0
-    lda pointers+2*2+1
-    sta ptr1+1
+    `lda_mem_sta pointers+2*2+0, ptr1+0
+    `lda_mem_sta pointers+2*2+1, ptr1+1
 
     ldx #$21
     ldy #$20
@@ -709,10 +644,8 @@ sub29_05:
 
 sub29_06:
     ; pointer 3 -> ptr1
-    lda pointers+3*2+0
-    sta ptr1+0
-    lda pointers+3*2+1
-    sta ptr1+1
+    `lda_mem_sta pointers+3*2+0, ptr1+0
+    `lda_mem_sta pointers+3*2+1, ptr1+1
 
     ldx #$21
     ldy #$a0
@@ -721,10 +654,8 @@ sub29_06:
 
 sub29_07:
     ; pointer 4 -> ptr1
-    lda pointers+4*2+0
-    sta ptr1+0
-    lda pointers+4*2+1
-    sta ptr1+1
+    `lda_mem_sta pointers+4*2+0, ptr1+0
+    `lda_mem_sta pointers+4*2+1, ptr1+1
 
     ldx #$22
     ldy #$40
@@ -733,10 +664,8 @@ sub29_07:
 
 sub29_08:
     ; pointer 5 -> ptr1
-    lda pointers+5*2+0
-    sta ptr1+0
-    lda pointers+5*2+1
-    sta ptr1+1
+    `lda_mem_sta pointers+5*2+0, ptr1+0
+    `lda_mem_sta pointers+5*2+1, ptr1+1
 
     ldx #$22
     ldy #$c0
@@ -745,10 +674,8 @@ sub29_08:
 
 sub29_09:
     ; pointer 6 -> ptr1
-    lda pointers+6*2+0
-    sta ptr1+0
-    lda pointers+6*2+1
-    sta ptr1+1
+    `lda_mem_sta pointers+6*2+0, ptr1+0
+    `lda_mem_sta pointers+6*2+1, ptr1+1
 
     ldx #$23
     ldy #$40
@@ -756,16 +683,13 @@ sub29_09:
     jmp sub29_11
 
 sub29_10:
-    lda #$02
-    sta $01
-    lda #$00
-    sta $02
+    `lda_imm_sta $02, $01
+    `lda_imm_sta $00, $02
     jmp sub29_11
 
 sub29_11:
     jmp sub29_13
-    lda #$00
-    sta $9a
+    `lda_imm_sta $00, $9a
     lda $96
     cmp #$a0
     bcc +
@@ -917,15 +841,11 @@ sub30:
     `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
-    lda #$01
-    sta $02
-    lda #$8e
-    sta $012e
-    lda #$19
-    sta $012f
+    `lda_imm_sta $01, $02
+    `lda_imm_sta $8e, $012e
+    `lda_imm_sta $19, $012f
 
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %00011110, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -935,38 +855,31 @@ sub31:
     `chr_bankswitch 0
     `sprite_dma
 
-    lda #%10010000
-    sta ppu_ctrl
+    `lda_imm_sta %10010000, ppu_ctrl
 
     ; update fourth color of first background subpalette
     `set_ppu_addr vram_palette+0*4+3
     `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
-    lda #0
-    sta ppu_scroll
+    `lda_imm_sta 0, ppu_scroll
     ldx $014e
     lda table19,x
     `add_mem $014e
     sta ppu_scroll
 
     lda $014e
-    cmp #$c1
-    beq +
+    `cmp_beq $c1, +
     inc $014e
 *   lda $ac
-    cmp #$02
-    bne +
+    `cmp_bne $02, +
     lda $ab
-    cmp #$32
-    bne +
+    `cmp_bne $32, +
     jsr sub25
 *   lda $ac
-    cmp #$01
-    bne sub31_1
+    `cmp_bne $01, sub31_1
     lda $ab
-    cmp #$96
-    bne sub31_1
+    `cmp_bne $96, sub31_1
     ldx data1
 
 *   txa  ; start loop
@@ -985,28 +898,19 @@ sub31:
     `add_mem $012e
     sta sprite_page+23*4+3,y
 
-    cpx #0
-    beq +
+    `cpx_beq 0, +
     dex
     jmp -
 
-*   lda #129
-    sta sprite_page+24*4+0
-    lda #$e5
-    sta sprite_page+24*4+1
-    lda #%00000001
-    sta sprite_page+24*4+2
-    lda #214
-    sta sprite_page+24*4+3
+*   `lda_imm_sta 129, sprite_page+24*4+0
+    `lda_imm_sta $e5, sprite_page+24*4+1
+    `lda_imm_sta %00000001, sprite_page+24*4+2
+    `lda_imm_sta 214, sprite_page+24*4+3
 
-    lda #97
-    sta sprite_page+25*4+0
-    lda #$f0
-    sta sprite_page+25*4+1
-    lda #%00000010
-    sta sprite_page+25*4+2
-    lda #230
-    sta sprite_page+25*4+3
+    `lda_imm_sta 97, sprite_page+25*4+0
+    `lda_imm_sta $f0, sprite_page+25*4+1
+    `lda_imm_sta %00000010, sprite_page+25*4+2
+    `lda_imm_sta 230, sprite_page+25*4+3
 
     ; update fourth color of first background subpalette
     `set_ppu_addr vram_palette+0*4+3
@@ -1015,8 +919,7 @@ sub31:
 
 sub31_1:
     lda $ac
-    cmp #$02
-    bne sub31_2
+    `cmp_bne $02, sub31_2
     lda $ab
     cmp #$32
     bcc sub31_2
@@ -1025,8 +928,7 @@ sub31_1:
     ldy #0
 sub31_loop:
     lda $0180,x
-    cmp #$01
-    bne +
+    `cmp_bne $01, +
     lda #$a0
     clc
     adc $016a,x
@@ -1052,27 +954,21 @@ sub31_loop:
     sta $0154,x
 *   inx
     `iny4
-    cpx #22
-    bne sub31_loop
+    `cpx_bne 22, sub31_loop
 
 sub31_2:
     lda $ac
-    cmp #$02
-    bne +
+    `cmp_bne $02, +
     lda $ab
     cmp #$c8
     bcc +
-    inc $a3
-    lda $a3
-    cmp #$04
-    bne +
+    `inc_lda $a3
+    `cmp_bne $04, +
     jsr sub20
     jsr update_palette
-    lda #$00
-    sta $a3
+    `lda_imm_sta $00, $a3
 *   jsr sub27
-    lda #$02
-    sta $01
+    `lda_imm_sta $02, $01
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1083,23 +979,16 @@ sub32:
     ldx #0
 *   sta pulse1_ctrl,x
     inx
-    cpx #15
-    bne -
+    `cpx_bne 15, -
 
-    lda #$0a
-    sta dmc_addr
-    lda #$fa
-    sta dmc_length
-    lda #$4c
-    sta dmc_ctrl
-    lda #$1f
-    sta apu_ctrl
-    lda #$ff
-    sta dmc_load
+    `lda_imm_sta $0a, dmc_addr
+    `lda_imm_sta $fa, dmc_length
+    `lda_imm_sta $4c, dmc_ctrl
+    `lda_imm_sta $1f, apu_ctrl
+    `lda_imm_sta $ff, dmc_load
     ldx #$00
     jsr sub59
-    lda #$01
-    sta $02
+    `lda_imm_sta $01, $02
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1111,16 +1000,13 @@ sub33:
     lda table22,x
     `add_imm $96
     sta $8b
-    dec $8a
-    ldx $8a
+    `dec_ldx $8a
     lda table20,x
     sta $8d
 
-    lda #%10000100
-    sta ppu_ctrl
+    `lda_imm_sta %10000100, ppu_ctrl
 
-    lda #$00
-    sta $89
+    `lda_imm_sta $00, $89
     ldy #$9f
 
 sub33_loop:
@@ -1131,16 +1017,12 @@ sub33_loop:
 
     `set_ppu_addr_via_x vram_palette+0*4
 
-    inc $8c
-    lda $8c
-    cmp #$05
-    beq +
+    `inc_lda $8c
+    `cmp_beq $05, +
     jmp ++
 *   inc $89
-    lda #$00
-    sta $8c
-*   inc $89
-    lda $89
+    `lda_imm_sta $00, $8c
+*   `inc_lda $89
     sbc $8a
     adc $8b
     tax
@@ -1156,10 +1038,8 @@ sub33_loop:
     dey
     bne sub33_loop
 
-    lda #%00000110
-    sta ppu_mask
-    lda #%10010000
-    sta ppu_ctrl
+    `lda_imm_sta %00000110, ppu_mask
+    `lda_imm_sta %10010000, ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1184,10 +1064,8 @@ sub34:
     `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
-    lda #$01
-    sta $02
-    lda #$05
-    sta $00
+    `lda_imm_sta $01, $02
+    `lda_imm_sta $05, $00
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1196,14 +1074,12 @@ sub35:
 
     `chr_bankswitch 1
     lda $0148
-    cmp #$00
-    beq +
+    `cmp_beq $00, +
     jmp sub35_1
 *   dec $8a
 
     ldx #0
-    lda #$00
-    sta $89
+    `lda_imm_sta $00, $89
 *   lda $89  ; start loop
     adc $8a
     tay
@@ -1213,19 +1089,16 @@ sub35:
     `add_mem $00
     sta $89
     inx
-    cpx #64
-    bne -
+    `cpx_bne 64, -
 
     ldx #0
     ldy #0
-    lda #$00
-    sta $9a
+    `lda_imm_sta $00, $9a
 
 sub35_loop1:  ; start outer loop
-    lda #$21
-    sta ppu_addr
-    lda $9a
-    sta ppu_addr
+    ; $2100 + [$9a] -> ppu_addr
+    `lda_imm_sta $21, ppu_addr
+    `lda_mem_sta $9a, ppu_addr
 
     ldy #0
 *   lda $0600,x  ; start inner loop
@@ -1239,25 +1112,21 @@ sub35_loop1:  ; start outer loop
     sta ppu_data
     inx
     iny
-    cpy #8
-    bne -
+    `cpy_bne 8, -
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
-    cmp #$00
-    bne sub35_loop1
+    `cmp_bne $00, sub35_loop1
 
-    lda #$01
-    sta $0148
+    `lda_imm_sta $01, $0148
     jmp sub35_2
 
 sub35_1:
     dec $8a
     ldx #64
-    lda #$00
-    sta $89
+    `lda_imm_sta $00, $89
 
 *   lda $89  ; start loop
     adc $8a
@@ -1268,18 +1137,14 @@ sub35_1:
     `add_mem $00
     sta $89
     inx
-    cpx #128
-    bne -
+    `cpx_bne 128, -
 
     ldx #$7f
-    lda #$00
-    sta $9a
+    `lda_imm_sta $00, $9a
 
 sub35_loop2:  ; start outer loop
-    lda #$22
-    sta ppu_addr
-    lda $9a
-    sta ppu_addr
+    `lda_imm_sta $22, ppu_addr
+    `lda_mem_sta $9a, ppu_addr
 
     ldy #0
 *   lda $0600,x  ; start inner loop
@@ -1293,24 +1158,20 @@ sub35_loop2:  ; start outer loop
     sta ppu_data
     dex
     iny
-    cpy #8
-    bne -
+    `cpy_bne 8, -
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
-    cmp #$00
-    bne sub35_loop2
+    `cmp_bne $00, sub35_loop2
 
-    lda #$00
-    sta $0148
+    `lda_imm_sta $00, $0148
 
 sub35_2:
     `reset_ppu_addr
 
-    lda #$00
-    sta $89
+    `lda_imm_sta $00, $89
 
 *   ldx #$04   ; start loop
     jsr sub19
@@ -1319,31 +1180,25 @@ sub35_2:
     tax
     lda table19,x
     sta ppu_scroll
-    lda #0
-    sta ppu_scroll
+    `lda_imm_sta 0, ppu_scroll
     inc $89
     iny
-    cpy #$98
-    bne -
+    `cpy_bne $98, -
 
     ldx $8b
     lda table22,x
     sbc $8b
     sbc $8b
-    lda #0
-    sta ppu_scroll
+    `lda_imm_sta 0, ppu_scroll
     ldx $8b
     lda table20,x
     clc
     sbc #10
-    lda #230
-    sta ppu_scroll
+    `lda_imm_sta 230, ppu_scroll
     dec $8b
 
-    lda #%00001110
-    sta ppu_mask
-    lda #%10000000
-    sta ppu_ctrl
+    `lda_imm_sta %00001110, ppu_mask
+    `lda_imm_sta %10000000, ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1369,8 +1224,7 @@ sub36:
     `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
-    lda #$01
-    sta $02
+    `lda_imm_sta $01, $02
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1383,8 +1237,7 @@ sub37:
     dec $8a
 
     ldx #0
-    lda #0
-    sta $89
+    `lda_imm_sta 0, $89
 *   lda $89  ; start loop
     adc $8a
     tay
@@ -1393,12 +1246,10 @@ sub37:
     sta $0600,x
     inc $89
     inx
-    cpx #$80
-    bne -
+    `cpx_bne $80, -
 
     lda $0148
-    cmp #$00
-    beq +
+    `cmp_beq $00, +
     jmp sub37_1
 
 *   ldx #0
@@ -1407,10 +1258,9 @@ sub37:
 
     sta $9a
 sub37_loop1:  ; start outer loop
-    lda #$21
-    sta ppu_addr
-    lda $9a
-    sta ppu_addr
+    ; $2100 + [$9a] -> ppu_addr
+    `lda_imm_sta $21, ppu_addr
+    `lda_mem_sta $9a, ppu_addr
 
     ldy #0
 *   lda $0600,x  ; start inner loop
@@ -1423,30 +1273,24 @@ sub37_loop1:  ; start outer loop
     sta ppu_data
     inx
     iny
-    cpy #8
-    bne -
+    `cpy_bne 8, -
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
-    cmp #$00
-    bne sub37_loop1
+    `cmp_bne $00, sub37_loop1
 
-    lda #$01
-    sta $0148
+    `lda_imm_sta $01, $0148
     jmp sub37_2
 
 sub37_1:
     ldx #$7f
-    lda #$20
-    sta $9a
+    `lda_imm_sta $20, $9a
 
 sub37_loop2:  ; start outer loop
-    lda #$22
-    sta ppu_addr
-    lda $9a
-    sta ppu_addr
+    `lda_imm_sta $22, ppu_addr
+    `lda_mem_sta $9a, ppu_addr
 
     ldy #0
 *   lda $0600,x  ; start inner loop
@@ -1459,18 +1303,15 @@ sub37_loop2:  ; start outer loop
     sta ppu_data
     dex
     iny
-    cpy #8
-    bne -
+    `cpy_bne 8, -
 
     lda $9a
     `add_imm 32
     sta $9a
     lda $9a
-    cmp #$00
-    bne sub37_loop2
+    `cmp_bne $00, sub37_loop2
 
-    lda #$00
-    sta $0148
+    `lda_imm_sta $00, $0148
 
 sub37_2:
     `reset_ppu_addr
@@ -1491,10 +1332,8 @@ sub37_2:
     sta ppu_scroll
     dec $8b
 
-    lda #%00001110
-    sta ppu_mask
-    lda #%10000000
-    sta ppu_ctrl
+    `lda_imm_sta %00001110, ppu_mask
+    `lda_imm_sta %10000000, ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1506,8 +1345,7 @@ sub38:
     jsr sub12
     jsr init_palette_copy
     jsr update_palette
-    lda #$01
-    sta $02
+    `lda_imm_sta $01, $02
     jsr init_graphics_and_sound
 
     lda #$00
@@ -1516,10 +1354,8 @@ sub38:
     sta $8b
     sta $8c
 
-    lda #%00000000
-    sta ppu_mask
-    lda #%10000000
-    sta ppu_ctrl
+    `lda_imm_sta %00000000, ppu_mask
+    `lda_imm_sta %10000000, ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1527,13 +1363,10 @@ sub38:
 sub39:
 
     dec $8c
-    inc $8b
-    lda $8b
-    cmp #$02
-    bne +
+    `inc_lda $8b
+    `cmp_bne $02, +
 
-    lda #$00
-    sta $8b
+    `lda_imm_sta $00, $8b
     dec $8a
 
 *   lda #%10000100
@@ -1554,8 +1387,7 @@ sub39:
     `write_ppu_data $0f  ; black
     `reset_ppu_addr
 
-    lda #$00
-    sta $89
+    `lda_imm_sta $00, $89
 
     ldy #85
 sub39_loop:  ; start outer loop
@@ -1569,8 +1401,7 @@ sub39_loop:  ; start outer loop
     ldx $8a
     lda table22,x
     sta $9a
-    dec $89
-    lda $89
+    `dec_lda $89
     `add_mem $8a
     tax
     lda table20,x
@@ -1611,10 +1442,8 @@ sub40:
     `set_ppu_addr vram_name_table0
 
 sub40_1:
-    lda #$00
-    sta $9e
-    lda #$00
-    sta $9f
+    `lda_imm_sta $00, $9e
+    `lda_imm_sta $00, $9f
 sub40_loop1:  ; start outermost loop
 
     ldy #0
@@ -1625,25 +1454,19 @@ sub40_loop2:  ; start middle loop
     `add_mem $9e
     sta ppu_data
     inx
-    cpx #8
-    bne -
+    `cpx_bne 8, -
 
     iny
-    cpy #$04
-    bne sub40_loop2
+    `cpy_bne $04, sub40_loop2
 
     lda $9e
     `add_imm 8
     sta $9e
     lda $9e
-    cmp #$40
-    bne sub40_loop1
-    lda #$00
-    sta $9e
-    inc $9f
-    lda $9f
-    cmp #$03
-    bne sub40_loop1
+    `cmp_bne $40, sub40_loop1
+    `lda_imm_sta $00, $9e
+    `inc_lda $9f
+    `cmp_bne $03, sub40_loop1
 
     ldx #0
 sub40_loop3:  ; start outermost loop
@@ -1656,18 +1479,15 @@ sub40_loop4:  ; start middle loop
     `add_mem $9e
     sta ppu_data
     inx
-    cpx #8
-    bne -
+    `cpx_bne 8, -
 
     iny
-    cpy #4
-    bne sub40_loop4
+    `cpy_bne 4, sub40_loop4
 
     lda $9e
     `add_imm 8
     sta $9e
-    cmp #$28
-    bne sub40_loop3
+    `cmp_bne $28, sub40_loop3
 
     lda #$f0
     ldy #0
@@ -1676,19 +1496,15 @@ sub40_loop5:  ; start outer loop
     ldx #$f0
 *   stx ppu_data  ; start inner loop
     inx
-    cpx #$f8
-    bne -
+    `cpx_bne $f8, -
 
     iny
-    cpy #8
-    bne sub40_loop5
+    `cpy_bne 8, sub40_loop5
 
     `reset_ppu_addr
 
-    inc $a0
-    lda $a0
-    cmp #$02
-    bne +
+    `inc_lda $a0
+    `cmp_bne $02, +
     jmp sub40_2
 
 *   `set_ppu_addr vram_name_table2
@@ -1699,37 +1515,27 @@ sub40_2:
     ; clear Attribute Table 0
     `set_ppu_addr vram_attr_table0
     ldx #0
-*   lda #$00
-    sta ppu_data
+*   `lda_imm_sta $00, ppu_data
     inx
-    cpx #64
-    bne -
+    `cpx_bne 64, -
     `reset_ppu_addr
 
     ; clear Attribute Table 2
     `set_ppu_addr vram_attr_table2
     ldx #0
-*   lda #$00
-    sta ppu_data
+*   `lda_imm_sta $00, ppu_data
     inx
-    cpx #64
-    bne -
+    `cpx_bne 64, -
     `reset_ppu_addr
 
     jsr init_graphics_and_sound
-    lda #$02
-    sta $014d
-    lda #$00
-    sta $a3
-    lda #$01
-    sta $02
-    lda #$00
-    sta $89
+    `lda_imm_sta $02, $014d
+    `lda_imm_sta $00, $a3
+    `lda_imm_sta $01, $02
+    `lda_imm_sta $00, $89
 
-    lda #%00011000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %00011000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1739,36 +1545,27 @@ sub41:
     `sprite_dma
 
     lda $a2
-    cmp #$08
-    bne sub41_01
+    `cmp_bne $08, sub41_01
     lda $a1
     cmp #$8c
     bcc sub41_01
-    inc $a3
-    lda $a3
-    cmp #$04
-    bne sub41_01
+    `inc_lda $a3
+    `cmp_bne $04, sub41_01
     jsr sub20
     jsr update_palette
-    lda #$00
-    sta $a3
+    `lda_imm_sta $00, $a3
 
 sub41_01:
-    lda #$03
-    sta $01
+    `lda_imm_sta $03, $01
 
     `set_ppu_addr vram_palette+0*4
 
     lda $a2
-    cmp #$08
-    beq sub41_04
+    `cmp_beq $08, sub41_04
     lda $014d
-    cmp #0
-    beq sub41_03
-    cmp #1
-    beq sub41_02
-    cmp #2
-    beq +
+    `cmp_beq $00, sub41_03
+    `cmp_beq $01, sub41_02
+    `cmp_beq $02, +
 
 *   `write_ppu_data $34  ; light purple
     `write_ppu_data $24  ; medium-light purple
@@ -1788,41 +1585,28 @@ sub41_03:
     `write_ppu_data $02  ; dark blue
 
 sub41_04:
-    inc $89
-    lda $89
+    `inc_lda $89
     sta ppu_scroll
     ldx $89
     lda table20,x
     sta ppu_scroll
-    inc $a1
-    lda $a1
-    cmp #$b4
-    beq +
+    `inc_lda $a1
+    `cmp_beq $b4, +
     jmp sub41_05
 *   inc $a2
-    lda #$00
-    sta $a1
+    `lda_imm_sta $00, $a1
 
 sub41_05:
     lda $a2
-    cmp #1
-    beq sub41_jump_table+1*3
-    cmp #2
-    beq sub41_jump_table+2*3
-    cmp #3
-    beq sub41_jump_table+3*3
-    cmp #4
-    beq sub41_jump_table+4*3
-    cmp #5
-    beq sub41_jump_table+5*3
-    cmp #6
-    beq sub41_jump_table+6*3
-    cmp #7
-    beq sub41_jump_table+7*3
-    cmp #8
-    beq sub41_jump_table+8*3
-    cmp #9
-    beq sub41_06
+    `cmp_beq 1, sub41_jump_table+1*3
+    `cmp_beq 2, sub41_jump_table+2*3
+    `cmp_beq 3, sub41_jump_table+3*3
+    `cmp_beq 4, sub41_jump_table+4*3
+    `cmp_beq 5, sub41_jump_table+5*3
+    `cmp_beq 6, sub41_jump_table+6*3
+    `cmp_beq 7, sub41_jump_table+7*3
+    `cmp_beq 8, sub41_jump_table+8*3
+    `cmp_beq 9, sub41_06
 
 sub41_jump_table:
     jmp sub41_15
@@ -1836,18 +1620,15 @@ sub41_jump_table:
     jmp sub41_14
 
 sub41_06:
-    lda #$0a
-    sta $01
-    lda #$00
-    sta $02
+    `lda_imm_sta $0a, $01
+    `lda_imm_sta $00, $02
     jmp $ea7e
 
 sub41_07:
     jsr init_graphics_and_sound
     ldx #$5c
     ldy #$6a
-    lda #$90
-    sta $9a
+    `lda_imm_sta $90, $9a
     jsr sub22
     jmp $ea7e
 
@@ -1855,13 +1636,11 @@ sub41_08:
     jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
-    lda #$60
-    sta $9a
+    `lda_imm_sta $60, $9a
     jsr sub22
     ldx #$54
     ldy #$61
-    lda #$ac
-    sta $9a
+    `lda_imm_sta $ac, $9a
     jsr sub24
     jmp $ea7e
 
@@ -1869,29 +1648,24 @@ sub41_09:
     jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
-    lda #$80
-    sta $9a
+    `lda_imm_sta $80, $9a
     jsr sub22
     ldx #$54
     ldy #$61
-    lda #$ac
-    sta $9a
+    `lda_imm_sta $ac, $9a
     jsr sub24
     jmp $ea7e
 
 sub41_10:
     jsr init_graphics_and_sound
-    lda #$01
-    sta $014d
+    `lda_imm_sta $01, $014d
     ldx #$75
     ldy #$73
-    lda #$50
-    sta $9a
+    `lda_imm_sta $50, $9a
     jsr sub22
     ldx #$54
     ldy #$61
-    lda #$a0
-    sta $9a
+    `lda_imm_sta $a0, $9a
     jsr sub23
     jmp $ea7e
 
@@ -1899,13 +1673,11 @@ sub41_11:
     jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
-    lda #$40
-    sta $9a
+    `lda_imm_sta $40, $9a
     jsr sub22
     ldx #$54
     ldy #$61
-    lda #$a0
-    sta $9a
+    `lda_imm_sta $a0, $9a
     jsr sub23
     jmp $ea7e
 
@@ -1913,29 +1685,24 @@ sub41_12:
     jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
-    lda #$e0
-    sta $9a
+    `lda_imm_sta $e0, $9a
     jsr sub22
     ldx #$54
     ldy #$61
-    lda #$a0
-    sta $9a
+    `lda_imm_sta $a0, $9a
     jsr sub23
     jmp $ea7e
 
 sub41_13:
-    lda #$00
-    sta $014d
+    `lda_imm_sta $00, $014d
     jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
-    lda #$c0
-    sta $9a
+    `lda_imm_sta $c0, $9a
     jsr sub22
     ldx #$54
     ldy #$61
-    lda #$a0
-    sta $9a
+    `lda_imm_sta $a0, $9a
     jsr sub23
     jmp $ea7e
 
@@ -1943,13 +1710,11 @@ sub41_14:
     jsr init_graphics_and_sound
     ldx #$75
     ldy #$73
-    lda #$70
-    sta $9a
+    `lda_imm_sta $70, $9a
     jsr sub22
     ldx #$54
     ldy #$61
-    lda #$a6
-    sta $9a
+    `lda_imm_sta $a6, $9a
     jsr sub23
     jmp $ea7e
 
@@ -1957,10 +1722,8 @@ sub41_15:
     jsr init_graphics_and_sound
     `chr_bankswitch 1
 
-    lda #%10011000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %10011000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1977,10 +1740,8 @@ sub42:
     sta ppu_ctrl
     sta ppu_mask
 
-    lda #$20
-    sta $014a
-    lda #$21
-    sta $014b
+    `lda_imm_sta $20, $014a
+    `lda_imm_sta $21, $014b
 
     ; write 16 rows to Name Table 0;
     ; the left half consists of tiles $00, $01, ..., $ff;
@@ -1994,17 +1755,14 @@ sub42_loop1:
 *   sty ppu_data
     iny
     inx
-    cpx #16
-    bne -
+    `cpx_bne 16, -
     ; write 16 * byte $7f
     ldx #0
 *   `write_ppu_data $7f
     inx
-    cpx #16
-    bne -
+    `cpx_bne 16, -
     ; end outer loop
-    cpy #0
-    bne sub42_loop1
+    `cpy_bne 0, sub42_loop1
 
     jsr sub12
 
@@ -2019,17 +1777,14 @@ sub42_loop2:
 *   sty ppu_data
     iny
     inx
-    cpx #16
-    bne -
+    `cpx_bne 16, -
     ; second inner loop
     ldx #0
 *   `write_ppu_data $7f
     inx
-    cpx #16
-    bne -
+    `cpx_bne 16, -
     ; end outer loop
-    cpy #7*32
-    bne sub42_loop2
+    `cpy_bne 7*32, sub42_loop2
 
     ; write bytes $e0...$e4 to Name Table 0, row 29, columns 10...14
     `reset_ppu_addr
@@ -2059,17 +1814,12 @@ sub42_loop2:
     lda #$00
     sta $89
     sta $8a
-    lda #$40
-    sta $8b
-    lda #$00
-    sta $8c
-    lda #$01
-    sta $02
-    lda #$00
-    sta $a3
+    `lda_imm_sta $40, $8b
+    `lda_imm_sta $00, $8c
+    `lda_imm_sta $01, $02
+    `lda_imm_sta $00, $a3
 
-    lda #%10000000
-    sta ppu_ctrl
+    `lda_imm_sta %10000000, ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2113,22 +1863,16 @@ sub43_loop1:
     txa
     `add_imm 8
     tax
-    inc $8d
-    lda $8d
-    cmp #15
-    beq +
+    `inc_lda $8d
+    `cmp_beq 15, +
     jmp ++
 *   inc $8c
-    lda #$00
-    sta $8d
+    `lda_imm_sta $00, $8d
 *   lda $8c
-    cmp #16
-    beq +
+    `cmp_beq 16, +
     jmp ++
-*   lda #$00
-    sta $8c
-*   cpy #96
-    bne sub43_loop1
+*   `lda_imm_sta $00, $8c
+*   `cpy_bne 96, sub43_loop1
 
     ldx #$18
     lda #$00
@@ -2161,20 +1905,15 @@ sub43_loop2:
     txa
     `add_imm 8
     tax
-    inc $8c
-    lda $8c
-    cmp #$10
-    beq +
+    `inc_lda $8c
+    `cmp_beq $10, +
     jmp ++
-*   lda #$00
-    sta $8c
-*   cpy #192
-    bne sub43_loop2
+*   `lda_imm_sta $00, $8c
+*   `cpy_bne 192, sub43_loop2
 
     `chr_bankswitch 3
 
-    lda #%10001000
-    sta ppu_ctrl
+    `lda_imm_sta %10001000, ppu_ctrl
 
     ldx #$ff
     jsr sub19
@@ -2187,32 +1926,22 @@ sub43_loop2:
     nop
     nop
 
-    lda #%10011000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %10011000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
 
     lda $8b
-    cmp #$fa
-    bne sub43_exit
+    `cmp_bne $fa, sub43_exit
 
-    inc $0149
-    lda $0149
-    cmp #$02
-    beq +
+    `inc_lda $0149
+    `cmp_beq $02, +
 
-    lda #$00
-    sta $014a
-    lda #$01
-    sta $014b
+    `lda_imm_sta $00, $014a
+    `lda_imm_sta $01, $014b
     jmp sub43_exit
 
-*   lda #$20
-    sta $014a
-    lda #$21
-    sta $014b
-    lda #$00
-    sta $0149
+*   `lda_imm_sta $20, $014a
+    `lda_imm_sta $21, $014b
+    `lda_imm_sta $00, $0149
 
 sub43_exit:
     rts
@@ -2236,8 +1965,7 @@ sub43_exit:
 *   stx ppu_data  ; start loop
     inx
     iny
-    cpy #12
-    bne -
+    `cpy_bne 12, -
 
     `reset_ppu_addr
     `set_ppu_addr vram_name_table0+9*32+10
@@ -2247,8 +1975,7 @@ sub43_exit:
 *   stx ppu_data  ; start loop
     inx
     iny
-    cpy #12
-    bne -
+    `cpy_bne 12, -
 
     `reset_ppu_addr
     `set_ppu_addr vram_name_table0+10*32+10
@@ -2258,18 +1985,15 @@ sub43_exit:
 *   stx ppu_data  ; start loop
     inx
     iny
-    cpy #12
-    bne -
+    `cpy_bne 12, -
 
     `reset_ppu_addr
 
-    lda #$01
-    sta $02
+    `lda_imm_sta $01, $02
     lda #$00
     sta $8f
     sta $89
-    lda #$00
-    sta $8a
+    `lda_imm_sta $00, $8a
 
     ; update third and fourth color of third sprite subpalette
     `set_ppu_addr vram_palette+6*4+2
@@ -2277,18 +2001,14 @@ sub43_exit:
     `write_ppu_data $10  ; light gray
     `reset_ppu_addr
 
-    lda #%10000000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %10000000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
 
-    lda #$00
-    sta $0130
+    `lda_imm_sta $00, $0130
     rts
 
     lda $0130
-    cmp #$01
-    beq sub43_1
+    `cmp_beq $01, sub43_1
 
     ; update first sprite subpalette
     `set_ppu_addr vram_palette+4*4
@@ -2307,30 +2027,20 @@ sub43_exit:
     `reset_ppu_addr
 
 sub43_1:
-    lda #$01
-    sta $0130
+    `lda_imm_sta $01, $0130
 
-    lda #%00011110
-    sta ppu_mask
-    lda #%00010000
-    sta ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
+    `lda_imm_sta %00010000, ppu_ctrl
 
-    inc $8a
-    lda $8a
-    cmp #8
-    beq +
+    `inc_lda $8a
+    `cmp_beq 8, +
     jmp sub43_2
-*   lda #$00
-    sta $8a
-    inc $8f
-    lda $8f
-    cmp #$eb
-    beq +
+*   `lda_imm_sta $00, $8a
+    `inc_lda $8f
+    `cmp_beq $eb, +
     jmp ++
-*   lda #$00
-    sta $02
-    lda #$07
-    sta $01
+*   `lda_imm_sta $00, $02
+    `lda_imm_sta $07, $01
 
 *   `set_ppu_addr vram_name_table0+27*32+1
 
@@ -2343,26 +2053,21 @@ sub43_1:
     sbc #$36
     sta ppu_data
     inx
-    cpx #31
-    bne -
+    `cpx_bne 31, -
 
     `reset_ppu_addr
 
 sub43_2:
     `chr_bankswitch 2
-    inc $89
-    ldx $89
+    `inc_ldx $89
     lda table20,x
     clc
     sbc #30
     sta ppu_scroll
-    lda #0
-    sta ppu_scroll
+    `lda_imm_sta 0, ppu_scroll
 
-    lda #%00010000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %00010000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
 
     `sprite_dma
 
@@ -2375,42 +2080,27 @@ sub43_2:
     ldx #$d0
     jsr sub19
 
-    lda #%00000000
-    sta ppu_ctrl
+    `lda_imm_sta %00000000, ppu_ctrl
 
     `chr_bankswitch 0
 
-    lda $8a
-    sta ppu_scroll
-    lda #0
-    sta ppu_scroll
+    `lda_mem_sta $8a, ppu_scroll
+    `lda_imm_sta 0, ppu_scroll
 
-    lda #215
-    sta sprite_page+0*4+0
-    lda #$25
-    sta sprite_page+0*4+1
-    lda #%00000000
-    sta sprite_page+0*4+2
-    lda #248
-    sta sprite_page+0*4+3
+    `lda_imm_sta 215, sprite_page+0*4+0
+    `lda_imm_sta $25, sprite_page+0*4+1
+    `lda_imm_sta %00000000, sprite_page+0*4+2
+    `lda_imm_sta 248, sprite_page+0*4+3
 
-    lda #207
-    sta sprite_page+1*4+0
-    lda #$25
-    sta sprite_page+1*4+1
-    lda #%00000000
-    sta sprite_page+1*4+2
-    lda #248
-    sta sprite_page+1*4+3
+    `lda_imm_sta 207, sprite_page+1*4+0
+    `lda_imm_sta $25, sprite_page+1*4+1
+    `lda_imm_sta %00000000, sprite_page+1*4+2
+    `lda_imm_sta 248, sprite_page+1*4+3
 
-    lda #223
-    sta sprite_page+2*4+0
-    lda #$27
-    sta sprite_page+2*4+1
-    lda #%00000000
-    sta sprite_page+2*4+2
-    lda #248
-    sta sprite_page+2*4+3
+    `lda_imm_sta 223, sprite_page+2*4+0
+    `lda_imm_sta $27, sprite_page+2*4+1
+    `lda_imm_sta %00000000, sprite_page+2*4+2
+    `lda_imm_sta 248, sprite_page+2*4+3
 
     ldx data2
 *   txa  ; start loop
@@ -2441,36 +2131,24 @@ sub43_2:
     `add_mem $0139
     sta sprite_page+23*4+3,y
 
-    cpx #0
-    beq +
+    `cpx_beq 0, +
     dex
     jmp -
 
-*   inc $013a
-    lda $013a
-    cmp #$06
-    bne +
+*   `inc_lda $013a
+    `cmp_bne $06, +
     inc $0139
     inc $0139
-    lda #$00
-    sta $013a
-*   inc $0138
-    lda $0138
-    cmp #$0c
-    bne +
-    lda #$00
-    sta $0138
-    inc $0137
-    lda $0137
-    cmp #$04
-    bne +
-    lda #$00
-    sta $0137
+    `lda_imm_sta $00, $013a
+*   `inc_lda $0138
+    `cmp_bne $0c, +
+    `lda_imm_sta $00, $0138
+    `inc_lda $0137
+    `cmp_bne $04, +
+    `lda_imm_sta $00, $0137
 
-*   lda #%10001000
-    sta ppu_ctrl
-    lda #%00011000
-    sta ppu_mask
+*   `lda_imm_sta %10001000, ppu_ctrl
+    `lda_imm_sta %00011000, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2480,22 +2158,19 @@ sub44:
     jsr init_graphics_and_sound
     ldy #$aa
     jsr sub56
-    lda #$1a
-    sta $9a
+    `lda_imm_sta $1a, $9a
     ldx #$60
 
 sub44_loop1:  ; start outer loop
-    lda #$21
-    sta ppu_addr
-    lda $9a
-    sta ppu_addr
+    ; $2100 + [$9a] -> ppu_addr
+    `lda_imm_sta $21, ppu_addr
+    `lda_mem_sta $9a, ppu_addr
 
     ldy #0
 *   stx ppu_data  ; start inner loop
     inx
     iny
-    cpy #3
-    bne -
+    `cpy_bne 3, -
 
     `reset_ppu_addr
 
@@ -2503,25 +2178,20 @@ sub44_loop1:  ; start outer loop
     `add_imm 32
     sta $9a
     lda $9a
-    cmp #$1a
-    bne sub44_loop1
+    `cmp_bne $1a, sub44_loop1
 
-    lda #$08
-    sta $9a
+    `lda_imm_sta $08, $9a
     ldx #$80
 
 sub44_loop2:  ; start outer loop
-    lda #$22
-    sta ppu_addr
-    lda $9a
-    sta ppu_addr
+    `lda_imm_sta $22, ppu_addr
+    `lda_mem_sta $9a, ppu_addr
 
     ldy #0
 *   stx ppu_data  ; start inner loop
     inx
     iny
-    cpy #3
-    bne -
+    `cpy_bne 3, -
 
     `reset_ppu_addr
 
@@ -2529,8 +2199,7 @@ sub44_loop2:  ; start outer loop
     `add_imm 32
     sta $9a
     lda $9a
-    cmp #$68
-    bne sub44_loop2
+    `cmp_bne $68, sub44_loop2
 
     ; update all sprite subpalettes
     `set_ppu_addr vram_palette+4*4
@@ -2566,8 +2235,7 @@ sub44_loop2:  ; start outer loop
     lda table32,x
     sta $0108,x
     dex
-    cpx #255
-    bne -
+    `cpx_bne 255, -
 
     ldx data5
 *   lda #$00     ; start loop
@@ -2575,8 +2243,7 @@ sub44_loop2:  ; start outer loop
     lda #$f0
     sta $0116,x
     dex
-    cpx #$ff
-    bne -
+    `cpx_bne $ff, -
 
     ldx data7
 *   txa        ; start loop
@@ -2594,13 +2261,10 @@ sub44_loop2:  ; start outer loop
     lda table42,x
     sta $011e,x
     dex
-    cpx #255
-    bne -
+    `cpx_bne 255, -
 
-    lda #$7a
-    sta $0111
-    lda #$0a
-    sta $0110
+    `lda_imm_sta $7a, $0111
+    `lda_imm_sta $0a, $0110
 
     ldx data4
 *   txa        ; start loop
@@ -2613,8 +2277,7 @@ sub44_loop2:  ; start outer loop
     lda table36,x
     sta sprite_page+1*4+2,y
 
-    cpx #0
-    beq +
+    `cpx_beq 0, +
     dex
     jmp -
 
@@ -2622,13 +2285,10 @@ sub44_loop2:  ; start outer loop
     sta $0100
     sta $0101
     sta $0102
-    lda #$01
-    sta $02
+    `lda_imm_sta $01, $02
 
-    lda #%10000000
-    sta ppu_ctrl
-    lda #%00010010
-    sta ppu_mask
+    `lda_imm_sta %10000000, ppu_ctrl
+    `lda_imm_sta %00010010, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2637,8 +2297,7 @@ sub45:
 
     `sprite_dma
 
-    inc $0100
-    ldx $0100
+    `inc_ldx $0100
     lda table19,x
     adc #$7a
     sta $0111
@@ -2651,8 +2310,7 @@ sub45:
 sub45_loop1:
     dec $0104,x
     lda $0104,x
-    cmp #$00
-    bne sub45_2
+    `cmp_bne $00, sub45_2
     lda $0108,x
     cmp table33,x
     beq +
@@ -2665,17 +2323,12 @@ sub45_1:
     sta $0104,x
 sub45_2:
     dex
-    cpx #255
-    bne sub45_loop1
+    `cpx_bne 255, sub45_loop1
 
-    lda $0108
-    sta sprite_page+1*4+1
-    lda $0109
-    sta sprite_page+16*4+1
-    lda $010a
-    sta sprite_page+17*4+1
-    lda $010b
-    sta sprite_page+13*4+1
+    `lda_mem_sta $0108, sprite_page+1*4+1
+    `lda_mem_sta $0109, sprite_page+16*4+1
+    `lda_mem_sta $010a, sprite_page+17*4+1
+    `lda_mem_sta $010b, sprite_page+13*4+1
 
     ldx data4
 *   txa  ; start loop
@@ -2691,8 +2344,7 @@ sub45_2:
     `add_mem $0110
     sta sprite_page+1*4+3,y
 
-    cpx #0
-    beq +
+    `cpx_beq 0, +
     dex
     jmp -
 
@@ -2701,12 +2353,10 @@ sub45_2:
     cmp table38,x
     bne sub45_3
 
-    inc $0101
-    lda $0101
+    `inc_lda $0101
     cpx data6
     bne +
-    lda #$00
-    sta $0101
+    `lda_imm_sta $00, $0101
 *   ldx $0102
     ldy $0100
     lda #$ff
@@ -2719,15 +2369,13 @@ sub45_2:
     inc $0102
     cpx data5
     bne sub45_3
-    lda #$00
-    sta $0102
+    `lda_imm_sta $00, $0102
 
 sub45_3:
     ldx data5
 sub45_loop2:
     lda $0116,x
-    cmp #$f0
-    beq sub45_4
+    `cmp_beq $f0, sub45_4
     lda $0112,x
     clc
     sbc $011a,x
@@ -2738,8 +2386,7 @@ sub45_loop2:
     sta $0116,x
 sub45_4:
     dex
-    cpx #255
-    bne sub45_loop2
+    `cpx_bne 255, sub45_loop2
 
     ldx data5
 *   txa        ; start loop
@@ -2757,8 +2404,7 @@ sub45_4:
     sta sprite_page+18*4+3,y
 
     dex
-    cpx #255
-    bne -
+    `cpx_bne 255, -
 
     ldx data7
 *   txa        ; start loop
@@ -2772,13 +2418,10 @@ sub45_4:
     sta sprite_page+48*4+3,y
 
     dex
-    cpx #255
-    bne -
+    `cpx_bne 255, -
 
-    lda #%10000000
-    sta ppu_ctrl
-    lda #%00011010
-    sta ppu_mask
+    `lda_imm_sta %10000000, ppu_ctrl
+    `lda_imm_sta %00011010, ppu_mask
 
     `set_ppu_scroll 0, 50
     rts
@@ -2802,13 +2445,10 @@ sub46:
     sbc #$10
     sta ppu_data
     inx
-    cpx #96
-    bne -
+    `cpx_bne 96, -
 
-    lda #%00000010
-    sta ppu_ctrl
-    lda #%00000000
-    sta ppu_mask
+    `lda_imm_sta %00000010, ppu_ctrl
+    `lda_imm_sta %00000000, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2817,10 +2457,8 @@ sub47:
 
     `set_ppu_scroll 0, 0
 
-    lda #%10010000
-    sta ppu_ctrl
-    lda #%00001110
-    sta ppu_mask
+    `lda_imm_sta %10010000, ppu_ctrl
+    `lda_imm_sta %00001110, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2834,18 +2472,14 @@ sub48:
     jsr clear_palette_copy
     jsr update_palette
 
-    lda #%00000010
-    sta ppu_ctrl
-    lda #%00000000
-    sta ppu_mask
+    `lda_imm_sta %00000010, ppu_ctrl
+    `lda_imm_sta %00000000, ppu_mask
 
-    lda #$00
-    sta $9a
+    `lda_imm_sta $00, $9a
     ldx #$00
 
 sub48_loop:   ; start outer loop
-    lda #$20
-    sta ppu_addr
+    `lda_imm_sta $20, ppu_addr
     lda $9a
     `add_imm $69
     sta ppu_addr
@@ -2854,16 +2488,14 @@ sub48_loop:   ; start outer loop
 *   stx ppu_data  ; start inner loop
     inx
     iny
-    cpy #16
-    bne -
+    `cpy_bne 16, -
 
     `reset_ppu_addr
 
     lda $9a
     `add_imm 32
     sta $9a
-    cmp #96
-    bne sub48_loop
+    `cmp_bne 96, sub48_loop
 
     `set_ppu_addr vram_name_table0+8*32
 
@@ -2889,15 +2521,12 @@ sub48_loop:   ; start outer loop
     sbc #$10
     sta ppu_data
     inx
-    cpx #$80
-    bne -
+    `cpx_bne $80, -
 
     `reset_ppu_addr
 
-    lda #$01
-    sta $02
-    lda #$e6
-    sta $0153
+    `lda_imm_sta $01, $02
+    `lda_imm_sta $e6, $0153
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2906,11 +2535,9 @@ sub49:
 
     `chr_bankswitch 2
     lda $0150
-    cmp #$00
-    bne +
+    `cmp_bne $00, +
     lda $014f
-    cmp #$03
-    bne +
+    `cmp_bne $03, +
     jsr init_palette_copy
     jsr update_palette
 
@@ -2922,38 +2549,29 @@ sub49:
     `write_ppu_data $09  ; dark green
     `reset_ppu_addr
 
-*   lda #0
-    sta ppu_scroll
+*   `lda_imm_sta 0, ppu_scroll
     ldx $0153
     lda table19,x
     `add_mem $0153
     sta ppu_scroll
 
     lda $0153
-    cmp #$00
-    beq +
+    `cmp_beq $00, +
     dec $0153
 *   lda $0150
-    cmp #$03
-    bne +
+    `cmp_bne $03, +
     lda $014f
     cmp #$00
     bcc +
-    inc $a3
-    lda $a3
-    cmp #$04
-    bne +
+    `inc_lda $a3
+    `cmp_bne $04, +
     jsr sub20
     jsr update_palette
-    lda #$00
-    sta $a3
-*   lda #$0c
-    sta $01
+    `lda_imm_sta $00, $a3
+*   `lda_imm_sta $0c, $01
 
-    lda #%10010000
-    sta ppu_ctrl
-    lda #%00001110
-    sta ppu_mask
+    `lda_imm_sta %10010000, ppu_ctrl
+    `lda_imm_sta %00001110, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2983,18 +2601,14 @@ sub50:
     `write_ppu_data $30  ; white
     `reset_ppu_addr
 
-    lda #$c8
-    sta $013d
+    `lda_imm_sta $c8, $013d
 
     `set_ppu_scroll 0, 200
 
-    lda #$00
-    sta $014c
-    lda #$01
-    sta $02
+    `lda_imm_sta $00, $014c
+    `lda_imm_sta $01, $02
 
-    lda #%10000000
-    sta ppu_ctrl
+    `lda_imm_sta %10000000, ppu_ctrl
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3002,14 +2616,12 @@ sub50:
 sub51:
 
     lda $013c
-    cmp #$02
-    beq +
+    `cmp_beq $02, +
     jmp sub51_1
 *   ldy #$80
 
 sub51_loop1:  ; start outer loop
-    lda #>[vram_name_table0+8*32+4]
-    sta ppu_addr
+    `lda_imm_sta >[vram_name_table0+8*32+4], ppu_addr
     lda #<[vram_name_table0+8*32+4]
     `add_mem $013b
     sta ppu_addr
@@ -3018,18 +2630,15 @@ sub51_loop1:  ; start outer loop
 *   sty ppu_data  ; start inner loop
     iny
     inx
-    cpx #8
-    bne -
+    `cpx_bne 8, -
 
     lda $013b
     `add_imm 32
     sta $013b
-    cpy #$c0
-    bne sub51_loop1
+    `cpy_bne $c0, sub51_loop1
 
 sub51_loop2:  ; start outer loop
-    lda #>[vram_name_table0+16*32+4]
-    sta ppu_addr
+    `lda_imm_sta >[vram_name_table0+16*32+4], ppu_addr
     lda #<[vram_name_table0+16*32+4]
     `add_mem $013b
     sta ppu_addr
@@ -3038,23 +2647,19 @@ sub51_loop2:  ; start outer loop
 *   sty ppu_data  ; start inner loop
     iny
     inx
-    cpx #8
-    bne -
+    `cpx_bne 8, -
 
     lda $013b
     `add_imm 32
     sta $013b
-    cpy #$00
-    bne sub51_loop2
+    `cpy_bne $00, sub51_loop2
 
     `reset_ppu_addr
 
-    lda #$00
-    sta $013b
+    `lda_imm_sta $00, $013b
 
 sub51_loop3:  ; start outer loop
-    lda #>[vram_name_table0+8*32+20]
-    sta ppu_addr
+    `lda_imm_sta >[vram_name_table0+8*32+20], ppu_addr
     lda #<[vram_name_table0+8*32+20]
     `add_mem $013b
     sta ppu_addr
@@ -3063,18 +2668,15 @@ sub51_loop3:  ; start outer loop
 *   sty ppu_data  ; start inner loop
     iny
     inx
-    cpx #8
-    bne -
+    `cpx_bne 8, -
 
     lda $013b
     `add_imm 32
     sta $013b
-    cpy #$c0
-    bne sub51_loop3
+    `cpy_bne $c0, sub51_loop3
 
 sub51_loop4:  ; start outer loop
-    lda #>[vram_name_table0+16*32+20]
-    sta ppu_addr
+    `lda_imm_sta >[vram_name_table0+16*32+20], ppu_addr
     lda #<[vram_name_table0+16*32+20]
     `add_mem $013b
     sta ppu_addr
@@ -3083,14 +2685,12 @@ sub51_loop4:  ; start outer loop
 *   sty ppu_data  ; start inner loop
     iny
     inx
-    cpx #8
-    bne -
+    `cpx_bne 8, -
 
     lda $013b
     `add_imm 32
     sta $013b
-    cpy #0
-    bne sub51_loop4
+    `cpy_bne 0, sub51_loop4
 
     `reset_ppu_addr
 
@@ -3100,8 +2700,7 @@ sub51_1:
     bcc +
     jmp sub51_2
 
-*   lda #$00
-    sta ppu_scroll
+*   `lda_imm_sta $00, ppu_scroll
     lda $013d
     clc
     sbc $013c
@@ -3110,25 +2709,19 @@ sub51_1:
 sub51_2:
     lda $00
     `chr_bankswitch 2
-    lda #$00
-    sta $89
+    `lda_imm_sta $00, $89
     lda $013e
-    cmp #$01
-    beq sub51_3
-    inc $013c
-    lda $013c
-    cmp #$c8
-    beq +
+    `cmp_beq $01, sub51_3
+    `inc_lda $013c
+    `cmp_beq $c8, +
     jmp sub51_3
-*   lda #$01
-    sta $013e
+*   `lda_imm_sta $01, $013e
 
 sub51_3:
     ldx #$00
     ldy #$00
     lda $013e
-    cmp #$00
-    beq sub51_5
+    `cmp_beq $00, sub51_5
     inc $8b
     inc $8a
 
@@ -3147,21 +2740,18 @@ sub51_loop5:
     bcc +
     bcs ++
 
-*   lda #%00001110
-    sta ppu_mask
+*   `lda_imm_sta %00001110, ppu_mask
     jmp sub51_4
 
 *   lda $89
     cmp $9b
     bcs +
-    lda #%11101110
-    sta ppu_mask
+    `lda_imm_sta %11101110, ppu_mask
 
 sub51_4:
     jmp ++
 
-*   lda #%00001110
-    sta ppu_mask
+*   `lda_imm_sta %00001110, ppu_mask
 
 *   lda $89
     `add_mem $8b
@@ -3184,14 +2774,11 @@ sub51_4:
     sta $9b
     inc $89
     iny
-    cpy #$91
-    bne sub51_loop5
+    `cpy_bne $91, sub51_loop5
 
 sub51_5:
-    lda #%10010000
-    sta ppu_ctrl
-    lda #%00001110
-    sta ppu_mask
+    `lda_imm_sta %10010000, ppu_ctrl
+    `lda_imm_sta %00001110, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3201,8 +2788,7 @@ sub52:
     ldy #0
 *   stx ppu_data
     iny
-    cpy #32
-    bne -
+    `cpy_bne 32, -
 
     rts
 
@@ -3214,8 +2800,7 @@ sub53:
     ldy #0
 *   stx ppu_data
     iny
-    cpy #32
-    bne -
+    `cpy_bne 32, -
 
     rts
 
@@ -3286,26 +2871,18 @@ sub54:
 
     ; update first background subpalette from table18
     `set_ppu_addr vram_palette+0*4
-    lda table18+4
-    sta ppu_data
-    lda table18+5
-    sta ppu_data
-    lda table18+6
-    sta ppu_data
-    lda table18+7
-    sta ppu_data
+    `lda_mem_sta table18+4, ppu_data
+    `lda_mem_sta table18+5, ppu_data
+    `lda_mem_sta table18+6, ppu_data
+    `lda_mem_sta table18+7, ppu_data
     `reset_ppu_addr
 
     ; update first sprite subpalette from table18
     `set_ppu_addr vram_palette+4*4
-    lda table18+8
-    sta ppu_data
-    lda table18+9
-    sta ppu_data
-    lda table18+10
-    sta ppu_data
-    lda table18+11
-    sta ppu_data
+    `lda_mem_sta table18+8, ppu_data
+    `lda_mem_sta table18+9, ppu_data
+    `lda_mem_sta table18+10, ppu_data
+    `lda_mem_sta table18+11, ppu_data
     `reset_ppu_addr
 
     ldx data7
@@ -3326,26 +2903,21 @@ sub54:
     lda table50,x
     sta $011e,x
     dex
-    cpx #255
-    bne -
+    `cpx_bne 255, -
 
-    lda #$00
-    sta $0100
-    lda #$01
-    sta $02
+    `lda_imm_sta $00, $0100
+    `lda_imm_sta $01, $02
     lda #$00
     sta $89
     sta $8a
-    lda #$00
-    sta $8f
+    `lda_imm_sta $00, $8f
     rts
 
 ; -----------------------------------------------------------------------------
 
 sub55:
 
-    inc $0100
-    ldx $0100
+    `inc_ldx $0100
     lda table21,x
     sta $9a
     lda table22,x
@@ -3368,8 +2940,7 @@ sub55:
     sta sprite_page+48*4+3,y
 
     dex
-    cpx #7
-    bne -
+    `cpx_bne 7, -
 
 *   txa  ; start loop
     asl
@@ -3385,32 +2956,22 @@ sub55:
     sta sprite_page+48*4+3,y
 
     dex
-    cpx #255
-    bne -
+    `cpx_bne 255, -
 
     `chr_bankswitch 0
-    inc $8a
-    lda $8a
-    cmp #$08
-    beq +
+    `inc_lda $8a
+    `cmp_beq $08, +
     jmp sub55_2
-*   lda #$00
-    sta $8a
-    inc $8f
-    lda $8f
-    cmp #$eb
-    beq +
+*   `lda_imm_sta $00, $8a
+    `inc_lda $8f
+    `cmp_beq $eb, +
     jmp sub55_1
-*   lda #$00
-    sta $02
-    lda #$07
-    sta $01
+*   `lda_imm_sta $00, $02
+    `lda_imm_sta $07, $01
 
 sub55_1:
-    lda #>[vram_name_table0+19*32+1]
-    sta ppu_addr
-    lda #<[vram_name_table0+19*32+1]
-    sta ppu_addr
+    `lda_imm_sta >[vram_name_table0+19*32+1], ppu_addr
+    `lda_imm_sta <[vram_name_table0+19*32+1], ppu_addr
 
     ldx #0
 *   txa           ; start loop
@@ -3421,16 +2982,13 @@ sub55_1:
     sbc #$36
     sta ppu_data
     inx
-    cpx #31
-    bne -
+    `cpx_bne 31, -
 
     `reset_ppu_addr
 
 sub55_2:
-    inc $89
-    ldx $89
-    lda $8a
-    sta ppu_scroll
+    `inc_ldx $89
+    `lda_mem_sta $8a, ppu_scroll
     lda table20,x
     sta ppu_scroll
 
@@ -3447,72 +3005,52 @@ sub55_2:
     clc
     sbc $9a
     sta sprite_page+0*4+0
-    lda #$25
-    sta sprite_page+0*4+1
-    lda #%00000000
-    sta sprite_page+0*4+2
-    lda #248
-    sta sprite_page+0*4+3
+    `lda_imm_sta $25, sprite_page+0*4+1
+    `lda_imm_sta %00000000, sprite_page+0*4+2
+    `lda_imm_sta 248, sprite_page+0*4+3
 
     lda #152
     clc
     sbc $9a
     sta sprite_page+1*4+0
-    lda #$25
-    sta sprite_page+1*4+1
-    lda #%00000000
-    sta sprite_page+1*4+2
-    lda #248
-    sta sprite_page+1*4+3
+    `lda_imm_sta $25, sprite_page+1*4+1
+    `lda_imm_sta %00000000, sprite_page+1*4+2
+    `lda_imm_sta 248, sprite_page+1*4+3
 
     lda #156
     clc
     sbc $9a
     sta sprite_page+2*4+0
-    lda #$25
-    sta sprite_page+2*4+1
-    lda #%00000000
-    sta sprite_page+2*4+2
-    lda #248
-    sta sprite_page+2*4+3
+    `lda_imm_sta $25, sprite_page+2*4+1
+    `lda_imm_sta %00000000, sprite_page+2*4+2
+    `lda_imm_sta 248, sprite_page+2*4+3
 
     lda #148
     clc
     sbc $9a
     sta sprite_page+3*4+0
-    lda #$25
-    sta sprite_page+3*4+1
-    lda #%00000000
-    sta sprite_page+3*4+2
-    lda #0
-    sta sprite_page+3*4+3
+    `lda_imm_sta $25, sprite_page+3*4+1
+    `lda_imm_sta %00000000, sprite_page+3*4+2
+    `lda_imm_sta 0, sprite_page+3*4+3
 
     lda #152
     clc
     sbc $9a
     sta sprite_page+4*4+0
-    lda #$25
-    sta sprite_page+4*4+1
-    lda #%00000000
-    sta sprite_page+4*4+2
-    lda #0
-    sta sprite_page+4*4+3
+    `lda_imm_sta $25, sprite_page+4*4+1
+    `lda_imm_sta %00000000, sprite_page+4*4+2
+    `lda_imm_sta 0, sprite_page+4*4+3
 
     lda #156
     clc
     sbc $9a
     sta sprite_page+5*4+0
-    lda #$25
-    sta sprite_page+5*4+1
-    lda #%00000000
-    sta sprite_page+5*4+2
-    lda #0
-    sta sprite_page+5*4+3
+    `lda_imm_sta $25, sprite_page+5*4+1
+    `lda_imm_sta %00000000, sprite_page+5*4+2
+    `lda_imm_sta 0, sprite_page+5*4+3
 
-    lda #%10000000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %10000000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3580,8 +3118,7 @@ sub58:
 
     stx $8e
     ldy #$00
-    lda #$3c
-    sta $9a
+    `lda_imm_sta $3c, $9a
 
     lda #%00000000
     sta ppu_ctrl
@@ -3611,8 +3148,7 @@ sub58:
     inx
     bne -
 
-    lda #$01
-    sta $02
+    `lda_imm_sta $01, $02
 
     `reset_ppu_addr
     rts
@@ -3623,8 +3159,7 @@ sub59:
 
     stx $8e
     ldy #$00
-    lda #$3c
-    sta $9a
+    `lda_imm_sta $3c, $9a
 
     lda #%00000000
     sta ppu_ctrl
@@ -3635,447 +3170,81 @@ sub59:
     ldx #0
 *   `write_ppu_data $00
     inx
-    cpx #64
-    bne -
+    `cpx_bne 64, -
 
     ; clear Attribute Table 1
     `set_ppu_addr vram_attr_table1
     ldx #0
 *   `write_ppu_data $00
     inx
-    cpx #64
-    bne -
+    `cpx_bne 64, -
 
     `set_ppu_addr vram_name_table0
 
     ldx #0
     ldy #0
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
-    cpx #192
-    bne -
+    `cpx_bne 192, -
 
     `set_ppu_addr vram_name_table1
 
     ldx #0
     ldy #0
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
-    cpx #192
-    bne -
+    `cpx_bne 192, -
 
     `set_ppu_addr vram_name_table2
 
     ldx #0
     ldy #0
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
     bne -
 
-*   lda $8e
-    sta ppu_data
+*   `lda_mem_sta $8e, ppu_data
     inx
-    cpx #192
-    bne -
+    `cpx_bne 192, -
 
-    lda #$01
-    sta $02
-    lda #$72
-    sta $96
+    `lda_imm_sta $01, $02
+    `lda_imm_sta $72, $96
 
     `reset_ppu_addr
     `reset_ppu_scroll
 
-    lda #%00000000
-    sta ppu_ctrl
-    lda #%00011110
-    sta ppu_mask
+    `lda_imm_sta %00000000, ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
     rts
-
-; -----------------------------------------------------------------------------
-
-nmi:
-
-    lda ppu_status
-    lda $01
-    cmp #0
-    beq nmi_jump_table+1*3
-    cmp #1
-    beq nmi_jump_table+2*3
-    cmp #2
-    beq nmi_jump_table+3*3
-    cmp #3
-    beq nmi_jump_table+4*3
-    cmp #4
-    beq nmi_jump_table+5*3
-    cmp #5
-    beq nmi_jump_table+6*3
-    cmp #6
-    beq nmi_jump_table+7*3
-    cmp #7
-    beq nmi_jump_table+8*3
-    cmp #9
-    beq nmi_jump_table+9*3
-    cmp #10
-    beq nmi_jump_table+10*3
-    cmp #11
-    beq nmi_jump_table+11*3
-    cmp #12
-    beq nmi_jump_table+12*3
-    cmp #13
-    beq nmi_jump_table+13*3
-
-nmi_jump_table:
-    jmp nmi_exit  ; $01 was none of the below
-    jmp nmi_01    ; $01 was 0
-    jmp nmi_02    ; $01 was 1
-    jmp nmi_03    ; $01 was 2
-    jmp nmi_04    ; $01 was 3
-    jmp nmi_05    ; $01 was 4
-    jmp nmi_06    ; $01 was 5
-    jmp nmi_07    ; $01 was 6
-    jmp nmi_08    ; $01 was 7
-    jmp nmi_09    ; $01 was 9
-    jmp nmi_10    ; $01 was 10
-    jmp nmi_11    ; $01 was 11
-    jmp nmi_12    ; $01 was 12
-    jmp nmi_13    ; $01 was 13
-
-nmi_01:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   lda #$01
-    sta $02
-*   jsr sub29
-    jsr sub12
-    inc $93
-    inc $93
-    inc $94
-    inc $94
-    lda $94
-    cmp #$e6
-    beq +
-    jmp ++
-*   inc $95
-    lda #$00
-    sta $94
-*   jmp nmi_exit
-
-nmi_02:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub38
-*   jsr sub39
-    jsr sub12
-    inc $98
-    lda $98
-    cmp #$ff
-    beq +
-    jmp +++
-*   inc $99
-    lda $99
-    cmp #$03
-    beq +
-    jmp ++
-*   lda #$04
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_03:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub30
-*   jsr sub31
-    jsr sub12
-    inc $ab
-    lda $ab
-    cmp #$ff
-    beq +
-    jmp +++
-*   inc $ac
-    lda $ac
-    cmp #$03
-    beq +
-    jmp ++
-*   lda #$0b
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_04:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub40
-*   jsr sub41
-    jsr sub12
-    jmp nmi_exit
-
-nmi_05:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub42
-*   jsr sub43
-    jsr sub12
-    inc $a9
-    lda $a9
-    cmp #$ff
-    beq +
-    jmp +++
-*   inc $aa
-    lda $aa
-    cmp #$04
-    beq +
-    jmp ++
-*   lda #$05
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_06:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub54
-*   jsr sub55
-    jsr sub12
-    jmp nmi_exit
-
-nmi_07:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub44
-*   jsr sub45
-    jsr sub12
-    inc $0135
-    lda $0135
-    cmp #$ff
-    beq +
-    jmp +++
-*   inc $0136
-    lda $0136
-    cmp #$03
-    beq +
-    jmp ++
-*   lda #$03
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_08:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub50
-*   jsr sub51
-    jsr sub12
-    inc $013f
-    lda $013f
-    cmp #$ff
-    beq +
-    jmp ++
-*   inc $0140
-*   lda $0140
-    cmp #$03
-    bne +
-    lda $013f
-    cmp #$ae
-    bne +
-    lda #$06
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_09:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub32
-*   jsr sub33
-    inc $0141
-    lda $0141
-    cmp #$ff
-    beq +
-    jmp $fb3d
-*   inc $0142
-    lda $0142
-    cmp #$0e
-    beq +
-    jmp ++
-*   lda #$00
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_10:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub34
-*   jsr sub35
-    jsr sub12
-    inc $0143
-    lda $0143
-    cmp #$ff
-    beq +
-    jmp ++
-*   inc $0144
-*   lda $0144
-    cmp #$02
-    bne +
-    lda $0143
-    cmp #$af
-    bne +
-    lda #$0c
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_11:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub36
-*   jsr sub37
-    jsr sub12
-    inc $0145
-    lda $0145
-    cmp #$ff
-    beq +
-    jmp +++
-*   inc $0146
-    lda $0146
-    cmp #$03
-    beq +
-    jmp ++
-*   lda #$01
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_12:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub48
-*   jsr sub49
-    jsr sub12
-    inc $014f
-    lda $014f
-    cmp #$ff
-    beq +
-    jmp ++
-*   inc $0150
-*   lda $0150
-    cmp #$03
-    bne +
-    lda $014f
-    cmp #$96
-    bne +
-    lda #$0d
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_13:
-    lda $02
-    cmp #$00
-    beq +
-    jmp ++
-*   jsr sub46
-*   jsr sub47
-    inc $0151
-    lda $0151
-    cmp #$ff
-    beq +
-    jmp ++
-*   inc $0152
-*   lda $0152
-    cmp #$0a
-    bne +
-    lda $0151
-    cmp #$a0
-    bne +
-    lda #$09
-    sta $01
-    lda #$00
-    sta $02
-*   jmp nmi_exit
-
-nmi_exit:
-    rti
-
-; -----------------------------------------------------------------------------
-
-irq:
-    rti

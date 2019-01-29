@@ -22,9 +22,10 @@
 
     .org $8000
     .include "prg0.asm"        ; first half
-    .advance $c000, pad_byte   ; pad with 0x00
-    .include "prg1.asm"        ; second half minus the interrupt vectors
-    .advance $fffa, pad_byte   ; pad with 0x00
+    .advance $c000, pad_byte   ; pad
+    .include "prg1.asm"        ; second half except interrupt routines&vectors
+    .include "int.asm"         ; interrupt routines
+    .advance $fffa, pad_byte   ; pad
     .word nmi, init, irq       ; interrupt vectors
     .advance $10000, pad_byte  ; pad
 

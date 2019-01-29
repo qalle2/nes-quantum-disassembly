@@ -1,4 +1,6 @@
-    ; first half of PRG ROM
+; first half of PRG ROM
+
+; -----------------------------------------------------------------------------
 
     jmp sub12
     jmp sub13
@@ -8,25 +10,20 @@
     ldx #$ff
     txs
 
-    lda #%01000000
-    sta ppu_ctrl
-    lda #%10011110
-    sta ppu_mask
+    `lda_imm_sta %01000000, ppu_ctrl
+    `lda_imm_sta %10011110, ppu_mask
 
     lda ppu_status
     lda ppu_status
 
-    lda #%00000000
-    sta ppu_mask
+    `lda_imm_sta %00000000, ppu_mask
 
     lda #<indirect_data1
     ldx #>indirect_data1
     jsr sub01
 
-    lda #%00011110
-    sta ppu_mask
-    lda #%10000000
-    sta ppu_ctrl
+    `lda_imm_sta %00011110, ppu_mask
+    `lda_imm_sta %10000000, ppu_ctrl
 
 *   jmp -
 
@@ -206,10 +203,8 @@ sub02:
 
 sub03:
 
-    cpx #3
-    beq sub03_1
-    cpx #2
-    beq sub03_2
+    `cpx_beq 3, sub03_1
+    `cpx_beq 2, sub03_2
     ldy apu_reg_offsets,x
     sta pulse1_timer,y
     lda #$08
@@ -226,8 +221,7 @@ sub03_1:
     and #%00001111
     ora $034c,x
     sta noise_period
-    lda #$08
-    sta noise_length
+    `lda_imm_sta $08, noise_length
     rts
 
 sub03_2:
@@ -248,13 +242,11 @@ sub04:
     cmp $d2
     beq +
     bpl sub04_2
-*   lda #$00
-    sta $d2
+*   `lda_imm_sta $00, $d2
     lda $d4
     cmp #$40
     bcc sub04_1
-    lda #$00
-    sta $d4
+    `lda_imm_sta $00, $d4
     ldx $d5
     inx
     cpx $d6
@@ -279,10 +271,8 @@ sub04_loop1:
     lda #$00
 *   sta $e5,x
 sub04_3:
-    cpx #$02
-    bne +
-    lda #$ff
-    sta triangle_ctrl
+    `cpx_bne $02, +
+    `lda_imm_sta $ff, triangle_ctrl
 *   dex
     bpl sub04_loop1
 
@@ -292,13 +282,11 @@ sub04_3:
     lda $ef
     and #%00001111
     sta $ef
-*   lda $ef
-    sta apu_ctrl
+*   `lda_mem_sta $ef, apu_ctrl
     ldx #3
 
 sub04_loop2:
-    cpx #2
-    beq +
+    `cpx_beq 2, +
     jsr sub05
 *   jsr sub07
     dex
@@ -316,8 +304,7 @@ sub04_4:
 sub05:
 
     lda $035a,x
-    cmp #$0a
-    bne sub05_2
+    `cmp_bne $0a, sub05_2
     lda $035f,x
     beq +
     sta $0324,x
@@ -345,8 +332,7 @@ sub05_2:
     adc $0300,x
     sta $0300,x
 *   ldy $035a,x
-    cpy #$07
-    bne sub05_3
+    `cpy_bne $07, sub05_3
     lda $035f,x
     beq +
     sta $0340,x
@@ -490,8 +476,7 @@ sub07:
 
 sub07_1:
     ldy $035a,x
-    cpy #$04
-    bne sub07_2
+    `cpy_bne $04, sub07_2
     lda $035f,x
     beq +
     sta $0334,x
@@ -508,12 +493,9 @@ sub07_2:
 
 sub07_3:
     lda $035a,x
-    cmp #$03
-    beq sub07_6
-    cmp #$01
-    beq sub07_4
-    cmp #$02
-    beq sub07_5
+    `cmp_beq $03, sub07_6
+    `cmp_beq $01, sub07_4
+    `cmp_beq $02, sub07_5
     lda $03a0,x
     bne +
     jmp sub07_1
@@ -625,8 +607,7 @@ sub07_8:
 sub08:
 
     lda $035a,x
-    cmp #$08
-    beq +
+    `cmp_beq $08, +
     lda $0328,x
     bne sub08_1
     lda $03a4,x
@@ -641,14 +622,10 @@ sub08_1:
     ldy $03a8,x
     bne +
     and #%00000011
-*   cmp #0
-    beq +
-    cmp #1
-    beq sub08_2
-    cmp #2
-    beq sub08_3
-    cmp #3
-    beq sub08_4
+*   `cmp_beq 0, +
+    `cmp_beq 1, sub08_2
+    `cmp_beq 2, sub08_3
+    `cmp_beq 3, sub08_4
     rts
 
 *   ldy $e9,x
@@ -722,17 +699,13 @@ sub09:
     beq sub09_1
 
     lda $035f,x
-    cpy #$0c
-    beq sub08_5
-    cpy #$0f
-    beq sub08_6
-    cpy #$0d
-    beq sub08_7
+    `cpy_beq $0c, sub08_5
+    `cpy_beq $0f, sub08_6
+    `cpy_beq $0d, sub08_7
 
 sub09_1:
     lda $035f,x
-    cpy #$08
-    beq sub09_2
+    `cpy_beq $08, sub09_2
 
     lda $0328,x
     bne sub09_3
@@ -747,8 +720,7 @@ sub09_1:
     beq +
 
     lda $035a,x
-    cmp #$03
-    beq +
+    `cmp_beq 3, +
 
     lda $0308,x
     sta $cb
@@ -777,10 +749,8 @@ sub10:
 *   sec
     lda $d2
     beq sub10_01
-*   cmp #1       ; start loop
-    beq sub10_02
-    cmp #2
-    beq sub10_03
+*   `cmp_beq 1, sub10_02  ; start loop
+    `cmp_beq 2, sub10_03
     sbc #3
     bne -
 
@@ -948,8 +918,7 @@ sub10_10:
 sub10_11:
     ldy $0350,x
     beq sub10_13
-    cpy #$61
-    beq sub10_14
+    `cpy_beq $61, sub10_14
     sty $e9,x
 
     lda #$00
@@ -964,14 +933,12 @@ sub10_11:
     sta $ef
 
     lda $035a,x
-    cmp #$03
-    beq sub10_13
+    `cmp_beq $03, sub10_13
     lda #$ff
     sta $03ac,x
     lda #$00
     sta $0330,x
-    cpx #$03
-    beq sub10_15
+    `cpx_beq $03, sub10_15
     lda word_lo-1,y
     sta $dc,x
     lda word_hi-1,y
@@ -1009,8 +976,7 @@ sub10_16:
 
 sub11:
 
-    lda #$40
-    sta $cd
+    `lda_imm_sta $40, $cd
 
     ; clear $0350...$0363
     lda #$00
@@ -1082,8 +1048,7 @@ sub11_loop1:
     ldy $0304,x
     lda (ptr2),y
     iny
-    cmp #$00
-    bne sub11_02
+    `cmp_bne $00, sub11_02
     sta $cb
     lda (ptr2),y
     bne +
@@ -1148,8 +1113,7 @@ sub11_06:
     sta $cb
     bcc sub11_09
 
-    cpx #$03
-    beq sub11_07
+    `cpx_beq $03, sub11_07
 
     bvs +
 
@@ -1266,19 +1230,16 @@ sub11_17:
     lda $ef
     and #%00001111
     sta $ef
-*   lda $ef
-    sta apu_ctrl
+*   `lda_mem_sta $ef, apu_ctrl
 
     ldx #3
 sub11_loop3:
     jsr sub09
-    cpx #$02
-    beq sub11_18
+    `cpx_beq $02, sub11_18
     lda $0355,x
     bne +
     lda $035a,x
-    cmp #$0c
-    beq +
+    `cmp_beq $0c, +
     jmp sub11_18
 *   lda $0300,x
     lsr
@@ -1306,8 +1267,7 @@ sub11_18:
 
     dec $ff
     bpl +
-    lda #$05
-    sta $ff
+    `lda_imm_sta $05, $ff
     lda #$1e
 *   jsr sub04
     lda #$06
@@ -1322,8 +1282,7 @@ sub12:
     bmi +
     dec $ff
     bpl +
-    lda #$05
-    sta $ff
+    `lda_imm_sta $05, $ff
     jmp sub12_exit
 *   jmp sub04
 sub12_exit:

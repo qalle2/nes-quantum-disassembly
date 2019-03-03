@@ -556,6 +556,29 @@ e5-ee: no
 ef-ff: yes
 ```
 
+## CPU RAM map
+* `000`-`004`: ??
+* `005`-`085`: unaccessed (except for the initial cleanup)
+* `086`-`0ac`: ??
+* `0ad`-`0c7`: unaccessed (except for the initial cleanup)
+* `0c8`-`0ef`: ??
+* `0f0`-`0fe`: unaccessed (except for the initial cleanup)
+* `0ff`-`1ab`: ??
+* `1ac`-`1eb`: unaccessed (except for the initial cleanup)
+* `1ec`-`1ff`: probably stack
+* `200`-`2ff`: unaccessed (except for the initial cleanup)
+* `300`-`3ff`: ??
+* `400`-`4ff`: unaccessed (except for the initial cleanup)
+* `500`-`5ff`: used for OAM DMA
+* `600`-`67f`: ??
+* `680`-`7bf`: unaccessed (except for the initial cleanup)
+* `7c0`-`7df`: a copy of current palette?
+* `7e0`-`7ff`: unaccessed (except for the initial cleanup)
+
+## Misc notes
+* The game does not execute code from outside of PRG ROM (from `0000`-`7fff`).
+* The game does not access CPU addresses `0800`-`1fff`.
+
 ## References
 * [NESDev Wiki](http://wiki.nesdev.com):
   * [APU registers](http://wiki.nesdev.com/w/index.php/APU_registers)

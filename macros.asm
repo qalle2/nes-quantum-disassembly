@@ -14,34 +14,6 @@
     .macend
 
 ; -----------------------------------------------------------------------------
-; compare + branch
-
-    .macro cmp_beq
-        cmp #_1
-        beq _2
-    .macend
-    .macro cmp_bne
-        cmp #_1
-        bne _2
-    .macend
-    .macro cpx_beq
-        cpx #_1
-        beq _2
-    .macend
-    .macro cpx_bne
-        cpx #_1
-        bne _2
-    .macend
-    .macro cpy_beq
-        cpy #_1
-        beq _2
-    .macend
-    .macro cpy_bne
-        cpy #_1
-        bne _2
-    .macend
-
-; -----------------------------------------------------------------------------
 ; decrement/increment + load
 
     .macro dec_lda
@@ -59,18 +31,6 @@
     .macro inc_ldx
         inc _1
         ldx _1
-    .macend
-
-; -----------------------------------------------------------------------------
-; load + store
-
-    .macro lda_imm_sta
-        lda #_1
-        sta _2
-    .macend
-    .macro lda_mem_sta
-        lda _1
-        sta _2
     .macend
 
 ; -----------------------------------------------------------------------------

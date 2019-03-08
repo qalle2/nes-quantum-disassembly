@@ -41,8 +41,20 @@ Notes:
 * no save RAM
 
 ## Screenshots
-![1](shot/01.png)
-![2](shot/02.png)
+(from FCEUX in PAL mode)
+
+![](shot/01.png)
+![](shot/02.png)
+![](shot/03.png)
+![](shot/04.png)
+![](shot/05.png)
+![](shot/06.png)
+![](shot/07.png)
+![](shot/08.png)
+![](shot/09.png)
+![](shot/10.png)
+![](shot/11.png)
+![](shot/12.png)
 
 ## FCEUX Code/Data Log - PRG ROM
 I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:

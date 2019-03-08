@@ -1,41 +1,40 @@
     ; data in second half of PRG ROM
 
-    ; pointers (c0a8)
-pointers:
+pointers:  ; $c0a8
     .word indirect1, indirect2, indirect3, indirect4
     .word indirect5, indirect6, indirect7, indirect8
 
-indirect1:
+indirect1:  ; $c0b8
     .byte $6c, $6c, $6c, $47, $52, $45, $45, $54
     .byte $49, $4e, $47, $53, $5f, $6c, $6c, $6c
-indirect2:
+indirect2:  ; $c0c8
     .byte $6c, $6c, $57, $45, $6c, $43, $4f, $4d
     .byte $45, $6c, $46, $52, $4f, $4d, $6c, $6c
-indirect3:
+indirect3:  ; $c0d8
     .byte $6c, $41, $4e, $6c, $5b, $5e, $42, $49
     .byte $54, $6c, $57, $4f, $52, $4c, $44, $6c
-indirect4:
+indirect4:  ; $c0e8
     .byte $6c, $6c, $42, $52, $49, $4e, $47, $49
     .byte $4e, $47, $6c, $54, $48, $45, $6c, $6c
-indirect5:
+indirect5:  ; $c0f8
     .byte $6c, $6c, $6c, $6c, $47, $49, $46, $54
     .byte $6c, $4f, $46, $6c, $6c, $6c, $6c, $6c
-indirect6:
+indirect6:  ; $c108
     .byte $6c, $47, $41, $4c, $41, $43, $54, $49
     .byte $43, $6c, $44, $49, $53, $43, $4f, $6c
-indirect7:
+indirect7:  ; $c118
     .byte $47, $45, $54, $6c, $55, $50, $6c, $41
     .byte $4e, $44, $6c, $44, $41, $4e, $43, $45
-indirect8:
+indirect8:  ; $c128
     .byte $4d, $55, $53, $48, $52, $4f, $4f, $4d
     .byte $6c, $4d, $41, $4e, $49, $41, $43, $53
 
-table10:
+table10:  ; $c138 (22 bytes)
     .byte $3a, $3b, $3c, $3d, $3e, $3b, $3f, $ff
     .byte $f1, $f2, $f3, $f4, $f5, $ff, $f6, $f7
     .byte $f5, $3e, $f8, $f9, $f7, $f3
 
-table11:
+table11:  ; $c14e (262 bytes)
     .byte $5b, $5b
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
     .byte $5b, $5b, $5b, $5b, $49, $54, $5b, $49
@@ -71,17 +70,17 @@ table11:
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
     .byte $5b, $5b, $0d, $0a
 
-palette_table:
-    .byte $2f, $10, $00, $20
-    .byte $0f, $05, $26, $30
-    .byte $0f, $20, $10, $00
-    .byte $0f, $13, $23, $33
-    .byte $0f, $1c, $2b, $39
-    .byte $0f, $06, $15, $36
-    .byte $0f, $04, $24, $30
-    .byte $0f, $02, $22, $30
+palette_table:  ; $c254 (32 bytes)
+    .byte $2f, $10, $00, $20  ; light gray, gray, white
+    .byte $0f, $05, $26, $30  ; dark red, light red, white
+    .byte $0f, $20, $10, $00  ; white, light gray, gray
+    .byte $0f, $13, $23, $33  ; dark purple, purple, light purple
+    .byte $0f, $1c, $2b, $39  ; dark teal, green, light yellow
+    .byte $0f, $06, $15, $36  ; dark red, red, light red
+    .byte $0f, $04, $24, $30  ; dark magenta, magenta, white
+    .byte $0f, $02, $22, $30  ; ??
 
-    ; Attribute Table data? (a lot of $55/$aa)
+    ; Attribute Table data? (a lot of $55/$aa) ($c274) (4017 bytes)
     .byte $a9, $aa, $aa, $aa, $aa, $aa, $aa, $aa
     .byte $aa, $aa, $aa, $42, $f8, $ff, $95, $03
     .byte $00, $c0, $ff, $f9, $eb, $17, $9f, $00
@@ -586,7 +585,7 @@ palette_table:
     .byte $6e, $6d, $ad, $da, $5a, $6d, $65, $55
     .byte $55
 
-table13:
+table13:  ; $d225 (96 bytes)
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
     .byte $5b, $5b, $5b, $47, $41, $4d, $45, $5b
     .byte $4f, $56, $45, $52, $5b, $5b, $5b, $5b
@@ -600,7 +599,7 @@ table13:
     .byte $4e, $55, $45, $8b, $5b, $5b, $5b, $5b
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
 
-table14:
+table14:  ; $d285 (256 bytes)
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
     .byte $5b, $5b, $5b, $4e, $41, $45, $5e, $4d
     .byte $5f, $4f, $4b, $5b, $5b, $5b, $5b, $5b
@@ -634,7 +633,7 @@ table14:
     .byte $5f, $41, $43, $54, $49, $4f, $4e, $5b
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
 
-table15:
+table15:  ; $d385 (256 bytes)
     .byte $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
     .byte $5b, $5b, $5b, $5b, $5b, $44, $5e, $52
     .byte $5f, $41, $47, $4f, $4e, $5b, $4d, $41
@@ -668,7 +667,7 @@ table15:
     .byte $4d, $46, $58, $5c, $4d, $4f, $4f, $4e
     .byte $48, $41, $5a, $41, $52, $44, $5b, $5b
 
-table16:
+table16:  ; $d485 (128 bytes)
     .byte $5b, $5b, $5b, $5b, $49, $53, $4f, $5c
     .byte $52, $4e, $4f, $5c, $44, $41, $4d, $4f
     .byte $4e, $45, $53, $5c, $48, $45, $44, $45
@@ -686,7 +685,7 @@ table16:
     .byte $49, $4f, $4e, $53, $5b, $53, $49, $4e
     .byte $43, $45, $5b, $8c, $8d, $8e, $8f, $5b
 
-table17:
+table17:  ; $d505 (44 bytes)
     .byte $48, $4a, $4c, $4e, $60, $62, $64, $66
     .byte $68, $6a, $6c, $6e, $80, $82, $84, $86
     .byte $88, $8a, $8c, $8e, $a0, $a2, $a4, $a6
@@ -694,11 +693,11 @@ table17:
     .byte $c8, $ca, $cc, $ce, $e0, $e2, $e4, $e6
     .byte $e8, $ea, $ec, $ee
 
-table18:
+table18:  ; $d531 (12 bytes)
     .byte $0f, $00, $10, $20, $3c, $0f, $3c, $22
     .byte $3c, $3c, $3c, $3c
 
-table19:
+table19:  ; $d53d (256 bytes)
     .byte $00, $00, $ff
     .byte $fe, $fd, $fc, $fc, $fb, $fa, $fa, $f9
     .byte $f8, $f8, $f7, $f7, $f6, $f6, $f5, $f5
@@ -733,7 +732,7 @@ table19:
     .byte $0a, $09, $09, $08, $07, $07, $06, $05
     .byte $05, $04, $03, $02, $01
 
-table20:
+table20:  ; $d63d (256 bytes)
     .byte $22, $24, $25
     .byte $26, $27, $28, $2a, $2b, $2c, $2d, $2e
     .byte $30, $31, $32, $33, $34, $35, $36, $37
@@ -768,7 +767,7 @@ table20:
     .byte $12, $13, $14, $16, $17, $18, $19, $1a
     .byte $1b, $1d, $1e, $1f, $20
 
-table21:
+table21:  ; $d73d (256 bytes)
     .byte $dd, $dd, $dd
     .byte $dd, $de, $de, $de, $de, $de, $de, $de
     .byte $de, $de, $de, $de, $de, $de, $dd, $dd
@@ -803,7 +802,7 @@ table21:
     .byte $dd, $dc, $dc, $dc, $dc, $dc, $dc, $dc
     .byte $dd, $dd, $dd, $dd, $dd
 
-table22:
+table22:  ; $d83d (256 bytes)
     .byte $0a, $0b, $0c
     .byte $0c, $0d, $0e, $0f, $0f, $10, $10, $11
     .byte $11, $12, $12, $13, $13, $13, $13, $13
@@ -838,7 +837,7 @@ table22:
     .byte $04, $04, $04, $04, $05, $05, $06, $06
     .byte $07, $08, $08, $09, $0a
 
-table23:
+table23:  ; $d93d (328 bytes)
     .byte $06, $16, $26
     .byte $36, $26, $16, $06, $06, $0a, $1a, $2a
     .byte $3a, $2a, $1a, $0a, $0a, $02, $12, $22
@@ -882,168 +881,180 @@ table23:
     .byte $05, $15, $25, $35, $25, $15, $05, $05
     .byte $0b, $1b, $2b, $3b, $2b, $1b, $0b, $0b
 
-data1:
+data1:  ; $da85
     .byte $18
 
-table24:
-    .byte $40, $40, $40, $40, $40, $48, $48
-    .byte $48, $48, $48, $50, $50, $50, $50, $50
-    .byte $58, $58, $58, $58, $58, $60, $60, $60
-    .byte $60, $60
+table24:  ; $da86 (25 bytes)
+    .byte $40, $40, $40, $40, $40
+    .byte $48, $48, $48, $48, $48
+    .byte $50, $50, $50, $50, $50
+    .byte $58, $58, $58, $58, $58
+    .byte $60, $60, $60, $60, $60
 
-table25:
-    .byte $c6, $c7, $c8, $c9, $ca, $cb
-    .byte $cc, $cd, $ce, $cf, $d6, $d7, $d8, $d9
-    .byte $da, $db, $dc, $dd, $de, $df, $e0, $e1
-    .byte $e2, $e3, $e4
+table25:  ; $da9f (25 bytes)
+    .byte $c6, $c7, $c8, $c9, $ca, $cb, $cc, $cd, $ce, $cf
+    .byte $d6, $d7, $d8, $d9, $da, $db, $dc, $dd, $de, $df
+    .byte $e0, $e1, $e2, $e3, $e4
 
-table26:
-    .byte $01, $01, $01, $01, $01
+table26:  ; $dab8 (25 bytes)
     .byte $01, $01, $01, $01, $01, $01, $01, $01
     .byte $01, $01, $01, $01, $01, $01, $01, $01
-    .byte $01, $01, $01, $01
+    .byte $01, $01, $01, $01, $01, $01, $01, $01
+    .byte $01
 
-table27:
-    .byte $40, $48, $50, $58
-    .byte $60, $40, $48, $50, $58, $60, $40, $48
-    .byte $50, $58, $60, $40, $48, $50, $58, $60
+table27:  ; $dad1 (25 bytes)
+    .byte $40, $48, $50, $58, $60
+    .byte $40, $48, $50, $58, $60
+    .byte $40, $48, $50, $58, $60
+    .byte $40, $48, $50, $58, $60
     .byte $40, $48, $50, $58, $60
 
-data2:
+data2:  ; $daea
     .byte $0b
 
-table28:
-    .byte $00, $00, $00, $08, $08, $08, $10
-    .byte $10, $10, $18, $18, $18
+table28:  ; $daeb (12 bytes)
+    .byte $00, $00, $00
+    .byte $08, $08, $08
+    .byte $10, $10, $10
+    .byte $18, $18, $18
 
-table29:
+table29:  ; $daf7 (24 bytes)
     .byte $00, $01, $02
-    .byte $10, $11, $12, $20, $21, $22, $30, $31
-    .byte $32, $40, $40, $40, $40, $40, $40, $40
-    .byte $40, $40, $40, $40, $40
+    .byte $10, $11, $12
+    .byte $20, $21, $22
+    .byte $30, $31, $32
+    .byte $40, $40, $40, $40, $40, $40, $40, $40, $40, $40, $40, $40
 
-table30:
+table30:  ; $db0f (12 bytes)
     .byte $00, $08, $10
-    .byte $00, $08, $10, $00, $08, $10, $00, $08
-    .byte $10
+    .byte $00, $08, $10
+    .byte $00, $08, $10
+    .byte $00, $08, $10
 
-data3:
+data3:  ; $db1b
     .byte $03
 
-table31:
+table31:  ; $db1c
     .byte $04, $06, $06, $06
 
-table32:
+table32:  ; $db20
     .byte $09, $0e, $0c, $3e
 
-table33:
+table33:  ; $db24
     .byte $0b, $0f, $0d, $3f, $04, $02
 
-data4:
+data4:  ; $db2a
     .byte $10
 
-table34:
-    .byte $00, $fb, $fb, $fb, $fb, $03, $03
-    .byte $03, $03, $f6, $f6, $f6, $ee, $ee, $ee
+table34:  ; $db2b (17 bytes)
+    .byte $00
+    .byte $fb, $fb, $fb, $fb
+    .byte $03, $03, $03, $03
+    .byte $f6, $f6, $f6
+    .byte $ee, $ee, $ee
     .byte $e6, $e6
 
-table35:
-    .byte $46, $1c, $1b, $1a, $19, $2c
-    .byte $2b, $2a, $29, $2f, $2e, $2d, $3e, $1e
-    .byte $1d, $0e, $0c
+table35:  ; $db3c (17 bytes)
+    .byte $46
+    .byte $1c, $1b, $1a, $19
+    .byte $2c, $2b, $2a, $29
+    .byte $2f, $2e, $2d
+    .byte $3e
+    .byte $1e, $1d
+    .byte $0e, $0c
 
-table36:
-    .byte $40, $41, $41, $41, $41
-    .byte $41, $41, $41, $41, $42, $42, $42, $42
-    .byte $42, $42, $42, $42
+table36:  ; $db4d (17 bytes)
+    .byte $40
+    .byte $41, $41, $41, $41, $41, $41, $41, $41
+    .byte $42, $42, $42, $42, $42, $42, $42, $42
 
-table37:
+table37:  ; $db5e (17 bytes)
     .byte $00, $06, $0e, $16
-    .byte $1e, $07, $0f, $17, $1f, $0c, $14, $1c
-    .byte $0c, $14, $1c, $0c, $14
+    .byte $1e, $07, $0f, $17
+    .byte $1f, $0c, $14
+    .byte $1c, $0c, $14
+    .byte $1c, $0c, $14
 
-data5:
+data5:  ; $db6f
     .byte $03
 
-data6:
+data6:  ; $db70
     .byte $3f
 
-table38:
-    .byte $08
-    .byte $13, $19, $30, $45, $50, $5e, $67, $80
-    .byte $88, $9f, $ba, $c8, $d1, $e0, $f4, $18
-    .byte $25, $34, $50, $54, $55, $6a, $6f, $9e
-    .byte $ab, $cd, $d3, $da, $e5, $f0, $ff, $0a
-    .byte $19, $3a, $56, $5a, $5f, $7b, $80, $90
-    .byte $af, $b9, $c6, $cf, $ea, $f7, $fa, $13
-    .byte $19, $25, $55, $6a, $6f, $5e, $67, $80
-    .byte $88, $ba, $c8, $e1, $eb, $f0, $f4
+table38:  ; $db71 (64 bytes)
+    .byte $08, $13, $19, $30, $45, $50, $5e, $67
+    .byte $80, $88, $9f, $ba, $c8, $d1, $e0, $f4
+    .byte $18, $25, $34, $50, $54, $55, $6a, $6f
+    .byte $9e, $ab, $cd, $d3, $da, $e5, $f0, $ff
+    .byte $0a, $19, $3a, $56, $5a, $5f, $7b, $80
+    .byte $90, $af, $b9, $c6, $cf, $ea, $f7, $fa
+    .byte $13, $19, $25, $55, $6a, $6f, $5e, $67
+    .byte $80, $88, $ba, $c8, $e1, $eb, $f0, $f4
 
-table39:
-    .byte $40, $43, $42, $41
-    .byte $03, $00, $00, $07, $07, $42, $43, $52
-    .byte $53, $03, $03, $03, $03, $00, $07, $00
-    .byte $07, $01, $00, $00, $41, $51, $03, $03
-    .byte $00, $07
+table39:  ; $dbb1 (30 bytes)
+    .byte $40, $43, $42, $41, $03, $00, $00, $07
+    .byte $07, $42, $43, $52, $53, $03, $03, $03
+    .byte $03, $00, $07, $00, $07, $01, $00, $00
+    .byte $41, $51, $03, $03, $00, $07
 
-data7:
+data7:  ; $dbcf
     .byte $0f
 
-table40:
-    .byte $13, $50, $54, $6f, $9e, $ab, $d0
-    .byte $ff, $06, $5a, $5f, $c6, $ca, $13, $19
-    .byte $25
+table40:  ; $dbd0 (16 bytes)
+    .byte $13, $50, $54, $6f, $9e, $ab, $d0, $ff
+    .byte $06, $5a, $5f, $c6, $ca, $13, $19, $25
 
-table41:
-    .byte $55, $df, $51, $21, $3d, $9a, $7d
-    .byte $88, $cc, $8f, $aa, $43, $8a, $6e, $90
-    .byte $76
-
-table42:
-    .byte $03, $05, $05, $07, $06, $04, $06
-    .byte $05, $02, $05, $04, $08, $03, $02, $07
-    .byte $06
-
-table43:
-    .byte $50, $51, $51, $53, $51, $52, $50
-    .byte $53, $52, $52, $51, $51, $52, $53, $53
-    .byte $51
-
-data8:
-    .byte $0a
-
-table44:
-    .byte $13, $50, $54, $6f, $9e, $ab, $d0, $ef
-    .byte $06, $5a, $5f, $d6, $ca, $13, $19, $25
-
-table45:
+table41:  ; $dbe0 (16 bytes)
     .byte $55, $df, $51, $21, $3d, $9a, $7d, $88
     .byte $cc, $8f, $aa, $43, $8a, $6e, $90, $76
 
-table46:
+table42:  ; $dbf0 (16 bytes)
+    .byte $03, $05, $05, $07, $06, $04, $06, $05
+    .byte $02, $05, $04, $08, $03, $02, $07, $06
+
+table43:  ; $dc00 (16 bytes)
+    .byte $50, $51, $51, $53, $51, $52, $50, $53
+    .byte $52, $52, $51, $51, $52, $53, $53, $51
+
+data8:  ; $dc10
+    .byte $0a
+
+table44:  ; $dc11 (16 bytes)
+    .byte $13, $50, $54, $6f, $9e, $ab, $d0, $ef
+    .byte $06, $5a, $5f, $d6, $ca, $13, $19, $25
+
+table45:  ; $dc21 (16 bytes)
+    .byte $55, $df, $51, $21, $3d, $9a, $7d, $88
+    .byte $cc, $8f, $aa, $43, $8a, $6e, $90, $76
+
+table46:  ; $dc31 (16 bytes)
     .byte 2, 3, 3, 5, 4, 2, 4, 3
     .byte 2, 2, 3, 4, 3, 2, 7, 6
 
-table47:
+table47:  ; $dc41 (17 bytes)
     .byte $af, $ae, $ae, $be, $be, $bf, $af, $bf
     .byte $bf, $af, $ae, $ae, $bf, $be, $be, $be
     .byte $0f
 
-table48:
-    .byte $40, $48, $40, $48, $80, $88, $80, $88
-    .byte $c0, $c8, $c0, $c8, $f0, $f8, $f0, $f8
+table48:  ; $dc52 (16 bytes)
+    .byte $40, $48, $40, $48
+    .byte $80, $88, $80, $88
+    .byte $c0, $c8, $c0, $c8
+    .byte $f0, $f8, $f0, $f8
 
-table49:
+table49:  ; $dc62 (16 bytes)
     .byte $32, $32, $3a, $3a, $80, $80, $88, $88
     .byte $68, $68, $70, $70, $b8, $b8, $c0, $c0
 
-table50:
-    .byte $03, $03, $03, $03, $05, $05, $05, $05
-    .byte $02, $02, $02, $02, $04, $04, $04, $04
+table50:  ; $dc72 (16 bytes)
+    .byte $03, $03, $03, $03
+    .byte $05, $05, $05, $05
+    .byte $02, $02, $02, $02
+    .byte $04, $04, $04, $04
 
-table51:
+table51:  ; $dc82 (16 bytes)
     .byte $ea, $eb, $fa, $fb, $ec, $ed, $fc, $fd
     .byte $ea, $eb, $fa, $fb, $ec, $ed, $fc, $fd
 
-table52:
+table52:  ; $dc92
     .byte $00, $03, $06, $03

@@ -5,22 +5,22 @@
     .byte 255, 254, 253, 252, 251, 250, 249, 248
     .byte 247, 246, 245, 244, 243, 242, 241
 
-apu_reg_offsets:
+apu_reg_offsets:  ; $895b
     .byte 0, 4, 8, 12
 
-table02:
+table02:  ; $895f
     .byte 1, 2, 4, 8
 
-table03:
+table03:  ; $8963
     .byte 254, 253, 251, 247
 
-or_masks:
+or_masks:  ; $8967
     .byte $00, $10, $20, $30, $40, $50, $60, $70
     .byte $80, $90, $a0, $b0, $c0, $d0, $e0, $f0
     .byte $e0, $d0, $c0, $b0, $a0, $90, $80, $70
     .byte $60, $50, $40, $30, $20, $10, $00
 
-table05:
+table05:  ; $8986
     ; Math stuff? (On each line, the numbers increase linearly.)
     .byte  0,  0,  0,  1,  1,  1,  2,  2,  3,  3,  3,  4,  4,  4,  5,  5  ; value ~= index/4
     .byte  0,  0,  1,  2,  3,  3,  4,  5,  6,  6,  7,  8,  9,  9, 10, 11
@@ -42,7 +42,7 @@ table05:
     ; 96 integers. First all low bytes, then all high bytes.
     ; Disregarding the first nine values, the numbers decrease exponentially.
     ; (Each value equals approximately 0.944 times the previous value.)
-word_lo:
+word_lo:  ; $8a86
     .byte <1884, <1948, <2024, <1852, <1948, <1839, <1906, <2028
     .byte <2047, <2034, <1920, <1812, <1710, <1614, <1524, <1438
     .byte <1358, <1281, <1209, <1142, <1077, <1017,  <960,  <906
@@ -55,7 +55,7 @@ word_lo:
     .byte   <53,   <50,   <48,   <45,   <42,   <40,   <38,   <36
     .byte   <34,   <32,   <30,   <28,   <27,   <25,   <24,   <22
     .byte   <21,   <20,   <19,   <18,   <17,   <16,   <15,   <14
-word_hi:
+word_hi:  ; $8ae6
     .byte >1884, >1948, >2024, >1852, >1948, >1839, >1906, >2028
     .byte >2047, >2034, >1920, >1812, >1710, >1614, >1524, >1438
     .byte >1358, >1281, >1209, >1142, >1077, >1017,  >960,  >906
@@ -69,19 +69,20 @@ word_hi:
     .byte   >34,   >32,   >30,   >28,   >27,   >25,   >24,   >22
     .byte   >21,   >20,   >19,   >18,   >17,   >16,   >15,   >14
 
-pointer_lo:
+pointer_lo:  ; $8b46
     .byte <indirect_data1
 pointer_hi:
     .byte >indirect_data1
 
-    ; 8b48: $8d, $a0, repeat (perhaps $a08d, i.e. the address after the last
-    ; byte of this file?)
+    ; $8b48
+    ; $8d, $a0, repeat (perhaps $a08d, i.e. the address after the last byte of
+    ; this file?)
     .byte $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
     .byte $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
     .byte $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
     .byte $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
 
-indirect_data1:  ; 8b68
+indirect_data1:  ; $8b68
     .byte $20, $10, $00
     .byte $05, $3a, $10, $00, $3c, $15, $1c, $0c
     .byte $0a, $01, $f9, $12, $00, $90, $00, $00
@@ -170,6 +171,7 @@ indirect_data1:  ; 8b68
     .byte $13, $7b, $23, $72, $27, $37, $2e, $07
     .byte $00, $3f, $33, $4f, $13, $13, $03, $00
 
+    ; $8e1b
     ; $3f followed by $00...$1f occurs often from now on
     ; (PPU palette addresses?)
     .byte $03, $0f, $3f, $03, $f3, $00, $ff, $13
@@ -698,7 +700,8 @@ indirect_data1:  ; 8b68
     .byte $30, $f1, $02, $f1, $04, $f1, $02, $01
     .byte $00, $24, $0c, $00, $00, $0c, $00, $00
     .byte $0f, $0d, $1f, $3f, $0f, $1f, $0f, $1f
-    
+
+    ; $9e8b
     ; no more $3f + $00...$1f
     .byte $1f, $0f, $1c, $0c, $0c, $0f, $f4, $03
     .byte $19, $f8, $05, $61, $0f, $24, $85, $0f
@@ -766,4 +769,4 @@ indirect_data1:  ; 8b68
     .byte $2b, $0e, $0e, $2c, $e0, $e0, $c0, $20
     .byte $2b, $0e
 
-    ; a08d
+    ; $a08d

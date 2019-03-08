@@ -40,6 +40,10 @@ Notes:
 * no trainer
 * no save RAM
 
+## Screenshots
+!("shot/01.png")
+!("shot/02.png")
+
 ## FCEUX Code/Data Log - PRG ROM
 I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:
 

@@ -1,19 +1,3 @@
-; add/subtract without carry
-
-    .macro add_imm
-        clc
-        adc #_1
-    .macend
-    .macro add_mem
-        clc
-        adc _1
-    .macend
-    .macro sub_imm
-        sec
-        sbc #_1
-    .macend
-
-; -----------------------------------------------------------------------------
 ; decrement/increment + load
 
     .macro dec_lda

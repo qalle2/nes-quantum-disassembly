@@ -43,7 +43,8 @@ sub01:
 
     ; ptr4 + 16 -> ptr6
     lda #16
-    `add_mem ptr4+0
+    clc
+    adc ptr4+0
     sta ptr6+0
     lda ptr4+1
     adc #0
@@ -84,7 +85,8 @@ sub01:
     ; [$80] + 16 -> $cb
     `iny4
     tya
-    `add_imm $80
+    clc
+    adc #$80
     sta $cb
 
     ; ptr4 + [$cb] -> ptr5
@@ -273,7 +275,8 @@ sub04_2:
 sub04_loop1:
     lda $e5,x
     bmi sub04_3
-    `sub_imm 1
+    sec
+    sbc #1
     bpl +
     lda table03,x
     and $ef
@@ -398,7 +401,8 @@ sub05_5:
     rts
 
 sub05_6:
-    `sub_imm $40
+    sec
+    sbc #$40
     sta $033c,x
     rts
 
@@ -427,7 +431,8 @@ sub06_1:
     tay
     lda table05,y
     eor #%11111111
-    `add_imm 1
+    clc
+    adc #1
     cmp #$80
     rts
 
@@ -479,7 +484,8 @@ sub06_4:
     rts
 
 sub06_5:
-    `sub_imm $40
+    sec
+    sbc #$40
     sta $0330,x
     rts
 
@@ -706,10 +712,12 @@ sub08_6:
     jmp sub09_1
 
 sub08_7:
-    `sub_imm 1
+    sec
+    sbc #1
     sta $d4
     lda $d5
-    `add_imm 1
+    clc
+    adc #1
     cmp $d6
     bcc +
     lda $d7
@@ -878,7 +886,8 @@ sub10_06:
     lda $cb
     and #%00001111
     eor #%11111111
-    `add_imm 1
+    clc
+    adc #1
     sta $0320,x
     jmp sub10_08
 
@@ -929,17 +938,20 @@ sub10_08:
 
 sub10_09:
     eor #%11111111
-    `add_imm 1
+    clc
+    adc #1
     sta $0328,x
     tya
     `lsr4
     eor #%11111111
-    `add_imm 1
+    clc
+    adc #1
     sta $03a4,x
     lda $cb
     and #%00001111
     eor #%11111111
-    `add_imm 1
+    clc
+    adc #1
     sta $032c,x
 
 sub10_10:
@@ -1092,7 +1104,8 @@ sub11_loop1:
     jmp sub10_16
 *   lda $cb
 sub11_02:
-    `add_mem ptr4+0
+    clc
+    adc ptr4+0
     sta $036e,x
     sta ptr3+0
     lda (ptr2),y
@@ -1110,7 +1123,8 @@ sub11_02:
 
     adc #1
     lsr
-    `add_imm 2
+    clc
+    adc #2
     sta $e0,x
     lda #$00
     sta $0378,x
@@ -1177,7 +1191,8 @@ sub11_07:
     jmp sub11_08
 *   lda (ptr2),y
     `lsr4
-    `add_imm 1
+    clc
+    adc #1
     iny
     clv
 
@@ -1197,7 +1212,8 @@ sub11_09:
 *   lda (ptr2),y
     `lsr4
     iny
-    `add_imm 1
+    clc
+    adc #1
     sta $0355,x
     clv
 sub11_10:

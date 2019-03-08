@@ -187,7 +187,8 @@ sub19:
     sta $87
 sub19_loop1:
     lda $86
-    `add_imm $55
+    clc
+    adc #$55
     bcc +
 *   sta $86
     `inc_lda $87
@@ -198,7 +199,8 @@ sub19_loop1:
 
     stx $88
     ldx #0
-*   `add_imm $55  ; start loop
+*   clc
+    adc #$55  ; start loop
     clc
     nop
     nop
@@ -288,7 +290,8 @@ sub22_loop:   ; start outer loop
     sta $9a
 
 *   lda $9c       ; start inner loop
-    `add_mem $a7
+    clc
+    adc $a7
     ldy $a8
     sta sprite_page+1,y
     txa
@@ -296,7 +299,8 @@ sub22_loop:   ; start outer loop
     ldy $a8
     sta sprite_page+3,y
     lda $9b
-    `add_mem $a6
+    clc
+    adc $a6
 
     ldy $a8
     sta sprite_page,y
@@ -305,19 +309,22 @@ sub22_loop:   ; start outer loop
     ldy $a8
     sta sprite_page+2,y
     lda $9a
-    `add_imm 4
+    clc
+    adc #4
     sta $9a
     inc $9c
     `iny4
     sty $a8
     txa
-    `add_imm 8
+    clc
+    adc #8
     tax
     cpx #64
     bne -
 
     lda $9b
-    `add_imm 8
+    clc
+    adc #8
     sta $9b
     lda $9b
     cmp #16
@@ -345,7 +352,8 @@ sub23_loop:   ; start outer loop
     sta $9a
 
 *   lda $9c       ; start inner loop
-    `add_mem $a7
+    clc
+    adc $a7
     ldy $a8
     sta sprite_page+1,y
     txa
@@ -353,7 +361,8 @@ sub23_loop:   ; start outer loop
     ldy $a8
     sta sprite_page+3,y
     lda $9b
-    `add_mem $a6
+    clc
+    adc $a6
 
     ldy $a8
     sta sprite_page,y
@@ -362,19 +371,22 @@ sub23_loop:   ; start outer loop
     ldy $a8
     sta sprite_page+2,y
     lda $9a
-    `add_imm 4
+    clc
+    adc #4
     sta $9a
     inc $9c
     `iny4
     sty $a8
     txa
-    `add_imm 8
+    clc
+    adc #8
     tax
     cpx #24
     bne -
 
     lda $9b
-    `add_imm 8
+    clc
+    adc #8
     sta $9b
     lda $9b
     cmp #16
@@ -403,7 +415,8 @@ sub24_loop:   ; start outer loop
     sta $9a
 
 *   lda $9c       ; start inner loop
-    `add_mem $a7
+    clc
+    adc $a7
     ldy $a8
     sta sprite_page+1,y
     txa
@@ -411,7 +424,8 @@ sub24_loop:   ; start outer loop
     ldy $a8
     sta sprite_page+3,y
     lda $9b
-    `add_mem $a6
+    clc
+    adc $a6
 
     ldy $a8
     sta sprite_page,y
@@ -420,19 +434,22 @@ sub24_loop:   ; start outer loop
     ldy $a8
     sta sprite_page+2,y
     lda $9a
-    `add_imm 4
+    clc
+    adc #4
     sta $9a
     inc $9c
     `iny4
     sty $a8
     txa
-    `add_imm 8
+    clc
+    adc #8
     tax
     cpx #32
     bne -
 
     lda $9b
-    `add_imm 8
+    clc
+    adc #8
     sta $9b
     lda $9b
     cmp #16
@@ -456,12 +473,14 @@ sub25_loop:
     bne +
 
     lda $9b
-    `add_imm 14
+    clc
+    adc #14
     sta $9b
     jmp sub25_1
 
 *   lda #$e1
-    `add_mem $9b
+    clc
+    adc $9b
     sta sprite_page,x
     sta $0154,y
     lda $9b
@@ -473,14 +492,16 @@ sub25_loop:
     lda #$00
     sta sprite_page+2,x
     lda $9a
-    `add_imm 40
+    clc
+    adc #40
     sta sprite_page+3,x
 
 sub25_1:
     `inx4
     iny
     lda $9a
-    `add_imm 8
+    clc
+    adc #8
     sta $9a
     cpy #22
     bne sub25_loop
@@ -526,7 +547,8 @@ sub26:
     tay
     ldx table17,y
     txa
-    `add_imm 16
+    clc
+    adc #16
     tax
     stx ppu_data
     inx
@@ -627,7 +649,8 @@ sub29_01:
     sta ppu_scroll
     ldx $96
     lda table19,x
-    `add_mem $96
+    clc
+    adc $96
     sta ppu_scroll
 
     lda $96
@@ -774,67 +797,83 @@ sub29_11:
 *   ldx $93
 
     lda table19,x
-    `add_imm $58
+    clc
+    adc #$58
     sta sprite_page+0*4+0
 
     lda table20,x
-    `add_imm $6e
+    clc
+    adc #$6e
     sta sprite_page+0*4+3
 
     lda table19,x
-    `add_imm $58
+    clc
+    adc #$58
     sta sprite_page+1*4+0
 
     lda table20,x
-    `add_imm $76
+    clc
+    adc #$76
     sta sprite_page+1*4+3
 
     lda table19,x
-    `add_imm $60
+    clc
+    adc #$60
     sta sprite_page+2*4+0
 
     lda table20,x
-    `add_imm $6e
+    clc
+    adc #$6e
     sta sprite_page+2*4+3
 
     lda table19,x
-    `add_imm $60
+    clc
+    adc #$60
     sta sprite_page+3*4+0
 
     lda table20,x
-    `add_imm $76
+    clc
+    adc #$76
     sta sprite_page+3*4+3
 
     lda table20,x
-    `add_imm $58
+    clc
+    adc #$58
     sta sprite_page+4*4+0
 
     lda table19,x
-    `add_imm $6e
+    clc
+    adc #$6e
     sta sprite_page+4*4+3
 
     lda table20,x
-    `add_imm $58
+    clc
+    adc #$58
     sta sprite_page+5*4+0
 
     lda table19,x
-    `add_imm $76
+    clc
+    adc #$76
     sta sprite_page+5*4+3
 
     lda table20,x
-    `add_imm $60
+    clc
+    adc #$60
     sta sprite_page+6*4+0
 
     lda table19,x
-    `add_imm $6e
+    clc
+    adc #$6e
     sta sprite_page+6*4+3
 
     lda table20,x
-    `add_imm $60
+    clc
+    adc #$60
     sta sprite_page+7*4+0
 
     lda table19,x
-    `add_imm $75
+    clc
+    adc #$75
     sta sprite_page+7*4+3
 
     jmp sub29_13
@@ -948,7 +987,8 @@ sub31:
     sta ppu_scroll
     ldx $014e
     lda table19,x
-    `add_mem $014e
+    clc
+    adc $014e
     sta ppu_scroll
 
     lda $014e
@@ -976,14 +1016,16 @@ sub31:
     tay
 
     lda table24,x
-    `add_mem $012f
+    clc
+    adc $012f
     sta sprite_page+23*4+0,y
     lda table25,x
     sta sprite_page+23*4+1,y
     lda table26,x
     sta sprite_page+23*4+2,y
     lda table27,x
-    `add_mem $012e
+    clc
+    adc $012e
     sta sprite_page+23*4+3,y
 
     cpx #0
@@ -1109,7 +1151,8 @@ sub33:
     inc $89
     ldx $8a
     lda table22,x
-    `add_imm $96
+    clc
+    adc #$96
     sta $8b
     `dec_ldx $8a
     lda table20,x
@@ -1207,7 +1250,8 @@ sub35:
     lda table19,y
     sta $0600,x
     lda $89
-    `add_mem ram1
+    clc
+    adc ram1
     sta $89
     inx
     cpx #64
@@ -1241,7 +1285,8 @@ sub35_loop1:  ; start outer loop
     bne -
 
     lda $9a
-    `add_imm 32
+    clc
+    adc #32
     sta $9a
     lda $9a
     cmp #$00
@@ -1263,7 +1308,8 @@ sub35_1:
     lda table19,y
     sta $0600,x
     lda $89
-    `add_mem ram1
+    clc
+    adc ram1
     sta $89
     inx
     cpx #128
@@ -1295,7 +1341,8 @@ sub35_loop2:  ; start outer loop
     bne -
 
     lda $9a
-    `add_imm 32
+    clc
+    adc #32
     sta $9a
     lda $9a
     cmp #$00
@@ -1313,7 +1360,8 @@ sub35_2:
 *   ldx #$04   ; start loop
     jsr sub19
     lda $89
-    `add_mem $8b
+    clc
+    adc $8b
     tax
     lda table19,x
     sta ppu_scroll
@@ -1426,7 +1474,8 @@ sub37_loop1:  ; start outer loop
     bne -
 
     lda $9a
-    `add_imm 32
+    clc
+    adc #32
     sta $9a
     lda $9a
     cmp #$00
@@ -1462,7 +1511,8 @@ sub37_loop2:  ; start outer loop
     bne -
 
     lda $9a
-    `add_imm 32
+    clc
+    adc #32
     sta $9a
     lda $9a
     cmp #$00
@@ -1568,7 +1618,8 @@ sub39_loop:  ; start outer loop
     lda table22,x
     sta $9a
     `dec_lda $89
-    `add_mem $8a
+    clc
+    adc $8a
     tax
     lda table20,x
     clc
@@ -1619,7 +1670,8 @@ sub40_loop2:  ; start middle loop
 
     ldx #0
 *   txa           ; start innermost loop
-    `add_mem $9e
+    clc
+    adc $9e
     sta ppu_data
     inx
     cpx #8
@@ -1630,7 +1682,8 @@ sub40_loop2:  ; start middle loop
     bne sub40_loop2
 
     lda $9e
-    `add_imm 8
+    clc
+    adc #8
     sta $9e
     lda $9e
     cmp #$40
@@ -1649,7 +1702,8 @@ sub40_loop4:  ; start middle loop
 
     ldx #0
 *   txa           ; start innermost loop
-    `add_mem $9e
+    clc
+    adc $9e
     sta ppu_data
     inx
     cpx #8
@@ -1660,7 +1714,8 @@ sub40_loop4:  ; start middle loop
     bne sub40_loop4
 
     lda $9e
-    `add_imm 8
+    clc
+    adc #8
     sta $9e
     cmp #$28
     bne sub40_loop3
@@ -2084,7 +2139,8 @@ sub43_loop1:
     sta sprite_page,y
 
     lda #$f0
-    `add_mem $8c
+    clc
+    adc $8c
     sta sprite_page+1,y
     lda $014a
     sta sprite_page+2,y
@@ -2094,16 +2150,19 @@ sub43_loop1:
     inc $89
     inc $89
     lda $89
-    `add_mem $8a
+    clc
+    adc $8a
     tax
     lda table21,x
-    `add_imm $c2
+    clc
+    adc #$c2
     sta sprite_page+3,y
     pla
     tax
     `iny4
     txa
-    `add_imm 8
+    clc
+    adc #8
     tax
     `inc_lda $8d
     cmp #15
@@ -2132,7 +2191,8 @@ sub43_loop2:
     sta sprite_page,y
 
     lda #$f0
-    `add_mem $8c
+    clc
+    adc $8c
     sta sprite_page+1,y
     lda $014b
     sta sprite_page+2,y
@@ -2141,16 +2201,19 @@ sub43_loop2:
     dec $89
     dec $89
     lda $89
-    `add_mem $8b
+    clc
+    adc $8b
     tax
     lda table21,x
-    `add_imm $c2
+    clc
+    adc #$c2
     sta sprite_page+3,y
     pla
     tax
     `iny4
     txa
-    `add_imm 8
+    clc
+    adc #8
     tax
     `inc_lda $8c
     cmp #$10
@@ -2323,7 +2386,8 @@ sub43_1:
 
     ldx #0
 *   txa           ; start loop
-    `add_mem $8f
+    clc
+    adc $8f
     tay
     lda table11,y
     clc
@@ -2405,7 +2469,8 @@ sub43_2:
     tay
 
     lda table28,x
-    `add_imm $9b
+    clc
+    adc #$9b
     sta sprite_page+23*4+0,y
 
     txa
@@ -2417,14 +2482,16 @@ sub43_2:
 
     tax
     lda table29,x
-    `add_mem $9a
+    clc
+    adc $9a
     sta sprite_page+23*4+1,y
 
     lda #%00000010
     sta sprite_page+23*4+2,y
 
     lda table30,x
-    `add_mem $0139
+    clc
+    adc $0139
     sta sprite_page+23*4+3,y
 
     cpx #0
@@ -2484,7 +2551,8 @@ sub44_loop1:  ; start outer loop
     `reset_ppu_addr
 
     lda $9a
-    `add_imm 32
+    clc
+    adc #32
     sta $9a
     lda $9a
     cmp #$1a
@@ -2510,7 +2578,8 @@ sub44_loop2:  ; start outer loop
     `reset_ppu_addr
 
     lda $9a
-    `add_imm 32
+    clc
+    adc #32
     sta $9a
     lda $9a
     cmp #$68
@@ -2667,11 +2736,13 @@ sub45_2:
     tay
 
     lda table34,x
-    `add_mem $0111
+    clc
+    adc $0111
     sta sprite_page+1*4+0,y
 
     lda table37,x
-    `add_mem $0110
+    clc
+    adc $0110
     sta sprite_page+1*4+3,y
 
     cpx #0
@@ -2694,7 +2765,8 @@ sub45_2:
     lda #$ff
     sta $0112,x
     lda table19,y
-    `add_imm $5a
+    clc
+    adc #$5a
     sta $0116,x
     lda table22,y
     sta $011a,x
@@ -2829,7 +2901,8 @@ sub48_loop:   ; start outer loop
     lda #$20
     sta ppu_addr
     lda $9a
-    `add_imm $69
+    clc
+    adc #$69
     sta ppu_addr
 
     ldy #0
@@ -2842,7 +2915,8 @@ sub48_loop:   ; start outer loop
     `reset_ppu_addr
 
     lda $9a
-    `add_imm 32
+    clc
+    adc #32
     sta $9a
     cmp #96
     bne sub48_loop
@@ -2908,7 +2982,8 @@ sub49:
     sta ppu_scroll
     ldx $0153
     lda table19,x
-    `add_mem $0153
+    clc
+    adc $0153
     sta ppu_scroll
 
     lda $0153
@@ -2992,7 +3067,8 @@ sub51_loop1:  ; start outer loop
     lda #>[vram_name_table0+8*32+4]
     sta ppu_addr
     lda #<[vram_name_table0+8*32+4]
-    `add_mem $013b
+    clc
+    adc $013b
     sta ppu_addr
 
     ldx #0
@@ -3003,7 +3079,8 @@ sub51_loop1:  ; start outer loop
     bne -
 
     lda $013b
-    `add_imm 32
+    clc
+    adc #32
     sta $013b
     cpy #$c0
     bne sub51_loop1
@@ -3012,7 +3089,8 @@ sub51_loop2:  ; start outer loop
     lda #>[vram_name_table0+16*32+4]
     sta ppu_addr
     lda #<[vram_name_table0+16*32+4]
-    `add_mem $013b
+    clc
+    adc $013b
     sta ppu_addr
 
     ldx #0
@@ -3023,7 +3101,8 @@ sub51_loop2:  ; start outer loop
     bne -
 
     lda $013b
-    `add_imm 32
+    clc
+    adc #32
     sta $013b
     cpy #$00
     bne sub51_loop2
@@ -3037,7 +3116,8 @@ sub51_loop3:  ; start outer loop
     lda #>[vram_name_table0+8*32+20]
     sta ppu_addr
     lda #<[vram_name_table0+8*32+20]
-    `add_mem $013b
+    clc
+    adc $013b
     sta ppu_addr
 
     ldx #0
@@ -3048,7 +3128,8 @@ sub51_loop3:  ; start outer loop
     bne -
 
     lda $013b
-    `add_imm 32
+    clc
+    adc #32
     sta $013b
     cpy #$c0
     bne sub51_loop3
@@ -3057,7 +3138,8 @@ sub51_loop4:  ; start outer loop
     lda #>[vram_name_table0+16*32+20]
     sta ppu_addr
     lda #<[vram_name_table0+16*32+20]
-    `add_mem $013b
+    clc
+    adc $013b
     sta ppu_addr
 
     ldx #0
@@ -3068,7 +3150,8 @@ sub51_loop4:  ; start outer loop
     bne -
 
     lda $013b
-    `add_imm 32
+    clc
+    adc #32
     sta $013b
     cpy #0
     bne sub51_loop4
@@ -3144,23 +3227,27 @@ sub51_4:
     sta ppu_mask
 
 *   lda $89
-    `add_mem $8b
+    clc
+    adc $8b
     adc $8a
     clc
     sbc #$14
     tax
     lda table19,x
-    `add_mem $8b
+    clc
+    adc $8b
     sta ppu_scroll
     lda $89
-    `add_mem $8b
+    clc
+    adc $8b
     tax
     lda table20,x
     sta ppu_scroll
 
     ldx $8a
     lda table20,x
-    `add_imm 60
+    clc
+    adc #60
     sta $9b
     inc $89
     iny
@@ -3339,7 +3426,8 @@ sub55:
     tay
 
     lda table49,x
-    `add_mem $9a
+    clc
+    adc $9a
     sta sprite_page+48*4+0,y
     lda sprite_page+48*4+3,y
     clc
@@ -3356,7 +3444,8 @@ sub55:
     tay
 
     lda table49,x
-    `add_mem $9b
+    clc
+    adc $9b
     sta sprite_page+48*4+0,y
     lda sprite_page+48*4+3,y
     clc
@@ -3391,7 +3480,8 @@ sub55_1:
 
     ldx #0
 *   txa           ; start loop
-    `add_mem $8f
+    clc
+    adc $8f
     tay
     lda table11,y
     clc

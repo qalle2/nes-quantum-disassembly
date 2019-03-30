@@ -88,11 +88,13 @@ nmi_section4:
 *   jsr sub38
 *   jsr sub39
     jsr sub12
-    `inc_lda $98
+    inc $98
+    lda $98
     cmp #$ff
     beq +
     jmp nmi_section4_exit
-*   `inc_lda $99
+*   inc $99
+    lda $99
     cmp #$03
     beq +
     jmp nmi_section4_exit
@@ -115,11 +117,13 @@ nmi_section2:
 *   jsr sub30
 *   jsr sub31
     jsr sub12
-    `inc_lda $ab
+    inc $ab
+    lda $ab
     cmp #$ff
     beq +
     jmp nmi_section2_exit
-*   `inc_lda $ac
+*   inc $ac
+    lda $ac
     cmp #$03
     beq +
     jmp nmi_section2_exit
@@ -156,11 +160,13 @@ nmi_section5:
 *   jsr sub42
 *   jsr sub43
     jsr sub12
-    `inc_lda $a9
+    inc $a9
+    lda $a9
     cmp #$ff
     beq +
     jmp nmi_section5_exit
-*   `inc_lda $aa
+*   inc $aa
+    lda $aa
     cmp #$04
     beq +
     jmp nmi_section5_exit
@@ -197,11 +203,13 @@ nmi_section8:
 *   jsr sub44
 *   jsr sub45
     jsr sub12
-    `inc_lda $0135
+    inc $0135
+    lda $0135
     cmp #$ff
     beq +
     jmp nmi_section8_exit
-*   `inc_lda $0136
+*   inc $0136
+    lda $0136
     cmp #$03
     beq +
     jmp nmi_section8_exit
@@ -224,7 +232,8 @@ nmi_section7:
 *   jsr sub50
 *   jsr sub51
     jsr sub12
-    `inc_lda $013f
+    inc $013f
+    lda $013f
     cmp #$ff
     beq +
     jmp ++
@@ -254,11 +263,13 @@ nmi_section13:
     jmp ++
 *   jsr sub32
 *   jsr sub33
-    `inc_lda $0141
+    inc $0141
+    lda $0141
     cmp #$ff
     beq +
     jmp $fb3d
-*   `inc_lda $0142
+*   inc $0142
+    lda $0142
     cmp #$0e
     beq +
     jmp nmi_section13_exit
@@ -281,7 +292,8 @@ nmi_section10:
 *   jsr sub34
 *   jsr sub35
     jsr sub12
-    `inc_lda $0143
+    inc $0143
+    lda $0143
     cmp #$ff
     beq +
     jmp ++
@@ -311,11 +323,13 @@ nmi_section3:
 *   jsr sub36
 *   jsr sub37
     jsr sub12
-    `inc_lda $0145
+    inc $0145
+    lda $0145
     cmp #$ff
     beq +
     jmp nmi_section3_exit
-*   `inc_lda $0146
+*   inc $0146
+    lda $0146
     cmp #$03
     beq +
     jmp nmi_section3_exit
@@ -338,7 +352,8 @@ nmi_section11:
 *   jsr sub48
 *   jsr sub49
     jsr sub12
-    `inc_lda $014f
+    inc $014f
+    lda $014f
     cmp #$ff
     beq +
     jmp ++
@@ -367,7 +382,8 @@ nmi_section12:
     jmp ++
 *   jsr sub46
 *   jsr sub47
-    `inc_lda $0151
+    inc $0151
+    lda $0151
     cmp #$ff
     beq +
     jmp ++

@@ -1,23 +1,3 @@
-; decrement/increment + load
-
-    .macro dec_lda
-        dec _1
-        lda _1
-    .macend
-    .macro dec_ldx
-        dec _1
-        ldx _1
-    .macend
-    .macro inc_lda
-        inc _1
-        lda _1
-    .macend
-    .macro inc_ldx
-        inc _1
-        ldx _1
-    .macend
-
-; -----------------------------------------------------------------------------
 ; repeat instruction
 
     .macro inx4

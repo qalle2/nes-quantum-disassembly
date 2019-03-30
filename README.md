@@ -41,44 +41,47 @@ Notes:
 * no save RAM
 
 ## Parts of the demo
-* Screenshots from FCEUX in PAL mode.
+* The screenshots are from FCEUX in PAL mode.
+* The frame numbers are from FCEUX's Frame Display in PAL mode.
 * The internal part numbers are at RAM address `0x0001`.
 
 ![](shot/01.png)
-1st part (internally part #0): "GREETINGS! WE COME FROM..."
+1st part (internally part #0, starts at frame ~6): "GREETINGS! WE COME FROM..."
 
 ![](shot/02.png)
-2nd part (internally part #2): "wAMMA - QUANTUM DISCO BROTHERS"
+2nd part (internally part #2, starts at frame 1156): "wAMMA - QUANTUM DISCO BROTHERS"
 
 ![](shot/03.png)
-3rd part (internally part #11): red&purple gradients
+3rd part (internally part #11, starts at frame 1923): red&purple gradients
 
 ![](shot/04.png)
-4th part (internally part #1): horizontal color bars
+4th part (internally part #1, starts at frame 2690): horizontal color bars
 
 ![](shot/05.png)
-5th part (internally part #4): a woman
+5th part (internally part #4, starts at frame 3458): a woman
 
 ![](shot/06.png)
-6th part (internally part #5): "IT IS FRIDAY..."
+6th part (internally part #5, starts at frame 4481): "IT IS FRIDAY..."
 
 ![](shot/07.png)
-7th part (internally part #7): Coca Cola cans
+7th part (internally part #7, starts at frame 6362): Coca Cola cans
 
 ![](shot/08.png)
-8th part (internally part #6): Bowser's spaceship
+8th part (internally part #6, starts at frame 7304): Bowser's spaceship
 
 ![](shot/09.png)
-9th part (internally part #3): credits
+9th part (internally part #3, starts at frame 8071): credits
 
 ![](shot/10.png)
-10th part (internally part #10): a checkered wavy animation
+10th part (internally part #10, starts at frame 9692): a checkered wavy animation
 
 ![](shot/11.png)
-11th part (internally part #12): "GREETS TO ALL NINTENDAWGS"
+11th part (internally part #12, starts at frame 10380): "GREETS TO ALL NINTENDAWGS"
 
 ![](shot/12.png)
-12th part (internally part #13): "GAME OVER - CONTINUE?"
+12th part (internally part #13, starts at frame 11298): "GAME OVER - CONTINUE?"
+
+At frame 14018, the demo proceeds to a part with internal part number 9, probably unintentionally.
 
 ## FCEUX Code/Data Log - PRG ROM
 I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:

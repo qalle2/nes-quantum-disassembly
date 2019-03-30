@@ -40,21 +40,44 @@ Notes:
 * no trainer
 * no save RAM
 
-## Screenshots
-(from FCEUX in PAL mode)
+## Parts of the demo
+(Screenshots from FCEUX in PAL mode.)
 
 ![](shot/01.png)
+"Greetings! We come from..."
+
 ![](shot/02.png)
+"wAMMA - Quantum Disco Brothers"
+
 ![](shot/03.png)
+red&purple gradient
+
 ![](shot/04.png)
+horizontal color bars
+
 ![](shot/05.png)
+the woman
+
 ![](shot/06.png)
+"It is Friday..."
+
 ![](shot/07.png)
+Coca Cola cans
+
 ![](shot/08.png)
+Bowser's spaceship
+
 ![](shot/09.png)
+credits
+
 ![](shot/10.png)
+checkered wavy animation
+
 ![](shot/11.png)
+greets
+
 ![](shot/12.png)
+"game over - continue?"
 
 ## FCEUX Code/Data Log - PRG ROM
 I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:

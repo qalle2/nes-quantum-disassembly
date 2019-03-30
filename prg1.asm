@@ -273,49 +273,66 @@ sub21_exit:
 
 ; -----------------------------------------------------------------------------
 
-sub22:
+update_sixteen_sprites:
+    ; Update 16 (8*2) sprites.
 
+    ; Input: X, Y, $9a, $a8
+
+    ; Modifies: A, X, Y, $9a, $9c, $a5, $a6, $a7, $a8, loopcnt
+
+    ; Sprite page offsets: [$a8]*4 ... ([$a8]+15)*4
+    ; Tiles: [$9a] ... [$9a]+15
+    ; X positions: X+0, X+8, ..., X+56, X+0, X+8, ..., X+56
+    ; Y positions: Y for first 8 sprites, Y+8 for the rest
+    ; Subpalette: always 3
+
+    ; X     -> [$a5]
+    ; Y     -> [$a6]
+    ; [$9a] -> [$a7]
+    ; 0     -> [$9a], loopcnt, [$9c]
     stx $a5
     sty $a6
     lda $9a
     sta $a7
-
     lda #$00
     sta $9a
-    sta $9b
+    sta loopcnt
     sta $9c
 
-sub22_loop:   ; start outer loop
+update_sixteen_sprites_loop_outer:
+    ; counter: loopcnt = 0, 8
+
+    ; 0 -> X, [$9a]
     ldx #0
     lda #$00
     sta $9a
 
-*   ; start inner loop
-    ; counter: X = [0, 8, ..., 56]
+update_sixteen_sprites_loop_inner:
+    ; counter: X = 0, 8, ..., 56
 
-    ; update sprite at offset [$a8]:
-    ;     [$9c]+[$a7] -> sprite tile
-    ;     X+[$a5]     -> sprite X
-    ;     [$9b]+[$a6] -> sprite Y
-    ;     3           -> sprite subpalette
+    ; update sprite at offset [$a8]
 
+    ; [$a7] + [$9c] -> sprite tile
     lda $9c
     clc
     adc $a7
     ldy $a8
     sta sprite_page+sprite_tile,y
 
+    ; [$a5] + X -> sprite X
     txa
     adc $a5
     ldy $a8
     sta sprite_page+sprite_x,y
 
-    lda $9b
+    ; [$a6] + loopcnt -> sprite Y
+    lda loopcnt
     clc
     adc $a6
     ldy $a8
     sta sprite_page+sprite_y,y
 
+    ; 3 -> sprite subpalette
     lda #%00000011
     ldy $a8
     sta sprite_page+sprite_attr,y
@@ -329,7 +346,7 @@ sub22_loop:   ; start outer loop
     ; [$9c] += 1
     inc $9c
 
-    ; Y+4 -> [$a8]
+    ; Y + 4 -> [$a8]
     `iny4
     sty $a8
 
@@ -340,143 +357,219 @@ sub22_loop:   ; start outer loop
     adc #8
     tax
     cpx #64
-    bne -
+    bne update_sixteen_sprites_loop_inner
 
-    ; [$9b] += 8
+    ; loopcnt += 8
     ; loop while less than 16
-    lda $9b
+    lda loopcnt
     clc
     adc #8
-    sta $9b
-    lda $9b
+    sta loopcnt
+    lda loopcnt
     cmp #16
-    bne sub22_loop
+    bne update_sixteen_sprites_loop_outer
 
+    ; Y -> [$a8]
     sty $a8
     rts
 
 ; -----------------------------------------------------------------------------
 
-sub23:
+update_six_sprites:
+    ; Update 6 (3*2) sprites.
 
+    ; Input: X, Y, $9a, $a8
+
+    ; Sprite page offsets: [$a8]*4 ... ([$a8]+5)*4
+    ; Tiles: [$9a] ... [$9a]+5
+    ; X positions: X+0, X+8, X+16, X+0, X+8, X+16
+    ; Y positions: Y+0, Y+0, Y+0, Y+8, Y+8, Y+8
+    ; Subpalette: always 2
+
+    ; X     -> [$a5]
+    ; Y     -> [$a6]
+    ; [$9a] -> [$a7]
+    ; 0     -> [$9a], loopcnt, [$9c]
     stx $a5
     sty $a6
     lda $9a
     sta $a7
     lda #$00
     sta $9a
-    sta $9b
+    sta loopcnt
     sta $9c
 
-sub23_loop:   ; start outer loop
+update_six_sprites_loop_outer:
+    ; counter: loopcnt = 0, 8
+
+    ; 0 -> X, [$9a]
     ldx #0
     lda #$00
     sta $9a
 
-*   lda $9c       ; start inner loop
+update_six_sprites_loop_inner:
+    ; counter: X = 0, 8, 16
+
+    ; update sprite at offset [$a8]
+
+    ; [$a7] + [$9c] -> sprite tile
+    lda $9c
     clc
     adc $a7
     ldy $a8
     sta sprite_page+sprite_tile,y
+
+    ; [$a5] + X -> sprite X
     txa
     adc $a5
     ldy $a8
     sta sprite_page+sprite_x,y
-    lda $9b
+
+    ; [$a6] + loopcnt -> sprite Y
+    lda loopcnt
     clc
     adc $a6
-
     ldy $a8
     sta sprite_page+sprite_y,y
 
-    lda #$02
+    ; 2 -> sprite subpalette
+    lda #%00000010
     ldy $a8
     sta sprite_page+sprite_attr,y
+
+    ; [$9a] += 4
     lda $9a
     clc
     adc #4
     sta $9a
+
+    ; [$9c] += 1
     inc $9c
+
+    ; Y + 4 -> [$a8]
     `iny4
     sty $a8
+
+    ; X += 8
+    ; loop while less than 24
     txa
     clc
     adc #8
     tax
     cpx #24
-    bne -
+    bne update_six_sprites_loop_inner
 
-    lda $9b
+    ; loopcnt += 8
+    ; loop while less than 16
+    lda loopcnt
     clc
     adc #8
-    sta $9b
-    lda $9b
+    sta loopcnt
+    lda loopcnt
     cmp #16
-    bne sub23_loop
+    bne update_six_sprites_loop_outer
 
+    ; Y -> [$a8]
     sty $a8
     rts
 
 ; -----------------------------------------------------------------------------
 
-sub24:
+update_eight_sprites:
+    ; Update 8 (4*2) sprites.
 
+    ; Input: X, Y, $9a, $a8
+
+    ; Sprite page offsets: [$a8]*4 ... ([$a8]+7)*4
+    ; Tiles: [$9a] ... [$9a]+7
+    ; X positions: X+0, X+8, ..., X+24, X+0, X+8, ..., X+24
+    ; Y positions: Y+0 for first 4 sprites, Y+8 for the rest
+    ; Subpalette: always 2
+
+    ; X     -> [$a5]
+    ; Y     -> [$a6]
+    ; [$9a] -> [$a7]
+    ; 0     -> [$9a], loopcnt, [$9c]
     stx $a5
     sty $a6
     lda $9a
     sta $a7
-
     lda #$00
     sta $9a
-    sta $9b
+    sta loopcnt
     sta $9c
 
-sub24_loop:   ; start outer loop
+update_eight_sprites_loop_outer:
+    ; counter: loopcnt = 0, 8
+
+    ; 0 -> X, [$9a]
     ldx #0
     lda #$00
     sta $9a
 
-*   lda $9c       ; start inner loop
+update_eight_sprites_loop_inner:
+    ; counter: X = 0, 8, 16, 24
+
+    ; update sprite at offset [$a8]
+
+    ; [$a7] + [$9c] -> sprite tile
+    lda $9c
     clc
     adc $a7
     ldy $a8
     sta sprite_page+sprite_tile,y
+
+    ; [$a5] + X -> sprite X
     txa
     adc $a5
     ldy $a8
     sta sprite_page+sprite_x,y
-    lda $9b
+
+    ; [$a6] + loopcnt -> sprite Y
+    lda loopcnt
     clc
     adc $a6
-
     ldy $a8
     sta sprite_page+sprite_y,y
 
-    lda #$02
+    ; 2 -> sprite subpalette
+    lda #%00000010
     ldy $a8
     sta sprite_page+sprite_attr,y
+
+    ; [$9a] += 4
     lda $9a
     clc
     adc #4
     sta $9a
+
+    ; [$9c] += 1
     inc $9c
+
+    ; Y + 4 -> [$a8]
     `iny4
     sty $a8
+
+    ; X += 8
+    ; loop while less than 32
     txa
     clc
     adc #8
     tax
     cpx #32
-    bne -
+    bne update_eight_sprites_loop_inner
 
-    lda $9b
+    ; loopcnt += 8
+    ; loop while less than 16
+    lda loopcnt
     clc
     adc #8
-    sta $9b
-    lda $9b
+    sta loopcnt
+    lda loopcnt
     cmp #16
-    bne sub24_loop
+    bne update_eight_sprites_loop_outer
 
+    ; Y -> [$a8]
     sty $a8
     rts
 
@@ -1407,10 +1500,12 @@ sub35_2:
     sbc $8b
     lda #0
     sta ppu_scroll
+    
     ldx $8b
     lda table20,x
     clc
     sbc #10
+    
     lda #230
     sta ppu_scroll
     dec $8b
@@ -1562,11 +1657,13 @@ sub37_2:
     sbc $8b
     sbc $8b
     sta ppu_scroll
+    
     ldx $8b
     lda table20,x
     clc
     sbc #10
     sta ppu_scroll
+    
     dec $8b
 
     lda #%00001110
@@ -1648,6 +1745,7 @@ sub39_loop:  ; start outer loop
     lda table22,x
     sta $9a
     dec $89
+    
     lda $89
     clc
     adc $8a
@@ -1752,16 +1850,18 @@ sub40_loop4:  ; start middle loop
     cmp #$28
     bne sub40_loop3
 
-    lda #$f0
-    ldy #0
-sub40_loop5:  ; start outer loop
+    lda #$f0  ; unnecessary
 
+    ; write 64 bytes to ppu_data ($f0...$f7 eight times)
+    ldy #0
+sub40_loop5:
+    ; start inner loop
     ldx #$f0
-*   stx ppu_data  ; start inner loop
+*   stx ppu_data
     inx
     cpx #$f8
     bne -
-
+    ; end outer loop
     iny
     cpy #8
     bne sub40_loop5
@@ -1800,6 +1900,7 @@ sub40_2:
     `reset_ppu_addr
 
     jsr init_graphics_and_sound
+
     lda #$02
     sta $014d
     lda #$00
@@ -1843,14 +1944,14 @@ sub41_01:
     `set_ppu_addr vram_palette+0*4
 
     lda $a2
-    cmp #$08
+    cmp #8
     beq sub41_04
     lda $014d
-    cmp #$00
+    cmp #0
     beq sub41_03
-    cmp #$01
+    cmp #1
     beq sub41_02
-    cmp #$02
+    cmp #2
     beq +
 
 *   `write_ppu_data $34  ; light purple
@@ -1923,121 +2024,160 @@ sub41_06:
     sta demo_part
     lda #0
     sta flag1
-    jmp $ea7e
+    jmp sub41_16
 
 sub41_07:
     jsr init_graphics_and_sound
-    ldx #$5c
-    ldy #$6a
+
+    ; draw 8*2 sprites: tiles $90...$9f starting from (92, 106), subpalette 3
+    ldx #92
+    ldy #106
     lda #$90
     sta $9a
-    jsr sub22
-    jmp $ea7e
+    jsr update_sixteen_sprites
+
+    jmp sub41_16
 
 sub41_08:
     jsr init_graphics_and_sound
-    ldx #$75
-    ldy #$73
+
+    ; draw 8*2 sprites: tiles $60...$6f starting from (117, 115), subpalette 3
+    ldx #117
+    ldy #115
     lda #$60
     sta $9a
-    jsr sub22
-    ldx #$54
-    ldy #$61
+    jsr update_sixteen_sprites
+
+    ; draw 4*2 sprites: tiles $ac...$b3 starting from (84, 97), subpalette 2
+    ldx #84
+    ldy #97
     lda #$ac
     sta $9a
-    jsr sub24
-    jmp $ea7e
+    jsr update_eight_sprites
+
+    jmp sub41_16
 
 sub41_09:
     jsr init_graphics_and_sound
-    ldx #$75
-    ldy #$73
+
+    ; draw 8*2 sprites: tiles $80...$8f starting from (117, 115), subpalette 3
+    ldx #117
+    ldy #115
     lda #$80
     sta $9a
-    jsr sub22
-    ldx #$54
-    ldy #$61
+    jsr update_sixteen_sprites
+
+    ; draw 4*2 sprites: tiles $ac...$b3 starting from (84, 97), subpalette 2
+    ldx #84
+    ldy #97
     lda #$ac
     sta $9a
-    jsr sub24
-    jmp $ea7e
+    jsr update_eight_sprites
+
+    jmp sub41_16
 
 sub41_10:
     jsr init_graphics_and_sound
     lda #$01
     sta $014d
-    ldx #$75
-    ldy #$73
+
+    ; draw 8*2 sprites: tiles $50...$5f starting from (117, 115), subpalette 3
+    ldx #117
+    ldy #115
     lda #$50
     sta $9a
-    jsr sub22
-    ldx #$54
-    ldy #$61
+    jsr update_sixteen_sprites
+
+    ; draw 3*2 sprites: tiles $a0...$a5 starting from (84, 97), subpalette 2
+    ldx #84
+    ldy #97
     lda #$a0
     sta $9a
-    jsr sub23
-    jmp $ea7e
+    jsr update_six_sprites
+
+    jmp sub41_16
 
 sub41_11:
     jsr init_graphics_and_sound
-    ldx #$75
-    ldy #$73
+
+    ; draw 8*2 sprites: tiles $40...$4f starting from (117, 115), subpalette 3
+    ldx #117
+    ldy #115
     lda #$40
     sta $9a
-    jsr sub22
-    ldx #$54
-    ldy #$61
+    jsr update_sixteen_sprites
+
+    ; draw 3*2 sprites: tiles $a0...$a5 starting from (84, 97), subpalette 2
+    ldx #84
+    ldy #97
     lda #$a0
     sta $9a
-    jsr sub23
-    jmp $ea7e
+    jsr update_six_sprites
+
+    jmp sub41_16
 
 sub41_12:
     jsr init_graphics_and_sound
-    ldx #$75
-    ldy #$73
+
+    ; draw 8*2 sprites: tiles $e0...$ef starting from (117, 115), subpalette 3
+    ldx #117
+    ldy #115
     lda #$e0
     sta $9a
-    jsr sub22
-    ldx #$54
-    ldy #$61
+    jsr update_sixteen_sprites
+
+    ; draw 3*2 sprites: tiles $a0...$a5 starting from (84, 97), subpalette 2
+    ldx #84
+    ldy #97
     lda #$a0
     sta $9a
-    jsr sub23
-    jmp $ea7e
+    jsr update_six_sprites
+
+    jmp sub41_16
 
 sub41_13:
     lda #$00
     sta $014d
     jsr init_graphics_and_sound
-    ldx #$75
-    ldy #$73
+
+    ; draw 8*2 sprites: tiles $c0...$cf starting from (117, 115), subpalette 3
+    ldx #117
+    ldy #115
     lda #$c0
     sta $9a
-    jsr sub22
-    ldx #$54
-    ldy #$61
+    jsr update_sixteen_sprites
+
+    ; draw 3*2 sprites: tiles $a0...$a5 starting from (84, 97), subpalette 2
+    ldx #84
+    ldy #97
     lda #$a0
     sta $9a
-    jsr sub23
-    jmp $ea7e
+    jsr update_six_sprites
+
+    jmp sub41_16
 
 sub41_14:
     jsr init_graphics_and_sound
-    ldx #$75
-    ldy #$73
+
+    ; draw 8*2 sprites: tiles $70...$7f starting from (117, 115), subpalette 3
+    ldx #117
+    ldy #115
     lda #$70
     sta $9a
-    jsr sub22
-    ldx #$54
-    ldy #$61
+    jsr update_sixteen_sprites
+
+    ; draw 3*2 sprites: tiles $a6...$ab starting from (84, 97), subpalette 2
+    ldx #84
+    ldy #97
     lda #$a6
     sta $9a
-    jsr sub23
-    jmp $ea7e
+    jsr update_six_sprites
+
+    jmp sub41_16
 
 sub41_15:
     jsr init_graphics_and_sound
+sub41_16:
     `chr_bankswitch 1
 
     lda #%10011000
@@ -2178,45 +2318,69 @@ sub43_loop1:
     clc
     adc $8c
     sta sprite_page+sprite_tile,y
+
     lda $014a
     sta sprite_page+sprite_attr,y
+
+    ; push X
     txa
     pha
+
+    ; [$89] += 3
     inc $89
     inc $89
     inc $89
+
+    ; [woman_sprite_x + [$89] + [$8a]] + 194 -> [sprite_page + sprite_x + Y]
     lda $89
     clc
     adc $8a
     tax
-    lda table21,x
+    lda woman_sprite_x,x
     clc
-    adc #$c2
+    adc #194
     sta sprite_page+sprite_x,y
+
     pla
+
+    ; Y += 4 (TAX&TXA probably unnecessary; demo freezes if `iny4 replaced
+    ; with `inx4)
     tax
     `iny4
     txa
+
+    ; A + 8 -> X
     clc
     adc #8
     tax
+
+    ; [$8d] += 1
     inc $8d
+
+    ; if [$8d] = 15 then clear it and increment [$8c]
     lda $8d
     cmp #15
     beq +
     jmp ++
 *   inc $8c
-    lda #$00
+    lda #0
     sta $8d
+
+    ; if [$8c] = 16 then clear it
 *   lda $8c
     cmp #16
     beq +
     jmp ++
-*   lda #$00
+*   lda #0
     sta $8c
+
+    ; loop until Y = 96
 *   cpy #96
     bne sub43_loop1
 
+    ; $18 -> X
+    ; $00 -> [$9a], [$89]
+    ; [$8c] -= 1
     ldx #$18
     lda #$00
     sta $9a
@@ -2241,7 +2405,7 @@ sub43_loop2:
     clc
     adc $8b
     tax
-    lda table21,x
+    lda woman_sprite_x,x
     clc
     adc #$c2
     sta sprite_page+sprite_x,y
@@ -3462,7 +3626,7 @@ sub55:
 
     inc $0100
     ldx $0100
-    lda table21,x
+    lda woman_sprite_x,x
     sta $9a
     lda table22,x
     sta $9b

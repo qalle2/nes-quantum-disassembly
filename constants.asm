@@ -54,3 +54,9 @@
 ; -----------------------------------------------------------------------------
 
     .alias pad_byte $00
+
+    ; offsets for each sprite on sprite page
+    .alias sprite_y    0
+    .alias sprite_tile 1
+    .alias sprite_attr 2
+    .alias sprite_x    3

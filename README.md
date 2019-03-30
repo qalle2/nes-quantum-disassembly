@@ -41,43 +41,44 @@ Notes:
 * no save RAM
 
 ## Parts of the demo
-(Screenshots from FCEUX in PAL mode.)
+* Screenshots from FCEUX in PAL mode.
+* The internal part numbers are at RAM address `0x0001`.
 
 ![](shot/01.png)
-Part 1: "GREETINGS! WE COME FROM..."
+1st part (internally part #0): "GREETINGS! WE COME FROM..."
 
 ![](shot/02.png)
-Part 2: "wAMMA - QUANTUM DISCO BROTHERS"
+2nd part (internally part #2): "wAMMA - QUANTUM DISCO BROTHERS"
 
 ![](shot/03.png)
-Part 3: red&purple gradient
+3rd part (internally part #11): red&purple gradients
 
 ![](shot/04.png)
-Part 4: horizontal color bars
+4th part (internally part #1): horizontal color bars
 
 ![](shot/05.png)
-Part 5: a woman
+5th part (internally part #4): a woman
 
 ![](shot/06.png)
-Part 6: "IT IS FRIDAY..."
+6th part (internally part #5): "IT IS FRIDAY..."
 
 ![](shot/07.png)
-Part 7: Coca Cola cans
+7th part (internally part #7): Coca Cola cans
 
 ![](shot/08.png)
-Part 8: Bowser's spaceship
+8th part (internally part #6): Bowser's spaceship
 
 ![](shot/09.png)
-Part 9: credits
+9th part (internally part #3): credits
 
 ![](shot/10.png)
-Part 10: checkered wavy animation
+10th part (internally part #10): a checkered wavy animation
 
 ![](shot/11.png)
-Part 11: "GREETS TO ALL NINTENDAWGS"
+11th part (internally part #12): "GREETS TO ALL NINTENDAWGS"
 
 ![](shot/12.png)
-Part 12: "GAME OVER - CONTINUE?"
+12th part (internally part #13): "GAME OVER - CONTINUE?"
 
 ## FCEUX Code/Data Log - PRG ROM
 I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:

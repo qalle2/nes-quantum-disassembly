@@ -5,7 +5,7 @@
 nmi:
     lda ppu_status  ; clear VBlank flag
 
-    lda nmi_task
+    lda demo_part
     cmp #0
     beq nmi_jump_table+1*3
     cmp #1
@@ -34,24 +34,24 @@ nmi:
     beq nmi_jump_table+13*3
 
 nmi_jump_table:
-    jmp nmi_exit       ;  0*3
-    jmp nmi_section1   ;  1*3
-    jmp nmi_section4   ;  2*3
-    jmp nmi_section2   ;  3*3
-    jmp nmi_section9   ;  4*3
-    jmp nmi_section5   ;  5*3
-    jmp nmi_section6   ;  6*3
-    jmp nmi_section8   ;  7*3
-    jmp nmi_section7   ;  8*3
-    jmp nmi_section13  ;  9*3
-    jmp nmi_section10  ; 10*3
-    jmp nmi_section3   ; 11*3
-    jmp nmi_section11  ; 12*3
-    jmp nmi_section12  ; 13*3
+    jmp nmi_exit    ;  0*3
+    jmp nmi_part1   ;  1*3
+    jmp nmi_part4   ;  2*3
+    jmp nmi_part2   ;  3*3
+    jmp nmi_part9   ;  4*3
+    jmp nmi_part5   ;  5*3
+    jmp nmi_part6   ;  6*3
+    jmp nmi_part8   ;  7*3
+    jmp nmi_part7   ;  8*3
+    jmp nmi_part13  ;  9*3
+    jmp nmi_part10  ; 10*3
+    jmp nmi_part3   ; 11*3
+    jmp nmi_part11  ; 12*3
+    jmp nmi_part12  ; 13*3
 
 ; -----------------------------------------------------------------------------
 
-nmi_section1:
+nmi_part1:
     ; "Greetings! We come from..."
 
     lda flag1
@@ -69,16 +69,16 @@ nmi_section1:
     lda $94
     cmp #$e6
     beq +
-    jmp nmi_section1_exit
+    jmp nmi_part1_exit
 *   inc $95
     lda #$00
     sta $94
-nmi_section1_exit:
+nmi_part1_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section4:
+nmi_part4:
     ; horizontal color bars
 
     lda flag1
@@ -92,22 +92,22 @@ nmi_section4:
     lda $98
     cmp #$ff
     beq +
-    jmp nmi_section4_exit
+    jmp nmi_part4_exit
 *   inc $99
     lda $99
     cmp #$03
     beq +
-    jmp nmi_section4_exit
+    jmp nmi_part4_exit
 *   lda #4
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section4_exit:
+nmi_part4_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section2:
+nmi_part2:
     ; "wAMMA - Quantum Disco Brothers"
 
     lda flag1
@@ -121,22 +121,22 @@ nmi_section2:
     lda $ab
     cmp #$ff
     beq +
-    jmp nmi_section2_exit
+    jmp nmi_part2_exit
 *   inc $ac
     lda $ac
     cmp #$03
     beq +
-    jmp nmi_section2_exit
+    jmp nmi_part2_exit
 *   lda #11
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section2_exit:
+nmi_part2_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section9:
+nmi_part9:
     ; credits
 
     lda flag1
@@ -150,7 +150,7 @@ nmi_section9:
 
 ; -----------------------------------------------------------------------------
 
-nmi_section5:
+nmi_part5:
     ; the woman
 
     lda flag1
@@ -164,22 +164,22 @@ nmi_section5:
     lda $a9
     cmp #$ff
     beq +
-    jmp nmi_section5_exit
+    jmp nmi_part5_exit
 *   inc $aa
     lda $aa
     cmp #$04
     beq +
-    jmp nmi_section5_exit
+    jmp nmi_part5_exit
 *   lda #5
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section5_exit:
+nmi_part5_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section6:
+nmi_part6:
     ; "It is Friday..."
 
     lda flag1
@@ -193,7 +193,7 @@ nmi_section6:
 
 ; -----------------------------------------------------------------------------
 
-nmi_section8:
+nmi_part8:
     ; Bowser's spaceship
 
     lda flag1
@@ -207,22 +207,22 @@ nmi_section8:
     lda $0135
     cmp #$ff
     beq +
-    jmp nmi_section8_exit
+    jmp nmi_part8_exit
 *   inc $0136
     lda $0136
     cmp #$03
     beq +
-    jmp nmi_section8_exit
+    jmp nmi_part8_exit
 *   lda #3
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section8_exit:
+nmi_part8_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section7:
+nmi_part7:
     ; Coca Cola cans
 
     lda flag1
@@ -240,20 +240,20 @@ nmi_section7:
 *   inc $0140
 *   lda $0140
     cmp #$03
-    bne nmi_section7_exit
+    bne nmi_part7_exit
     lda $013f
     cmp #$ae
-    bne nmi_section7_exit
+    bne nmi_part7_exit
     lda #6
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section7_exit:
+nmi_part7_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section13:
+nmi_part13:
     ; full-screen horizontal color bars after "game over - continue?"; the
     ; demo freezes soon afterwards
 
@@ -272,17 +272,17 @@ nmi_section13:
     lda $0142
     cmp #$0e
     beq +
-    jmp nmi_section13_exit
+    jmp nmi_part13_exit
 *   lda #0
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section13_exit:
+nmi_part13_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section10:
+nmi_part10:
     ; checkered wavy animation
 
     lda flag1
@@ -300,20 +300,20 @@ nmi_section10:
 *   inc $0144
 *   lda $0144
     cmp #$02
-    bne nmi_section10_exit
+    bne nmi_part10_exit
     lda $0143
     cmp #$af
-    bne nmi_section10_exit
+    bne nmi_part10_exit
     lda #12
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section10_exit:
+nmi_part10_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section3:
+nmi_part3:
     ; red&purple gradient
 
     lda flag1
@@ -327,22 +327,22 @@ nmi_section3:
     lda $0145
     cmp #$ff
     beq +
-    jmp nmi_section3_exit
+    jmp nmi_part3_exit
 *   inc $0146
     lda $0146
     cmp #$03
     beq +
-    jmp nmi_section3_exit
+    jmp nmi_part3_exit
 *   lda #1
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section3_exit:
+nmi_part3_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section11:
+nmi_part11:
     ; greets
 
     lda flag1
@@ -360,20 +360,20 @@ nmi_section11:
 *   inc $0150
 *   lda $0150
     cmp #$03
-    bne nmi_section11_exit
+    bne nmi_part11_exit
     lda $014f
     cmp #$96
-    bne nmi_section11_exit
+    bne nmi_part11_exit
     lda #13
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section11_exit:
+nmi_part11_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------
 
-nmi_section12:
+nmi_part12:
     ; "game over - continue?"
 
     lda flag1
@@ -390,15 +390,15 @@ nmi_section12:
 *   inc $0152
 *   lda $0152
     cmp #$0a
-    bne nmi_section12_exit
+    bne nmi_part12_exit
     lda $0151
     cmp #$a0
-    bne nmi_section12_exit
+    bne nmi_part12_exit
     lda #9
-    sta nmi_task
+    sta demo_part
     lda #0
     sta flag1
-nmi_section12_exit:
+nmi_part12_exit:
     jmp nmi_exit
 
 ; -----------------------------------------------------------------------------

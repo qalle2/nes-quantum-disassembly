@@ -34,9 +34,9 @@ init:
     `write_ppu_data $39  ; light yellow
     `reset_ppu_addr
 
-    ; the demo section to run
+    ; the demo part to run
     lda #0
-    sta nmi_task
+    sta demo_part
 
     lda #%00000000
     sta ppu_ctrl
@@ -68,8 +68,8 @@ init:
     lda #%00011110
     sta ppu_mask
 
-*   lda nmi_task
-    cmp #9  ; last section?
+*   lda demo_part
+    cmp #9  ; last part?
     bne +
     lda #$0d
     sta dmc_addr
@@ -805,8 +805,8 @@ sub29_09:
     jmp sub29_11
 
 sub29_10:
-    lda #2  ; 2nd section
-    sta nmi_task
+    lda #2  ; 2nd part
+    sta demo_part
     lda #0
     sta flag1
     jmp sub29_11
@@ -1139,8 +1139,8 @@ sub31_2:
     lda #$00
     sta $a3
 *   jsr sub27
-    lda #2  ; 2nd section
-    sta nmi_task
+    lda #2  ; 2nd part
+    sta demo_part
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1837,8 +1837,8 @@ sub41:
     sta $a3
 
 sub41_01:
-    lda #3  ; 9th section
-    sta nmi_task
+    lda #3  ; 9th part
+    sta demo_part
 
     `set_ppu_addr vram_palette+0*4
 
@@ -1919,8 +1919,8 @@ sub41_jump_table:
     jmp sub41_14
 
 sub41_06:
-    lda #10  ; 10th section
-    sta nmi_task
+    lda #10  ; 10th part
+    sta demo_part
     lda #0
     sta flag1
     jmp $ea7e
@@ -2420,8 +2420,8 @@ sub43_1:
     jmp ++
 *   lda #0
     sta flag1
-    lda #7  ; 7th section
-    sta nmi_task
+    lda #7  ; 7th part
+    sta demo_part
 
 *   `set_ppu_addr vram_name_table0+27*32+1
 
@@ -3051,8 +3051,8 @@ sub49:
     jsr update_palette
     lda #$00
     sta $a3
-*   lda #12  ; 11th section
-    sta nmi_task
+*   lda #12  ; 11th part
+    sta demo_part
 
     lda #%10010000
     sta ppu_ctrl
@@ -3521,8 +3521,8 @@ sub55:
     jmp sub55_1
 *   lda #0
     sta flag1
-    lda #7  ; 7th section
-    sta nmi_task
+    lda #7  ; 7th part
+    sta demo_part
 
 sub55_1:
     lda #>[vram_name_table0+19*32+1]

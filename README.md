@@ -47,7 +47,7 @@ Notes:
 Part 1: "GREETINGS! WE COME FROM..."
 
 ![](shot/02.png)
-Part 2: "wAMMA - Quantum Disco Brothers"
+Part 2: "wAMMA - QUANTUM DISCO BROTHERS"
 
 ![](shot/03.png)
 Part 3: red&purple gradient

@@ -44,40 +44,40 @@ Notes:
 (Screenshots from FCEUX in PAL mode.)
 
 ![](shot/01.png)
-"Greetings! We come from..."
+Part 1: "GREETINGS! WE COME FROM..."
 
 ![](shot/02.png)
-"wAMMA - Quantum Disco Brothers"
+Part 2: "wAMMA - Quantum Disco Brothers"
 
 ![](shot/03.png)
-red&purple gradient
+Part 3: red&purple gradient
 
 ![](shot/04.png)
-horizontal color bars
+Part 4: horizontal color bars
 
 ![](shot/05.png)
-the woman
+Part 5: a woman
 
 ![](shot/06.png)
-"It is Friday..."
+Part 6: "IT IS FRIDAY..."
 
 ![](shot/07.png)
-Coca Cola cans
+Part 7: Coca Cola cans
 
 ![](shot/08.png)
-Bowser's spaceship
+Part 8: Bowser's spaceship
 
 ![](shot/09.png)
-credits
+Part 9: credits
 
 ![](shot/10.png)
-checkered wavy animation
+Part 10: checkered wavy animation
 
 ![](shot/11.png)
-greets
+Part 11: "GREETS TO ALL NINTENDAWGS"
 
 ![](shot/12.png)
-"game over - continue?"
+Part 12: "GAME OVER - CONTINUE?"
 
 ## FCEUX Code/Data Log - PRG ROM
 I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:

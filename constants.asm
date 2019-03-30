@@ -30,6 +30,7 @@
     .alias temp1     $01
     .alias flag1     $02  ; flag used in NMI? (seems to always be 0 or 1)
     .alias ptr1      $03  ; pointer (2 bytes)
+    .alias loopcnt   $9b  ; loop counter (may have other uses)
     .alias ptr2      $c8  ; pointer (2 bytes)
     .alias ptr3      $ce  ; pointer (2 bytes)
     .alias ptr4      $d0  ; pointer (2 bytes)

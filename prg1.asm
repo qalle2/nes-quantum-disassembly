@@ -98,7 +98,7 @@ init_graphics_and_sound:
     ; hide all sprites (set Y position outside screen)
     ldx #0
 *   lda #245
-    sta sprite_page,x
+    sta sprite_page+sprite_y,x
     `inx4
     bne -
     rts
@@ -191,7 +191,8 @@ sub19_loop1:
     adc #$55
     bcc +
 *   sta $86
-    `inc_lda $87
+    inc $87
+    lda $87
     cmp $88
     bne sub19_loop1
 
@@ -289,32 +290,51 @@ sub22_loop:   ; start outer loop
     lda #$00
     sta $9a
 
-*   lda $9c       ; start inner loop
+*   ; start inner loop
+    ; counter: X = [0, 8, ..., 56]
+
+    ; update sprite at offset [$a8]:
+    ;     [$9c]+[$a7] -> sprite tile
+    ;     X+[$a5]     -> sprite X
+    ;     [$9b]+[$a6] -> sprite Y
+    ;     3           -> sprite subpalette
+
+    lda $9c
     clc
     adc $a7
     ldy $a8
-    sta sprite_page+1,y
+    sta sprite_page+sprite_tile,y
+
     txa
     adc $a5
     ldy $a8
-    sta sprite_page+3,y
+    sta sprite_page+sprite_x,y
+
     lda $9b
     clc
     adc $a6
-
     ldy $a8
-    sta sprite_page,y
+    sta sprite_page+sprite_y,y
 
-    lda #$03
+    lda #%00000011
     ldy $a8
-    sta sprite_page+2,y
+    sta sprite_page+sprite_attr,y
+
+    ; [$9a] += 4
     lda $9a
     clc
     adc #4
     sta $9a
+
+    ; [$9c] += 1
     inc $9c
+
+    ; Y+4 -> [$a8]
     `iny4
     sty $a8
+
+    ; X += 8
+    ; loop while less than 64
     txa
     clc
     adc #8
@@ -322,6 +342,8 @@ sub22_loop:   ; start outer loop
     cpx #64
     bne -
 
+    ; [$9b] += 8
+    ; loop while less than 16
     lda $9b
     clc
     adc #8
@@ -355,21 +377,21 @@ sub23_loop:   ; start outer loop
     clc
     adc $a7
     ldy $a8
-    sta sprite_page+1,y
+    sta sprite_page+sprite_tile,y
     txa
     adc $a5
     ldy $a8
-    sta sprite_page+3,y
+    sta sprite_page+sprite_x,y
     lda $9b
     clc
     adc $a6
 
     ldy $a8
-    sta sprite_page,y
+    sta sprite_page+sprite_y,y
 
     lda #$02
     ldy $a8
-    sta sprite_page+2,y
+    sta sprite_page+sprite_attr,y
     lda $9a
     clc
     adc #4
@@ -418,21 +440,21 @@ sub24_loop:   ; start outer loop
     clc
     adc $a7
     ldy $a8
-    sta sprite_page+1,y
+    sta sprite_page+sprite_tile,y
     txa
     adc $a5
     ldy $a8
-    sta sprite_page+3,y
+    sta sprite_page+sprite_x,y
     lda $9b
     clc
     adc $a6
 
     ldy $a8
-    sta sprite_page,y
+    sta sprite_page+sprite_y,y
 
     lda #$02
     ldy $a8
-    sta sprite_page+2,y
+    sta sprite_page+sprite_attr,y
     lda $9a
     clc
     adc #4
@@ -481,20 +503,20 @@ sub25_loop:
 *   lda #$e1
     clc
     adc $9b
-    sta sprite_page,x
+    sta sprite_page+sprite_y,x
     sta $0154,y
     lda $9b
     sta $016a,y
     lda #$01
     sta $0180,y
     lda table10,y
-    sta sprite_page+1,x
+    sta sprite_page+sprite_tile,x
     lda #$00
-    sta sprite_page+2,x
+    sta sprite_page+sprite_attr,x
     lda $9a
     clc
     adc #40
-    sta sprite_page+3,x
+    sta sprite_page+sprite_x,x
 
 sub25_1:
     `inx4
@@ -533,7 +555,8 @@ sub26:
     stx ppu_data
     inx
     stx ppu_data
-    `inc_lda $90
+    inc $90
+    lda $90
     cmp #$10
     bne -
 
@@ -553,7 +576,8 @@ sub26:
     stx ppu_data
     inx
     stx ppu_data
-    `inc_lda $90
+    inc $90
+    lda $90
     cmp #$10
     bne -
 
@@ -573,10 +597,10 @@ sub27:
     asl
     tay
 
-    lda sprite_page+45*4+0,y
+    lda sprite_page+45*4+sprite_y,y
     clc
     sbc table46,x
-    sta sprite_page+45*4+0,y
+    sta sprite_page+45*4+sprite_y,y
 
     dex
     cpx #$ff
@@ -595,16 +619,16 @@ sub28:
     tay
 
     lda table45,x
-    sta sprite_page+45*4+0,y
+    sta sprite_page+45*4+sprite_y,y
 
     lda table47,x
-    sta sprite_page+45*4+1,y
+    sta sprite_page+45*4+sprite_tile,y
 
     lda #%00000011
-    sta sprite_page+45*4+2,y
+    sta sprite_page+45*4+sprite_attr,y
 
     lda table44,x
-    sta sprite_page+45*4+3,y
+    sta sprite_page+45*4+sprite_x,y
 
     lda table46,x
     sta $011e,x
@@ -694,7 +718,8 @@ sub29_02:
     lda $96
     sta ppu_scroll
 
-    `dec_lda $96
+    dec $96
+    lda $96
     cmp #$f0
     bcs +
     jmp sub29_11
@@ -799,82 +824,82 @@ sub29_11:
     lda table19,x
     clc
     adc #$58
-    sta sprite_page+0*4+0
+    sta sprite_page+0*4+sprite_y
 
     lda table20,x
     clc
     adc #$6e
-    sta sprite_page+0*4+3
+    sta sprite_page+0*4+sprite_x
 
     lda table19,x
     clc
     adc #$58
-    sta sprite_page+1*4+0
+    sta sprite_page+1*4+sprite_y
 
     lda table20,x
     clc
     adc #$76
-    sta sprite_page+1*4+3
+    sta sprite_page+1*4+sprite_x
 
     lda table19,x
     clc
     adc #$60
-    sta sprite_page+2*4+0
+    sta sprite_page+2*4+sprite_y
 
     lda table20,x
     clc
     adc #$6e
-    sta sprite_page+2*4+3
+    sta sprite_page+2*4+sprite_x
 
     lda table19,x
     clc
     adc #$60
-    sta sprite_page+3*4+0
+    sta sprite_page+3*4+sprite_y
 
     lda table20,x
     clc
     adc #$76
-    sta sprite_page+3*4+3
+    sta sprite_page+3*4+sprite_x
 
     lda table20,x
     clc
     adc #$58
-    sta sprite_page+4*4+0
+    sta sprite_page+4*4+sprite_y
 
     lda table19,x
     clc
     adc #$6e
-    sta sprite_page+4*4+3
+    sta sprite_page+4*4+sprite_x
 
     lda table20,x
     clc
     adc #$58
-    sta sprite_page+5*4+0
+    sta sprite_page+5*4+sprite_y
 
     lda table19,x
     clc
     adc #$76
-    sta sprite_page+5*4+3
+    sta sprite_page+5*4+sprite_x
 
     lda table20,x
     clc
     adc #$60
-    sta sprite_page+6*4+0
+    sta sprite_page+6*4+sprite_y
 
     lda table19,x
     clc
     adc #$6e
-    sta sprite_page+6*4+3
+    sta sprite_page+6*4+sprite_x
 
     lda table20,x
     clc
     adc #$60
-    sta sprite_page+7*4+0
+    sta sprite_page+7*4+sprite_y
 
     lda table19,x
     clc
     adc #$75
-    sta sprite_page+7*4+3
+    sta sprite_page+7*4+sprite_x
 
     jmp sub29_13
 
@@ -885,29 +910,29 @@ sub29_12:
     ; 2, 6: down left
     ; 3, 7: down right
 
-    dec sprite_page+0*4+0
-    dec sprite_page+0*4+3
+    dec sprite_page+0*4+sprite_y
+    dec sprite_page+0*4+sprite_x
 
-    dec sprite_page+1*4+0
-    inc sprite_page+1*4+3
+    dec sprite_page+1*4+sprite_y
+    inc sprite_page+1*4+sprite_x
 
-    inc sprite_page+2*4+0
-    dec sprite_page+2*4+3
+    inc sprite_page+2*4+sprite_y
+    dec sprite_page+2*4+sprite_x
 
-    inc sprite_page+3*4+0
-    inc sprite_page+3*4+3
+    inc sprite_page+3*4+sprite_y
+    inc sprite_page+3*4+sprite_x
 
-    dec sprite_page+4*4+0
-    dec sprite_page+4*4+3
+    dec sprite_page+4*4+sprite_y
+    dec sprite_page+4*4+sprite_x
 
-    dec sprite_page+5*4+0
-    inc sprite_page+5*4+3
+    dec sprite_page+5*4+sprite_y
+    inc sprite_page+5*4+sprite_x
 
-    inc sprite_page+6*4+0
-    dec sprite_page+6*4+3
+    inc sprite_page+6*4+sprite_y
+    dec sprite_page+6*4+sprite_x
 
-    inc sprite_page+7*4+0
-    inc sprite_page+7*4+3
+    inc sprite_page+7*4+sprite_y
+    inc sprite_page+7*4+sprite_x
 
 sub29_13:
     jsr sub27
@@ -1018,15 +1043,15 @@ sub31:
     lda table24,x
     clc
     adc $012f
-    sta sprite_page+23*4+0,y
+    sta sprite_page+23*4+sprite_y,y
     lda table25,x
-    sta sprite_page+23*4+1,y
+    sta sprite_page+23*4+sprite_tile,y
     lda table26,x
-    sta sprite_page+23*4+2,y
+    sta sprite_page+23*4+sprite_attr,y
     lda table27,x
     clc
     adc $012e
-    sta sprite_page+23*4+3,y
+    sta sprite_page+23*4+sprite_x,y
 
     cpx #0
     beq +
@@ -1034,22 +1059,22 @@ sub31:
     jmp -
 
 *   lda #129
-    sta sprite_page+24*4+0
+    sta sprite_page+24*4+sprite_y
     lda #$e5
-    sta sprite_page+24*4+1
+    sta sprite_page+24*4+sprite_tile
     lda #%00000001
-    sta sprite_page+24*4+2
+    sta sprite_page+24*4+sprite_attr
     lda #214
-    sta sprite_page+24*4+3
+    sta sprite_page+24*4+sprite_x
 
     lda #97
-    sta sprite_page+25*4+0
+    sta sprite_page+25*4+sprite_y
     lda #$f0
-    sta sprite_page+25*4+1
+    sta sprite_page+25*4+sprite_tile
     lda #%00000010
-    sta sprite_page+25*4+2
+    sta sprite_page+25*4+sprite_attr
     lda #230
-    sta sprite_page+25*4+3
+    sta sprite_page+25*4+sprite_x
 
     ; update fourth color of first background subpalette
     `set_ppu_addr vram_palette+0*4+3
@@ -1075,7 +1100,7 @@ sub31_loop:
     adc $016a,x
     sta $9a
     lda $0154,x
-    sta sprite_page,y
+    sta sprite_page+sprite_y,y
     cmp $9a
     bcc +
     txa
@@ -1105,7 +1130,8 @@ sub31_2:
     lda $ab
     cmp #$c8
     bcc +
-    `inc_lda $a3
+    inc $a3
+    lda $a3
     cmp #$04
     bne +
     jsr sub20
@@ -1154,7 +1180,8 @@ sub33:
     clc
     adc #$96
     sta $8b
-    `dec_ldx $8a
+    dec $8a
+    ldx $8a
     lda table20,x
     sta $8d
 
@@ -1173,14 +1200,16 @@ sub33_loop:
 
     `set_ppu_addr_via_x vram_palette+0*4
 
-    `inc_lda $8c
+    inc $8c
+    lda $8c
     cmp #$05
     beq +
     jmp ++
 *   inc $89
     lda #$00
     sta $8c
-*   `inc_lda $89
+*   inc $89
+    lda $89
     sbc $8a
     adc $8b
     tax
@@ -1576,7 +1605,8 @@ sub38:
 sub39:
 
     dec $8c
-    `inc_lda $8b
+    inc $8b
+    lda $8b
     cmp #$02
     bne +
 
@@ -1617,7 +1647,8 @@ sub39_loop:  ; start outer loop
     ldx $8a
     lda table22,x
     sta $9a
-    `dec_lda $89
+    dec $89
+    lda $89
     clc
     adc $8a
     tax
@@ -1690,7 +1721,8 @@ sub40_loop2:  ; start middle loop
     bne sub40_loop1
     lda #$00
     sta $9e
-    `inc_lda $9f
+    inc $9f
+    lda $9f
     cmp #$03
     bne sub40_loop1
 
@@ -1736,7 +1768,8 @@ sub40_loop5:  ; start outer loop
 
     `reset_ppu_addr
 
-    `inc_lda $a0
+    inc $a0
+    lda $a0
     cmp #$02
     bne +
     jmp sub40_2
@@ -1794,7 +1827,8 @@ sub41:
     lda $a1
     cmp #$8c
     bcc sub41_01
-    `inc_lda $a3
+    inc $a3
+    lda $a3
     cmp #$04
     bne sub41_01
     jsr sub20
@@ -1837,12 +1871,14 @@ sub41_03:
     `write_ppu_data $02  ; dark blue
 
 sub41_04:
-    `inc_lda $89
+    inc $89
+    lda $89
     sta ppu_scroll
     ldx $89
     lda table20,x
     sta ppu_scroll
-    `inc_lda $a1
+    inc $a1
+    lda $a1
     cmp #$b4
     beq +
     jmp sub41_05
@@ -2136,14 +2172,14 @@ sub43:
 
 sub43_loop1:
     txa
-    sta sprite_page,y
+    sta sprite_page+sprite_y,y
 
     lda #$f0
     clc
     adc $8c
-    sta sprite_page+1,y
+    sta sprite_page+sprite_tile,y
     lda $014a
-    sta sprite_page+2,y
+    sta sprite_page+sprite_attr,y
     txa
     pha
     inc $89
@@ -2156,7 +2192,7 @@ sub43_loop1:
     lda table21,x
     clc
     adc #$c2
-    sta sprite_page+3,y
+    sta sprite_page+sprite_x,y
     pla
     tax
     `iny4
@@ -2164,7 +2200,8 @@ sub43_loop1:
     clc
     adc #8
     tax
-    `inc_lda $8d
+    inc $8d
+    lda $8d
     cmp #15
     beq +
     jmp ++
@@ -2188,14 +2225,14 @@ sub43_loop1:
 
 sub43_loop2:
     txa
-    sta sprite_page,y
+    sta sprite_page+sprite_y,y
 
     lda #$f0
     clc
     adc $8c
-    sta sprite_page+1,y
+    sta sprite_page+sprite_tile,y
     lda $014b
-    sta sprite_page+2,y
+    sta sprite_page+sprite_attr,y
     txa
     pha
     dec $89
@@ -2207,7 +2244,7 @@ sub43_loop2:
     lda table21,x
     clc
     adc #$c2
-    sta sprite_page+3,y
+    sta sprite_page+sprite_x,y
     pla
     tax
     `iny4
@@ -2215,7 +2252,8 @@ sub43_loop2:
     clc
     adc #8
     tax
-    `inc_lda $8c
+    inc $8c
+    lda $8c
     cmp #$10
     beq +
     jmp ++
@@ -2249,7 +2287,8 @@ sub43_loop2:
     cmp #$fa
     bne sub43_exit
 
-    `inc_lda $0149
+    inc $0149
+    lda $0149
     cmp #$02
     beq +
 
@@ -2367,13 +2406,15 @@ sub43_1:
     lda #%00010000
     sta ppu_ctrl
 
-    `inc_lda $8a
+    inc $8a
+    lda $8a
     cmp #8
     beq +
     jmp sub43_2
 *   lda #$00
     sta $8a
-    `inc_lda $8f
+    inc $8f
+    lda $8f
     cmp #$eb
     beq +
     jmp ++
@@ -2401,7 +2442,8 @@ sub43_1:
 
 sub43_2:
     `chr_bankswitch 2
-    `inc_ldx $89
+    inc $89
+    ldx $89
     lda table20,x
     clc
     sbc #30
@@ -2436,31 +2478,31 @@ sub43_2:
     sta ppu_scroll
 
     lda #215
-    sta sprite_page+0*4+0
+    sta sprite_page+0*4+sprite_y
     lda #$25
-    sta sprite_page+0*4+1
+    sta sprite_page+0*4+sprite_tile
     lda #%00000000
-    sta sprite_page+0*4+2
+    sta sprite_page+0*4+sprite_attr
     lda #248
-    sta sprite_page+0*4+3
+    sta sprite_page+0*4+sprite_x
 
     lda #207
-    sta sprite_page+1*4+0
+    sta sprite_page+1*4+sprite_y
     lda #$25
-    sta sprite_page+1*4+1
+    sta sprite_page+1*4+sprite_tile
     lda #%00000000
-    sta sprite_page+1*4+2
+    sta sprite_page+1*4+sprite_attr
     lda #248
-    sta sprite_page+1*4+3
+    sta sprite_page+1*4+sprite_x
 
     lda #223
-    sta sprite_page+2*4+0
+    sta sprite_page+2*4+sprite_y
     lda #$27
-    sta sprite_page+2*4+1
+    sta sprite_page+2*4+sprite_tile
     lda #%00000000
-    sta sprite_page+2*4+2
+    sta sprite_page+2*4+sprite_attr
     lda #248
-    sta sprite_page+2*4+3
+    sta sprite_page+2*4+sprite_x
 
     ldx data2
 *   txa  ; start loop
@@ -2471,7 +2513,7 @@ sub43_2:
     lda table28,x
     clc
     adc #$9b
-    sta sprite_page+23*4+0,y
+    sta sprite_page+23*4+sprite_y,y
 
     txa
     pha
@@ -2484,34 +2526,37 @@ sub43_2:
     lda table29,x
     clc
     adc $9a
-    sta sprite_page+23*4+1,y
+    sta sprite_page+23*4+sprite_tile,y
 
     lda #%00000010
-    sta sprite_page+23*4+2,y
+    sta sprite_page+23*4+sprite_attr,y
 
     lda table30,x
     clc
     adc $0139
-    sta sprite_page+23*4+3,y
+    sta sprite_page+23*4+sprite_x,y
 
     cpx #0
     beq +
     dex
     jmp -
 
-*   `inc_lda $013a
+*   inc $013a
+    lda $013a
     cmp #$06
     bne +
     inc $0139
     inc $0139
     lda #$00
     sta $013a
-*   `inc_lda $0138
+*   inc $0138
+    lda $0138
     cmp #$0c
     bne +
     lda #$00
     sta $0138
-    `inc_lda $0137
+    inc $0137
+    lda $0137
     cmp #$04
     bne +
     lda #$00
@@ -2638,11 +2683,11 @@ sub44_loop2:  ; start outer loop
     tay
 
     lda table41,x
-    sta sprite_page+48*4+0,y
+    sta sprite_page+48*4+sprite_y,y
     lda table43,x
-    sta sprite_page+48*4+1,y
+    sta sprite_page+48*4+sprite_tile,y
     lda table40,x
-    sta sprite_page+48*4+3,y
+    sta sprite_page+48*4+sprite_x,y
 
     lda table42,x
     sta $011e,x
@@ -2662,9 +2707,9 @@ sub44_loop2:  ; start outer loop
     tay
 
     lda table35,x
-    sta sprite_page+1*4+1,y
+    sta sprite_page+1*4+sprite_tile,y
     lda table36,x
-    sta sprite_page+1*4+2,y
+    sta sprite_page+1*4+sprite_attr,y
 
     cpx #0
     beq +
@@ -2690,7 +2735,8 @@ sub45:
 
     `sprite_dma
 
-    `inc_ldx $0100
+    inc $0100
+    ldx $0100
     lda table19,x
     adc #$7a
     sta $0111
@@ -2721,13 +2767,13 @@ sub45_2:
     bne sub45_loop1
 
     lda $0108
-    sta sprite_page+1*4+1
+    sta sprite_page+1*4+sprite_tile
     lda $0109
-    sta sprite_page+16*4+1
+    sta sprite_page+16*4+sprite_tile
     lda $010a
-    sta sprite_page+17*4+1
+    sta sprite_page+17*4+sprite_tile
     lda $010b
-    sta sprite_page+13*4+1
+    sta sprite_page+13*4+sprite_tile
 
     ldx data4
 *   txa  ; start loop
@@ -2738,12 +2784,12 @@ sub45_2:
     lda table34,x
     clc
     adc $0111
-    sta sprite_page+1*4+0,y
+    sta sprite_page+1*4+sprite_y,y
 
     lda table37,x
     clc
     adc $0110
-    sta sprite_page+1*4+3,y
+    sta sprite_page+1*4+sprite_x,y
 
     cpx #0
     beq +
@@ -2755,7 +2801,8 @@ sub45_2:
     cmp table38,x
     bne sub45_3
 
-    `inc_lda $0101
+    inc $0101
+    lda $0101
     cpx data6
     bne +
     lda #$00
@@ -2802,13 +2849,13 @@ sub45_4:
     tay
 
     lda $0116,x
-    sta sprite_page+18*4+0,y
+    sta sprite_page+18*4+sprite_y,y
     lda table39,x
-    sta sprite_page+18*4+1,y
+    sta sprite_page+18*4+sprite_tile,y
     lda #$2b
-    sta sprite_page+18*4+2,y
+    sta sprite_page+18*4+sprite_attr,y
     lda $0112,x
-    sta sprite_page+18*4+3,y
+    sta sprite_page+18*4+sprite_x,y
 
     dex
     cpx #255
@@ -2820,10 +2867,10 @@ sub45_4:
     asl
     tay
 
-    lda sprite_page+48*4+3,y
+    lda sprite_page+48*4+sprite_x,y
     clc
     sbc table42,x
-    sta sprite_page+48*4+3,y
+    sta sprite_page+48*4+sprite_x,y
 
     dex
     cpx #255
@@ -2996,7 +3043,8 @@ sub49:
     lda $014f
     cmp #$00
     bcc +
-    `inc_lda $a3
+    inc $a3
+    lda $a3
     cmp #$04
     bne +
     jsr sub20
@@ -3179,7 +3227,8 @@ sub51_2:
     lda $013e
     cmp #$01
     beq sub51_3
-    `inc_lda $013c
+    inc $013c
+    lda $013c
     cmp #$c8
     beq +
     jmp sub51_3
@@ -3382,13 +3431,13 @@ sub54:
     tay
 
     lda table49,x
-    sta sprite_page+48*4+0,y
+    sta sprite_page+48*4+sprite_y,y
     lda table51,x
-    sta sprite_page+48*4+1,y
+    sta sprite_page+48*4+sprite_tile,y
     lda #%00000010
-    sta sprite_page+48*4+2,y
+    sta sprite_page+48*4+sprite_attr,y
     lda table48,x
-    sta sprite_page+48*4+3,y
+    sta sprite_page+48*4+sprite_x,y
 
     lda table50,x
     sta $011e,x
@@ -3411,7 +3460,8 @@ sub54:
 
 sub55:
 
-    `inc_ldx $0100
+    inc $0100
+    ldx $0100
     lda table21,x
     sta $9a
     lda table22,x
@@ -3428,11 +3478,11 @@ sub55:
     lda table49,x
     clc
     adc $9a
-    sta sprite_page+48*4+0,y
-    lda sprite_page+48*4+3,y
+    sta sprite_page+48*4+sprite_y,y
+    lda sprite_page+48*4+sprite_x,y
     clc
     adc table50,x
-    sta sprite_page+48*4+3,y
+    sta sprite_page+48*4+sprite_x,y
 
     dex
     cpx #7
@@ -3446,24 +3496,26 @@ sub55:
     lda table49,x
     clc
     adc $9b
-    sta sprite_page+48*4+0,y
-    lda sprite_page+48*4+3,y
+    sta sprite_page+48*4+sprite_y,y
+    lda sprite_page+48*4+sprite_x,y
     clc
     adc table50,x
-    sta sprite_page+48*4+3,y
+    sta sprite_page+48*4+sprite_x,y
 
     dex
     cpx #255
     bne -
 
     `chr_bankswitch 0
-    `inc_lda $8a
+    inc $8a
+    lda $8a
     cmp #$08
     beq +
     jmp sub55_2
 *   lda #$00
     sta $8a
-    `inc_lda $8f
+    inc $8f
+    lda $8f
     cmp #$eb
     beq +
     jmp sub55_1
@@ -3494,7 +3546,8 @@ sub55_1:
     `reset_ppu_addr
 
 sub55_2:
-    `inc_ldx $89
+    inc $89
+    ldx $89
     lda $8a
     sta ppu_scroll
     lda table20,x

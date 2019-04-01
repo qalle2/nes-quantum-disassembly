@@ -60,7 +60,7 @@ nmi_part1:
     jmp ++
 *   lda #1
     sta flag1
-*   jsr sub29
+*   jsr sub19
     jsr sub12
     inc $93
     inc $93
@@ -114,8 +114,8 @@ nmi_part2:
     cmp #0
     beq +
     jmp ++
-*   jsr sub30
-*   jsr sub31
+*   jsr sub20
+*   jsr sub21
     jsr sub12
     inc $ab
     lda $ab
@@ -349,7 +349,7 @@ nmi_part11:
     cmp #0
     beq +
     jmp ++
-*   jsr sub48
+*   jsr greets_screen
 *   jsr sub49
     jsr sub12
     inc $014f

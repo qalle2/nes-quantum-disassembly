@@ -23,4 +23,3 @@ echo *** Verifying iNES file ***
 fc /b quantum-original.nes "quantum_(e).nes"
 
 :end
-

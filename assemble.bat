@@ -7,9 +7,10 @@ goto end
 
 :assemble
 echo *** Assembling iNES file ***
-ophis -v -o quantum.nes quantum.asm
+rem The "(e)" in the filename causes FCEUX to start the ROM in PAL mode.
+ophis -v -o "quantum_(e).nes" quantum.asm
 if errorlevel 1 goto end
-if not exist quantum.nes goto end
+if not exist "quantum_(e).nes" goto end
 echo.
 
 if exist quantum-original.nes goto verify
@@ -19,6 +20,6 @@ goto end
 
 :verify
 echo *** Verifying iNES file ***
-fc /b quantum-original.nes quantum.nes
+fc /b quantum-original.nes "quantum_(e).nes"
 
 :end

@@ -1,6 +1,7 @@
 ; first half of PRG ROM
 
 ; -----------------------------------------------------------------------------
+; Unaccessed block
 
     jmp sub12
     jmp sub13
@@ -36,7 +37,9 @@
 
 sub01:
     ; Args: A = pointer low, X = pointer high
-    ; Called by: $8000, sub13
+    ; Reads indirect_data1 via ptr4
+    ; Called by: sub13
+    ; Only called once (at frame 3 with indirect_data1 as argument).
 
     sta ptr4+0
     stx ptr4+1
@@ -64,32 +67,35 @@ sub01:
     iny
     lda (ptr4),y
     sta $d6
-
-    ; [ptr4 + 8...12] -> $03e0...$03e4
+    ; [ptr4 + 8] -> $03e0
     iny
     lda (ptr4),y
     sta $03e0
+    ; [ptr4 + 9] -> $03e1
     iny
     lda (ptr4),y
     sta $03e1
+    ; [ptr4 + 10] -> $03e2
     iny
     lda (ptr4),y
     sta $03e2
+    ; [ptr4 + 11] -> $03e3
     iny
     lda (ptr4),y
     sta $03e3
+    ; [ptr4 + 12] -> $03e4
     iny
     lda (ptr4),y
     sta $03e4
 
-    ; [$80] + 16 -> $cb
+    ; 144 -> $cb
     `iny4
     tya
     clc
-    adc #$80
+    adc #128
     sta $cb
 
-    ; ptr4 + [$cb] -> ptr5
+    ; ptr4 + $cb -> ptr5
     lda ptr4+0
     adc $cb
     sta ptr5+0
@@ -97,6 +103,8 @@ sub01:
     adc #0
     sta ptr5+1
 
+    ; $cb += $d6 * 4
+    ; carry -> $cc
     lda $d6
     asl
     asl
@@ -150,7 +158,8 @@ sub01:
     ; 355-358, 35a-35d, 35f-362, 394-39f, 3a4-3a7
     lda #$00
     ldx #3
-*   sta $0300,x  ; start loop
+clear_loop:
+    sta $0300,x
     sta $dc,x
     sta $0308,x
     sta $e9,x
@@ -178,7 +187,7 @@ sub01:
     sta $035f,x
     sta $039c,x
     dex
-    bpl -
+    bpl clear_loop
 
     sta $d4
     sta $d5
@@ -192,6 +201,7 @@ sub01:
 ; -----------------------------------------------------------------------------
 
 sub02:
+    ; Called by: sub05
 
     cmp #0
     bpl +
@@ -209,6 +219,8 @@ sub02:
 ; -----------------------------------------------------------------------------
 
 sub03:
+
+    ; Called by: sub06, sub07, sub08, sub09
 
     cpx #3
     beq sub03_1
@@ -245,6 +257,8 @@ sub03_2:
 ; -----------------------------------------------------------------------------
 
 sub04:
+
+    ; Called by: sub11, sub12
 
     lda $d3
     beq sub04_4
@@ -319,6 +333,8 @@ sub04_4:
 ; -----------------------------------------------------------------------------
 
 sub05:
+
+    ; Called by: sub04
 
     lda $035a,x
     cmp #$0a
@@ -410,6 +426,8 @@ sub05_6:
 
 sub06:
 
+    ; Called by: sub05, sub07
+
     bmi sub06_1
     dey
     bmi sub06_2
@@ -492,6 +510,8 @@ sub06_5:
 ; -----------------------------------------------------------------------------
 
 sub07:
+
+    ; Called by: sub04
 
     jsr sub08
     jmp sub07_3
@@ -632,6 +652,8 @@ sub07_8:
 
 sub08:
 
+    ; Called by: sub07, sub09
+
     lda $035a,x
     cmp #$08
     beq +
@@ -643,7 +665,7 @@ sub08:
     bne sub08_1
     rts
 
-*   jmp sub10
+*   jmp unaccessed01
 sub08_1:
     lda $039c,x
     ldy $03a8,x
@@ -728,6 +750,8 @@ sub08_7:
 
 sub09:
 
+    ; Called by: sub08, sub11
+
     ldy $035a,x
     beq sub09_1
 
@@ -768,7 +792,7 @@ sub09_1:
 *   rts
 
 sub09_2:
-    jsr sub10
+    jsr unaccessed01
     lda $0308,x
     sta $cb
     lda $dc,x
@@ -778,23 +802,25 @@ sub09_3:
     jmp sub08_1
 
 ; -----------------------------------------------------------------------------
+; Unaccessed block ($855e-$85b0)
 
-sub10:
-
+unaccessed01:
     lda $035f,x
     beq +
     sta $0398,x
 *   sec
     lda $d2
-    beq sub10_01
-*   cmp #1
-    beq sub10_02  ; start loop
-    cmp #2
-    beq sub10_03
-    sbc #3
-    bne -
+    beq unaccessed01_01
 
-sub10_01:
+unaccessed01_loop:
+    cmp #1
+    beq unaccessed01_02
+    cmp #2
+    beq unaccessed01_03
+    sbc #3
+    bne unaccessed01_loop
+
+unaccessed01_01:
     ldy $e9,x
     lda word_lo-1,y
     sta $dc,x
@@ -802,7 +828,7 @@ sub10_01:
     sta $0308,x
     rts
 
-sub10_02:
+unaccessed01_02:
     lda $0398,x
     `lsr4
     clc
@@ -814,7 +840,7 @@ sub10_02:
     sta $0308,x
     rts
 
-sub10_03:
+unaccessed01_03:
     lda $0398,x
     and #%00001111
     clc
@@ -825,6 +851,11 @@ sub10_03:
     lda word_hi-1,y
     sta $0308,x
     rts
+
+; -----------------------------------------------------------------------------
+
+    ; Reads indirect_data1 via ptr6
+    ; Called by: ??
 
 sub10_04:
     lda $031c,x
@@ -865,7 +896,7 @@ sub10_06:
     iny
     sta $0344,x
     lda (ptr6),y
-    bmi sub10_07
+    bmi unaccessed02
     iny
     and #%01111111
     sta $cb
@@ -891,7 +922,10 @@ sub10_06:
     sta $0320,x
     jmp sub10_08
 
-sub10_07:
+; -----------------------------------------------------------------------------
+; Unaccessed block ($862d-$8651)
+
+unaccessed02:
     iny
     and #%01111111
     sta $cb
@@ -912,6 +946,8 @@ sub10_07:
     and #%00001111
     sta $0320,x
 
+; -----------------------------------------------------------------------------
+
 sub10_08:
     iny
     lda (ptr6),y
@@ -926,7 +962,7 @@ sub10_08:
     lda (ptr6),y
     tay
     and #%00001111
-    bcs sub10_09
+    bcs unaccessed03
     sta $0328,x
     tya
     `lsr4
@@ -936,7 +972,10 @@ sub10_08:
     sta $032c,x
     jmp sub10_10
 
-sub10_09:
+; -----------------------------------------------------------------------------
+; Unaccessed block ($8681-$86a1)
+
+unaccessed03:
     eor #%11111111
     clc
     adc #1
@@ -953,6 +992,8 @@ sub10_09:
     clc
     adc #1
     sta $032c,x
+
+; -----------------------------------------------------------------------------
 
 sub10_10:
     lda table02,x
@@ -1022,19 +1063,22 @@ sub10_16:
 ; -----------------------------------------------------------------------------
 
 sub11:
+    ; Reads indirect_data1 via ptr2, ptr3, ptr5
+    ; Called by: ??
 
     lda #$40
     sta $cd
 
-    ; clear $0350...$0363
+    ; clear $0350-$0363
     lda #$00
     ldx #4
-*   sta $0350,x  ; start loop
+sub11_loop1:
+    sta $0350,x
     sta $0355,x
     sta $035a,x
     sta $035f,x
     dex
-    bpl -
+    bpl sub11_loop1
 
     lda $d4
     bne +
@@ -1088,7 +1132,7 @@ sub11_01:
     sta $0308
 
     ldx #4
-sub11_loop1:
+sub11_loop2:
     lda $0364,x
     sta ptr2+0
     lda $0369,x
@@ -1131,7 +1175,7 @@ sub11_02:
 
 sub11_03:
     dex
-    bpl sub11_loop1
+    bpl sub11_loop2
 
 sub11_04:
     ldx #4
@@ -1263,7 +1307,7 @@ sub11_15:
 
 sub11_16:
     ldx #3
-sub11_loop2:
+sub11_loop3:
     ldy $e5,x
     bmi sub11_17
     dey
@@ -1276,7 +1320,7 @@ sub11_loop2:
 *   sty $e5,x
 sub11_17:
     dex
-    bpl sub11_loop2
+    bpl sub11_loop3
 
     lda apu_ctrl
     and #%00010000
@@ -1288,7 +1332,7 @@ sub11_17:
     sta apu_ctrl
 
     ldx #3
-sub11_loop3:
+sub11_loop4:
     jsr sub09
     cpx #$02
     beq sub11_18
@@ -1306,7 +1350,7 @@ sub11_loop3:
     sta pulse1_ctrl,y
 sub11_18:
     dex
-    bpl sub11_loop3
+    bpl sub11_loop4
 
     inc $039c
     inc $039d
@@ -1315,12 +1359,16 @@ sub11_18:
     inc $d4
     rts
 
+; -----------------------------------------------------------------------------
+; Unaccessed block ($8906-$8920)
+
     ldx #0
     ldy #16
-*   dex
-    bne -
+unaccessed04_loop:
+    dex
+    bne unaccessed04_loop
     dey
-    bne -
+    bne unaccessed04_loop
 
     dec $ff
     bpl +
@@ -1336,6 +1384,8 @@ sub11_18:
 
 sub12:
 
+    ; Called by: sub34, sub38, sub42, NMI
+
     bit $ff
     bmi +
     dec $ff
@@ -1343,6 +1393,7 @@ sub12:
     lda #$05
     sta $ff
     jmp sub12_exit
+
 *   jmp sub04
 sub12_exit:
     rts
@@ -1351,6 +1402,8 @@ sub12_exit:
 
 sub13:
 
+    ; Called by: init
+
     ldy #$ff
     dex
     beq +
@@ -1358,10 +1411,11 @@ sub13:
 *   sty $ff
     asl
     tay
+
     lda pointer_hi,y
     tax
     lda pointer_lo,y
-    jsr sub01
+    jsr sub01  ; A = pointer low, X = pointer high
     rts
 
 ; -----------------------------------------------------------------------------

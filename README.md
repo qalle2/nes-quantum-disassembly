@@ -3,36 +3,40 @@
 An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA.
 
 Notes:
+* The CHR ROM (graphics data) is **not** included.
 * This disassembly is at an **early stage**.
 * I have not been involved with wAMMA or in the making of this demo.
 * This project had an incorrect license for a short time by mistake.
 
 ## How to assemble
 * **Install [Ophis](http://michaelcmartin.github.io/Ophis/)** (a 6502 assembler for Windows/Linux/Mac).
-* **Download the original** *Quantum Disco Brothers* from somewhere (see *The original file* below).
-  * e.g. [scene.org file archive](http://files.scene.org/view/parties/2006/stream06/demo/quantum_disco_brothers_by_wamma.zip)
-  * **Extract** the file if it is compressed (`.zip`, `.7z`, etc.).
-  * **Rename** the file to `quantum-original.nes` (`assemble.bat` expects to find it).
-* **Extract the PRG ROM** data to `prg-original.bin` (`assemble.bat` expects to find it):
-  * **Either** use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -p prg-original.bin quantum-original.nes`
-  * &hellip; **or**, using a **hex editor**, copy 32,768 or `0x8000` bytes starting from offset 16 or `0x10` to a new file, `prg-original.bin`
-* **Extract the CHR ROM** data to `chr.bin` (`assemble.bat` expects to find it):
-  * **Either** use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -c chr.bin quantum-original.nes`
-  * &hellip; **or**, using a **hex editor**, copy 32,768 or `0x8000` bytes starting from offset 32,784 or `0x8010` to a new file, `chr.bin`
+* **Download the original** *Quantum Disco Brothers* ROM file:
+  * Locations:
+    * [scene.org file archive](http://files.scene.org/view/parties/2006/stream06/demo/quantum_disco_brothers_by_wamma.zip)
+  * If the file is compressed (extension `.zip`, `.7z`, `.rar`, etc.), **extract** it. (You can delete the compressed file afterwards.)
+  * The file should have the extension `.nes`.
+  * The size of the file should be 65,552 bytes.
+  * The MD5 hash of the file should be `2c932e9e8ae7859517905e2539565a89`.
+  * **Rename** the file to `quantum-original.nes`.
+* Copy the **PRG ROM** data and **CHR ROM** data from the original ROM to separate files:
+  * **Either** use my [ines-split](http://github.com/qalle2/ines-split)&hellip;
+    * `python ines_split.py -p prg-original.bin -c chr.bin quantum-original.nes`
+  * &hellip;**Or** use a **hex editor**:
+    * PRG ROM: copy 32,768 (`0x8000`) bytes starting from offset 16 (`0x10`) to a new file, `prg-original.bin`.
+    * CHR ROM: copy 32,768 (`0x8000`) bytes starting from offset 32,784 (`0x8010`) to a new file, `chr.bin`.
+  * `prg-original.bin` should have the MD5 hash `e75cbe84e8a735665b42b245c6aff959`.
+  * `chr.bin` should have the MD5 hash `8b2f42589e682cad6be6125ab5faee94`.
 * **Assemble**:
-  * **Either** run `assemble.bat` (only works on Windows; also compares the assembled files to the originals)&hellip;
-  * &hellip;**or** assemble manually: `ophis -v -o "quantum_(e).nes" quantum.asm` (the `(e)` in the filename causes FCEUX to start the ROM in PAL mode)
-
-## The original file
-* names:
-  * `Quantum Disco Brothers by wAMMA (PD) (PAL).nes`
-  * `quantum_disco_brothers_by_wAMMA.nes`
-  * etc.
-* size: 65,552 bytes
-* hashes:
-  * MD5: `2c932e9e8ae7859517905e2539565a89`
-  * SHA-1: `b053482f9ced7a1835fe961cc2373ff9521b74a2`
-  * SHA-256: `53582b185aaef646354b1ba15a4ecca70323e0d0ba9a53a4861f256bbed71e1a`
+  * **Either** run `assemble.bat` (a Windows batch file)&hellip;
+    * Requires Ophis and `chr.bin`.
+    * Also verifies the assembled files are identical to the original files (if `prg-original.bin` and `quantum-original.nes` exist).
+  * &hellip;**Or** assemble manually:
+    * Assemble the PRG ROM: `ophis -v -o prg.bin prg.asm`
+      * It is recommended to verify that the output file is identical to `prg-original.bin`.
+    * Assemble the entire file: `ophis -v -o "quantum_(e).nes" quantum.asm`
+      * `prg.bin` (from the previous step) and `chr.bin` are required for this step.
+      * The `(e)` in the output filename causes FCEUX to correctly start the ROM in PAL mode.
+      * It is recommended to verify that the output file is identical to `quantum-original.nes`.
 
 ## The structure of the file
 (from the iNES header)

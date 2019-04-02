@@ -13,12 +13,15 @@ Notes:
   * e.g. [scene.org file archive](http://files.scene.org/view/parties/2006/stream06/demo/quantum_disco_brothers_by_wamma.zip)
   * **Extract** the file if it is compressed (`.zip`, `.7z`, etc.).
   * **Rename** the file to `quantum-original.nes` (`assemble.bat` expects to find it).
+* **Extract the PRG ROM** data to `prg-original.bin` (`assemble.bat` expects to find it):
+  * **Either** use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -p prg-original.bin quantum-original.nes`
+  * &hellip; **or**, using a **hex editor**, copy 32,768 or `0x8000` bytes starting from offset 16 or `0x10` to a new file, `prg-original.bin`
 * **Extract the CHR ROM** data to `chr.bin` (`assemble.bat` expects to find it):
   * **Either** use my [ines-split](http://github.com/qalle2/ines-split): `python ines_split.py -c chr.bin quantum-original.nes`
   * &hellip; **or**, using a **hex editor**, copy 32,768 or `0x8000` bytes starting from offset 32,784 or `0x8010` to a new file, `chr.bin`
 * **Assemble**:
   * **Either** run `assemble.bat` (only works on Windows; also compares the assembled files to the originals)&hellip;
-  * &hellip;**or** assemble manually: `ophis -v -o quantum.nes quantum.asm`
+  * &hellip;**or** assemble manually: `ophis -v -o "quantum_(e).nes" quantum.asm` (the `(e)` in the filename causes FCEUX to start the ROM in PAL mode)
 
 ## The original file
 * names:
@@ -596,13 +599,14 @@ ef-ff: yes
 * `7e0`-`7ff`: unaccessed (except for the initial cleanup)
 
 ## Misc notes
-* The game does not execute code from outside of PRG ROM (from `0000`-`7fff`).
-* The game does not access CPU addresses `0800`-`1fff`.
+* The program does not execute code from outside of PRG ROM (from `0000`-`7fff`).
+* The program does not access CPU addresses `0800`-`1fff`.
 
 ## References
 * [NESDev Wiki](http://wiki.nesdev.com):
   * [APU registers](http://wiki.nesdev.com/w/index.php/APU_registers)
   * [CNROM](http://wiki.nesdev.com/w/index.php/CNROM)
+  * [iNES](http://wiki.nesdev.com/w/index.php/INES) file format
   * [PPU registers](http://wiki.nesdev.com/w/index.php/PPU_registers)
 * [a 6502 instruction reference](http://www.obelisk.me.uk/6502/reference.html)
 

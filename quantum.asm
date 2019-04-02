@@ -26,7 +26,7 @@
     .include "prg1.asm"        ; second half except interrupt routines&vectors
     .include "int.asm"         ; interrupt routines
     .advance $fffa, pad_byte   ; pad
-    .word nmi, init, irq       ; interrupt vectors
+    .word nmi, init, irq       ; interrupt vectors (IRQ unaccessed)
     .advance $10000, pad_byte  ; pad
 
 ; -----------------------------------------------------------------------------

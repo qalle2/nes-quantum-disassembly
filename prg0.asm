@@ -1,7 +1,7 @@
 ; first half of PRG ROM
 
 ; -----------------------------------------------------------------------------
-; Unaccessed block
+; Unaccessed block ($8000)
 
     jmp sub12
     jmp sub13
@@ -204,11 +204,11 @@ sub02:
     ; Called by: sub05
 
     cmp #0
-    bpl +
-    lda #0
+    bpl +    ; always taken
+    lda #0   ; unaccessed ($8157)
 *   cmp #63
-    bcc +
-    lda #63
+    bcc +    ; always taken
+    lda #63  ; unaccessed ($815d)
 *   lsr
     lsr
     ora $0394,x
@@ -345,11 +345,14 @@ sub05:
 *   lda $0324,x
     tay
     and #%11110000
-    beq +
+    beq +           ; always taken
+
+	; unaccessed ($823b)
     `lsr4
     adc $0300,x
     sta $0300,x
     jmp sub05_1
+
 *   tya
     and #%00001111
     eor #%11111111
@@ -367,30 +370,36 @@ sub05_2:
     sta $0300,x
 *   ldy $035a,x
     cpy #$07
-    bne sub05_3
+    bne sub05_3  ; always taken
+
+	; unaccessed ($826a)
     lda $035f,x
     beq +
     sta $0340,x
 *   lda $0340,x
-    bne sub05_4
+    bne unaccessed00a
+
 sub05_3:
     lda $0344,x
-    bne sub05_4
+    bne unaccessed00a  ; never taken
     lda $0300,x
     bpl +
     lda #$00
 *   cmp #$3f
-    bcc +
-    lda #$3f
+    bcc +        ; always taken
+    lda #$3f     ; unaccessed ($8287)
 *   sta $0300,x
     jmp sub02
 
-sub05_4:
+; -----------------------------------------------------------------------------
+; Unaccessed block ($828f)
+
+unaccessed00a:
     pha
     and #%00001111
     ldy $033c,x
     jsr sub06
-    bmi sub05_5
+    bmi unaccessed00b
     clc
     adc $0300,x
     jsr sub02
@@ -399,11 +408,11 @@ sub05_4:
     clc
     adc $033c,x
     cmp #$20
-    bpl sub05_6
+    bpl unaccessed00c
     sta $033c,x
     rts
 
-sub05_5:
+unaccessed00b:
     clc
     adc $0300,x
     jsr sub02
@@ -412,11 +421,11 @@ sub05_5:
     clc
     adc $033c,x
     cmp #$20
-    bpl sub05_6
+    bpl unaccessed00c
     sta $033c,x
     rts
 
-sub05_6:
+unaccessed00c:
     sec
     sbc #$40
     sta $033c,x
@@ -543,8 +552,10 @@ sub07_3:
     cmp #$02
     beq sub07_5
     lda $03a0,x
-    bne +
+    bne +        ; never taken
     jmp sub07_1
+
+	; unaccessed block ($838e)
 *   lda $03a0,x
     bmi +
     clc
@@ -608,8 +619,8 @@ sub07_6:
     lda $0308,x
     sbc ptr2+1
     bmi +
-    bpl sub07_7
-    jmp sub07_1
+    bpl sub07_7  ; always taken
+    jmp sub07_1  ; unaccessed ($8414)
 *   lda $dc,x
     clc
     adc $0318,x
@@ -622,8 +633,8 @@ sub07_6:
     sbc ptr2+0
     lda $0308,x
     sbc ptr2+1
-    bpl sub07_8
-    jmp sub07_1
+    bpl sub07_8  ; always taken
+    jmp sub07_1  ; unaccessed ($8433)
 
 sub07_7:
     lda $dc,x
@@ -656,7 +667,7 @@ sub08:
 
     lda $035a,x
     cmp #$08
-    beq +
+    beq +        ; never taken
     lda $0328,x
     bne sub08_1
     lda $03a4,x
@@ -665,7 +676,8 @@ sub08:
     bne sub08_1
     rts
 
-*   jmp unaccessed01
+*   jmp unaccessed01  ; unaccessed ($8478)
+
 sub08_1:
     lda $039c,x
     ldy $03a8,x
@@ -678,8 +690,8 @@ sub08_1:
     cmp #2
     beq sub08_3
     cmp #3
-    beq sub08_4
-    rts
+    beq sub08_4  ; always taken
+    rts          ; unaccessed ($8495)
 
 *   ldy $e9,x
     lda word_hi-1,y
@@ -733,7 +745,10 @@ sub08_6:
     sta $d3
     jmp sub09_1
 
-sub08_7:
+; -----------------------------------------------------------------------------
+; Unaccessed block ($84f8)
+
+unaccessed00d:
     sec
     sbc #1
     sta $d4
@@ -761,12 +776,12 @@ sub09:
     cpy #$0f
     beq sub08_6
     cpy #$0d
-    beq sub08_7
+    beq unaccessed00d  ; never taken
 
 sub09_1:
     lda $035f,x
     cpy #$08
-    beq sub09_2
+    beq unaccessed00e  ; never taken
 
     lda $0328,x
     bne sub09_3
@@ -791,7 +806,8 @@ sub09_1:
 
 *   rts
 
-sub09_2:
+	; unaccessed block ($854e)
+unaccessed00e:
     jsr unaccessed01
     lda $0308,x
     sta $cb
@@ -802,7 +818,7 @@ sub09_3:
     jmp sub08_1
 
 ; -----------------------------------------------------------------------------
-; Unaccessed block ($855e-$85b0)
+; Unaccessed block ($855e)
 
 unaccessed01:
     lda $035f,x
@@ -923,7 +939,7 @@ sub10_06:
     jmp sub10_08
 
 ; -----------------------------------------------------------------------------
-; Unaccessed block ($862d-$8651)
+; Unaccessed block ($862d)
 
 unaccessed02:
     iny
@@ -973,7 +989,7 @@ sub10_08:
     jmp sub10_10
 
 ; -----------------------------------------------------------------------------
-; Unaccessed block ($8681-$86a1)
+; Unaccessed block ($8681)
 
 unaccessed03:
     eor #%11111111
@@ -1144,9 +1160,9 @@ sub11_loop2:
     bne sub11_02
     sta $cb
     lda (ptr2),y
-    bne +
+    bne +         ; never taken
     jmp sub10_16
-*   lda $cb
+*   lda $cb       ; unaccessed ($8798)
 sub11_02:
     clc
     adc ptr4+0
@@ -1360,7 +1376,7 @@ sub11_18:
     rts
 
 ; -----------------------------------------------------------------------------
-; Unaccessed block ($8906-$8920)
+; Unaccessed block ($8906)
 
     ldx #0
     ldy #16
@@ -1387,16 +1403,20 @@ sub12:
     ; Called by: sub34, sub38, sub42, NMI
 
     bit $ff
-    bmi +
+    bmi sub12_skip  ; always taken
+
+	; unaccessed block ($8925)
     dec $ff
-    bpl +
+    bpl sub12_skip
     lda #$05
     sta $ff
-    jmp sub12_exit
+    jmp unaccessed04b
 
-*   jmp sub04
-sub12_exit:
-    rts
+sub12_skip:
+    jmp sub04
+
+unaccessed04b:
+    rts  ; unaccessed ($8933)
 
 ; -----------------------------------------------------------------------------
 
@@ -1407,7 +1427,7 @@ sub13:
     ldy #$ff
     dex
     beq +
-    ldy #$05
+    ldy #$05  ; unaccessed ($8939)
 *   sty $ff
     asl
     tay

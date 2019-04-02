@@ -106,14 +106,15 @@ hide_sprites_loop:
     bne hide_sprites_loop
     rts
 
-    ; disable rendering
+; -----------------------------------------------------------------------------
+; Unaccessed block ($dcaa)
+
     lda #%00000000
     sta ppu_ctrl
     sta ppu_mask
     lda #%00000000
     sta ppu_ctrl
 
-    ; clear sound registers $4000-$400e
     lda #$00
     ldx #0
 clear_snd_reg_loop:
@@ -122,11 +123,9 @@ clear_snd_reg_loop:
     cpx #15
     bne clear_snd_reg_loop
 
-    ; more sound stuff
     lda #$c0
     sta apu_counter
 
-    ; initialize palette
     jsr init_palette_copy
     jsr update_palette
     rts
@@ -137,7 +136,7 @@ init_palette_copy:
     ; Copy the palette_table array to the palette_copy array.
     ; Args: none
     ; Called by: init, init_graphics_and_sound, sub34, sub36, sub38, sub40,
-    ; sub43, sub46, sub49
+    ; sub43, game_over_screen, sub49
 
     ldx #0
 init_palette_copy_loop:
@@ -170,7 +169,7 @@ update_palette:
     ; Copy the palette_copy array to the PPU.
     ; Args: none
     ; Called by: init, init_graphics_and_sound, sub21, sub34, sub36, sub38,
-    ; sub40, sub41, sub43, sub46, greets_screen, sub49
+    ; sub40, sub41, sub43, game_over_screen, greets_screen, sub49
 
     `set_ppu_addr vram_palette+0*4
 
@@ -208,7 +207,7 @@ sub14_loop1:
     rts
 
 ; -----------------------------------------------------------------------------
-; Unaccessed block
+; Unaccessed block ($dd22)
 
     stx $88
     ldx #0
@@ -225,9 +224,6 @@ unaccessed_loop1:
     bne unaccessed_loop1
 
     rts
-
-; -----------------------------------------------------------------------------
-; Unaccessed block
 
     stx $88
     ldy #0
@@ -841,7 +837,7 @@ sub19_jump_table:
     jmp sub19_07  ;  6*3
     jmp sub19_08  ;  7*3
     jmp sub19_09  ;  8*3
-    jmp sub19_11  ;  9*3
+    jmp sub19_11  ;  9*3 (unaccessed, $e013)
     jmp sub19_10  ; 10*3
 
 sub19_02:
@@ -955,6 +951,10 @@ sub19_10:
 
 sub19_11:
     jmp sub19_13
+
+; -----------------------------------------------------------------------------
+; Unaccessed block ($e0d3)
+
     lda #$00
     sta $9a
     lda $96
@@ -1046,12 +1046,6 @@ sub19_11:
     jmp sub19_13
 
 sub19_12:
-    ; move sprites 0-7:
-    ; 0, 4: up left
-    ; 1, 5: up right
-    ; 2, 6: down left
-    ; 3, 7: down right
-
     dec sprite_page+0*4+sprite_y
     dec sprite_page+0*4+sprite_x
 
@@ -1075,6 +1069,8 @@ sub19_12:
 
     inc sprite_page+7*4+sprite_y
     inc sprite_page+7*4+sprite_x
+
+; -----------------------------------------------------------------------------
 
 sub19_13:
     jsr sub17
@@ -1298,7 +1294,6 @@ sub21_2:
 ; -----------------------------------------------------------------------------
 
 sub32:
-
     lda #$00
     ldx #0
 sub32_loop:
@@ -1323,10 +1318,7 @@ sub32_loop:
     sta flag1
     rts
 
-; -----------------------------------------------------------------------------
-
 sub33:
-
     inc $89
     ldx $8a
     lda table22,x
@@ -2590,7 +2582,9 @@ sub43_loop2:
 sub43_exit:
     rts
 
-    ; fill Name Tables with #$7a
+; -----------------------------------------------------------------------------
+; Unaccessed block ($ec99)
+
     ldx #$7a
     jsr fill_name_tables
 
@@ -2649,10 +2643,9 @@ sub43_loop5:
     lda #$00
     sta $8a
 
-    ; update third and fourth color of third sprite subpalette
     `set_ppu_addr vram_palette+6*4+2
-    `write_ppu_data $00  ; dark gray
-    `write_ppu_data $10  ; light gray
+    `write_ppu_data $00
+    `write_ppu_data $10
     `reset_ppu_addr
 
     lda #%10000000
@@ -2668,20 +2661,18 @@ sub43_loop5:
     cmp #$01
     beq sub43_1
 
-    ; update first sprite subpalette
     `set_ppu_addr vram_palette+4*4
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $0f  ; black
+    `write_ppu_data $0f
+    `write_ppu_data $0f
+    `write_ppu_data $0f
+    `write_ppu_data $0f
     `reset_ppu_addr
 
-    ; update first background subpalette
     `set_ppu_addr vram_palette+0*4
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $30  ; white
-    `write_ppu_data $10  ; light gray
-    `write_ppu_data $00  ; dark gray
+    `write_ppu_data $0f
+    `write_ppu_data $30
+    `write_ppu_data $10
+    `write_ppu_data $00
     `reset_ppu_addr
 
 sub43_1:
@@ -2707,7 +2698,7 @@ sub43_1:
     jmp ++
 *   lda #0
     sta flag1
-    lda #7  ; 7th part
+    lda #7
     sta demo_part
 
 *   `set_ppu_addr vram_name_table0+27*32+1
@@ -3100,9 +3091,12 @@ sub45_loop2:
     inc $0101
     lda $0101
     cpx data6
-    bne +
+    bne +      ; always taken
+
+	; unaccessed block ($f111)
     lda #$00
     sta $0101
+
 *   ldx $0102
     ldy $0100
     lda #$ff
@@ -3184,9 +3178,10 @@ sub45_loop5:
 
 ; -----------------------------------------------------------------------------
 
-sub46:
+game_over_screen:
+	; Show the "GAME OVER - CONTINUE?" screen.
 
-    ; fill Name Tables with #$4a
+    ; fill Name Tables with the space character (#$4a)
     ldx #$4a
     jsr fill_name_tables
 
@@ -3195,17 +3190,20 @@ sub46:
     jsr init_palette_copy
     jsr update_palette
 
+    ; Copy 96 (32*3) bytes of text from an encrypted table to rows 14-16 of
+    ; Name Table 0. Subtract 17 from each byte.
+
     `set_ppu_addr vram_name_table0+14*32
 
     ldx #0
-sub46_loop:
-    lda table13,x
+game_over_loop:
+    lda game_over,x
     clc
-    sbc #$10
+    sbc #16
     sta ppu_data
     inx
     cpx #96
-    bne sub46_loop
+    bne game_over_loop
 
     lda #%00000010
     sta ppu_ctrl
@@ -3656,17 +3654,15 @@ sub52_loop:
     rts
 
 ; -----------------------------------------------------------------------------
+; Unaccessed block ($f4f9)
 
 sub53:
-    ; Why identical to the previous subroutine?
-
     ldy #0
 sub53_loop:
     stx ppu_data
     iny
     cpy #32
     bne sub53_loop
-
     rts
 
 ; -----------------------------------------------------------------------------
@@ -4017,6 +4013,9 @@ sub57_loop2:
 
     `reset_ppu_addr
     rts
+
+; -----------------------------------------------------------------------------
+; Unaccessed block ($f7d0)
 
     `set_ppu_addr vram_attr_table0+4*8
 

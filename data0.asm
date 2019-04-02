@@ -36,7 +36,7 @@ or_masks:
 
 table05:
     ; $8986
-	; some bytes unaccessed
+    ; some bytes unaccessed
     ; read by: sub06
     ; Math stuff? (On each line, the numbers increase linearly.)
     .byte  0,  0,  0,  1,  1,  1,  2,  2,  3,  3,  3,  4,  4,  4,  5,  5  ; value ~= index/4
@@ -61,7 +61,7 @@ table05:
     ; 96 integers. First all low bytes, then all high bytes.
     ; Disregarding the first nine values, the numbers decrease exponentially.
     ; (Each value equals approximately 0.944 times the previous value.)
-	; Some bytes unaccessed.
+    ; Some bytes unaccessed.
 word_lo:
     ; $8a86
     ; read by: sub07, sub08, sub10
@@ -115,7 +115,7 @@ pointer_hi:
 indirect_data1:
     ; $8b68-$8dbf (600 bytes)
     ; read (via pointer_lo and pointer_hi) by: sub01, sub10, sub11
-	; Some bytes unaccessed.
+    ; Some bytes unaccessed.
     .byte $20, $10, $00, $05, $3a, $10, $00, $3c
     .byte $15, $1c, $0c, $0a, $01, $f9, $12, $00
     .byte $90, $00, $00, $00, $02, $5f, $01, $00

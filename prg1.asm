@@ -3093,7 +3093,7 @@ sub45_loop2:
     cpx data6
     bne +      ; always taken
 
-	; unaccessed block ($f111)
+    ; unaccessed block ($f111)
     lda #$00
     sta $0101
 
@@ -3179,7 +3179,7 @@ sub45_loop5:
 ; -----------------------------------------------------------------------------
 
 game_over_screen:
-	; Show the "GAME OVER - CONTINUE?" screen.
+    ; Show the "GAME OVER - CONTINUE?" screen.
 
     ; fill Name Tables with the space character (#$4a)
     ldx #$4a

@@ -347,7 +347,7 @@ sub05:
     and #%11110000
     beq +           ; always taken
 
-	; unaccessed ($823b)
+    ; unaccessed ($823b)
     `lsr4
     adc $0300,x
     sta $0300,x
@@ -372,7 +372,7 @@ sub05_2:
     cpy #$07
     bne sub05_3  ; always taken
 
-	; unaccessed ($826a)
+    ; unaccessed ($826a)
     lda $035f,x
     beq +
     sta $0340,x
@@ -555,7 +555,7 @@ sub07_3:
     bne +        ; never taken
     jmp sub07_1
 
-	; unaccessed block ($838e)
+    ; unaccessed block ($838e)
 *   lda $03a0,x
     bmi +
     clc
@@ -806,7 +806,7 @@ sub09_1:
 
 *   rts
 
-	; unaccessed block ($854e)
+    ; unaccessed block ($854e)
 unaccessed5:
     jsr unaccessed6
     lda $0308,x
@@ -1405,7 +1405,7 @@ sub12:
     bit $ff
     bmi sub12_skip  ; always taken
 
-	; unaccessed block ($8925)
+    ; unaccessed block ($8925)
     dec $ff
     bpl sub12_skip
     lda #$05

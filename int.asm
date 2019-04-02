@@ -34,7 +34,7 @@ nmi:
     beq nmi_jump_table+13*3
 
 nmi_jump_table:
-    jmp nmi_exit    ;  0*3
+    jmp nmi_exit    ;  0*3 (unaccessed, $f980)
     jmp nmi_part1   ;  1*3
     jmp nmi_part4   ;  2*3
     jmp nmi_part2   ;  3*3
@@ -374,13 +374,13 @@ nmi_part11_exit:
 ; -----------------------------------------------------------------------------
 
 nmi_part12:
-    ; "game over - continue?"
+    ; "GAME OVER - CONTINUE?"
 
     lda flag1
     cmp #0
     beq +
     jmp ++
-*   jsr sub46
+*   jsr game_over_screen
 *   jsr sub47
     inc $0151
     lda $0151
@@ -409,4 +409,4 @@ nmi_exit:
 ; -----------------------------------------------------------------------------
 
 irq:
-    rti
+    rti  ; unaccessed ($fc26)

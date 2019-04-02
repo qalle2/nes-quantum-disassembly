@@ -211,7 +211,7 @@ sub14_loop1:
 
     stx $88
     ldx #0
-unaccessed_loop1:
+unaccessed15:
     clc
     adc #$55
     clc
@@ -221,17 +221,17 @@ unaccessed_loop1:
     sbc #15
     inx
     cpx $88
-    bne unaccessed_loop1
+    bne unaccessed15
 
     rts
 
     stx $88
     ldy #0
     ldx #0
-unaccessed_loop2_outer:
+unaccessed16:
 
     ldy #0
-unaccessed_loop2_inner:
+unaccessed17:
     nop
     nop
     nop
@@ -239,12 +239,12 @@ unaccessed_loop2_inner:
     nop
     iny
     cpy #11
-    bne unaccessed_loop2_inner
+    bne unaccessed17
 
     nop
     inx
     cpx $88
-    bne unaccessed_loop2_outer
+    bne unaccessed16
 
     rts
 

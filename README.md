@@ -18,7 +18,7 @@ Notes:
   * The size of the file should be 65,552 bytes.
   * The MD5 hash of the file should be `2c932e9e8ae7859517905e2539565a89`.
   * **Rename** the file to `quantum-original.nes`.
-* Copy the **PRG ROM** data and **CHR ROM** data from the original ROM to separate files:
+* **Extract** the PRG ROM and CHR ROM data from the original ROM file to separate files:
   * **Either** use my [ines-split](http://github.com/qalle2/ines-split)&hellip;
     * `python ines_split.py -p prg-original.bin -c chr.bin quantum-original.nes`
   * &hellip;**Or** use a **hex editor**:

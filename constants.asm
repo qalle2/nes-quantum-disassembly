@@ -25,17 +25,20 @@
 
 ; -----------------------------------------------------------------------------
 
-    .alias ram1      $00  ; ??
-    .alias demo_part $01  ; which part is running (see int.asm)
-    .alias temp1     $01
-    .alias flag1     $02  ; flag used in NMI? (seems to always be 0 or 1)
-    .alias ptr1      $03  ; pointer (2 bytes)
-    .alias loopcnt   $9b  ; loop counter (may have other uses)
-    .alias ptr2      $c8  ; pointer (2 bytes)
-    .alias ptr3      $ce  ; pointer (2 bytes)
-    .alias ptr4      $d0  ; pointer (2 bytes)
-    .alias ptr5      $d8  ; pointer (2 bytes)
-    .alias ptr6      $da  ; pointer (2 bytes)
+    .alias ram1       $00  ; ??
+    .alias demo_part  $01  ; which part is running (see int.asm)
+    .alias temp1      $01
+    .alias flag1      $02  ; flag used in NMI? (seems to always be 0 or 1)
+    .alias ptr1       $03  ; pointer (2 bytes)
+    .alias delay_var1 $86
+    .alias delay_cnt  $87
+    .alias delay_var2 $88
+    .alias loopcnt    $9b  ; loop counter (may have other uses)
+    .alias ptr2       $c8  ; pointer (2 bytes)
+    .alias ptr3       $ce  ; pointer (2 bytes)
+    .alias ptr4       $d0  ; pointer (2 bytes)
+    .alias ptr5       $d8  ; pointer (2 bytes)
+    .alias ptr6       $da  ; pointer (2 bytes)
 
     .alias sprite_page $0500  ; 256 bytes
 

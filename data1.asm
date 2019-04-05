@@ -1122,40 +1122,33 @@ table43:  ; $dc00 (16 bytes)
     .byte $50, $51, $51, $53, $51, $52, $50, $53
     .byte $52, $52, $51, $51, $52, $53, $53, $51
 
-data8:  ; $dc10
-    .byte $0a
+; -----------------------------------------------------------------------------
+; Star sprites in the first two parts of the demo.
+; The last 5 bytes of each 16-byte table are unaccessed.
 
-table44:
-    ; 11 bytes
-    .byte $13, $50, $54, $6f, $9e, $ab, $d0, $ef
-    .byte $06, $5a, $5f
+star_count:
+    ; Number of stars, minus one.
+    .byte 10
 
-    ; unaccessed ($dc1c)
-    .byte $d6, $ca, $13, $19, $25
+star_initial_x:
+    .byte  19,  80,  84, 111, 158, 171, 208, 239
+    .byte   6,  90,  95, 214, 202,  19,  25,  37
 
-table45:
-    ; 11 bytes
-    .byte $55, $df, $51, $21, $3d, $9a, $7d, $88
-    .byte $cc, $8f, $aa
+star_initial_y:
+    .byte  85, 223,  81,  33,  61, 154, 125, 136
+    .byte 204, 143, 170,  67, 138, 110, 144, 118
 
-    ; unaccessed ($dc2c)
-    .byte $43, $8a, $6e, $90, $76
-
-table46:
-    ; 11 bytes
+star_y_speeds:
     .byte 2, 3, 3, 5, 4, 2, 4, 3
-    .byte 2, 2, 3
+    .byte 2, 2, 3, 4, 3, 2, 7, 6
 
-    ; unaccessed ($dc3c)
-    .byte $04, $03, $02, $07, $06
-
-table47:
-    ; 11 bytes
+star_tiles:
     .byte $af, $ae, $ae, $be, $be, $bf, $af, $bf
-    .byte $bf, $af, $ae
+    .byte $bf, $af, $ae, $ae, $bf, $be, $be, $be
 
-    ; unaccessed ($dc4c)
-    .byte $ae, $bf, $be, $be, $be, $0f
+; -----------------------------------------------------------------------------
+
+    .byte $0f  ; unaccessed
 
 table48:  ; $dc52 (16 bytes)
     .byte $40, $48, $40, $48

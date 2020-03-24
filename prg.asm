@@ -1,4 +1,5 @@
 ; PRG ROM of Quantum Disco Brothers. Assembles with Ophis.
+; TODO: data on unaccessed parts is out of date
 
     .include "macros.asm"
     .include "constants.asm"

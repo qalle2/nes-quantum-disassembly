@@ -1,4 +1,5 @@
-    ; data in second half of PRG ROM
+; data in second half of PRG ROM
+; TODO: data on unaccessed parts is out of date
 
 pointers:
     .word indirect1

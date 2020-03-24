@@ -108,7 +108,7 @@ $8433-$8435 (   3): unaccessed
 $8436-$8477 (  66): code
 $8478-$847a (   3): unaccessed
 $847b-$8494 (  26): code
-$8495-$8495 (   1): unaccessed
+$8495       (   1): unaccessed
 $8496-$84f7 (  98): code
 $84f8-$850c (  21): unaccessed
 $850d-$854d (  65): code
@@ -126,105 +126,104 @@ $8906-$8920 (  27): unaccessed
 $8921-$8924 (   4): code
 $8925-$892f (  11): unaccessed
 $8930-$8932 (   3): code
-$8933-$8933 (   1): unaccessed
+$8933       (   1): unaccessed
 $8934-$8938 (   5): code
 $8939-$893a (   2): unaccessed
 $893b-$8949 (  15): code
-$894a-$895a (  17): unaccessed
 
+$894a-$895a (  17): unaccessed
 $895b-$896a (  16): data
-$896b-$896b (   1): unaccessed
+$896b       (   1): unaccessed
 $896c-$8973 (   8): data
-$8974-$8974 (   1): unaccessed
+$8974       (   1): unaccessed
 $8975-$897b (   7): data
-$897c-$897c (   1): unaccessed
+$897c       (   1): unaccessed
 $897d-$8985 (   9): data
-$8986-$8986 (   1): unaccessed
-$8987-$8987 (   1): data
+$8986       (   1): unaccessed
+$8987       (   1): data
 $8988-$8996 (  15): unaccessed
-$8997-$8997 (   1): data
+$8997       (   1): data
 $8998-$89a6 (  15): unaccessed
-$89a7-$89a7 (   1): data
+$89a7       (   1): data
 $89a8-$89b6 (  15): unaccessed
-$89b7-$89b7 (   1): data
+$89b7       (   1): data
 $89b8-$89c6 (  15): unaccessed
-$89c7-$89c7 (   1): data
+$89c7       (   1): data
 $89c8-$89d6 (  15): unaccessed
-$89d7-$89d7 (   1): data
+$89d7       (   1): data
 $89d8-$89e6 (  15): unaccessed
-$89e7-$89e7 (   1): data
+$89e7       (   1): data
 $89e8-$89f6 (  15): unaccessed
-$89f7-$89f7 (   1): data
+$89f7       (   1): data
 $89f8-$8a06 (  15): unaccessed
-$8a07-$8a07 (   1): data
+$8a07       (   1): data
 $8a08-$8a16 (  15): unaccessed
-$8a17-$8a17 (   1): data
-$8a18-$8a18 (   1): unaccessed
-$8a19-$8a19 (   1): data
+$8a17       (   1): data
+$8a18       (   1): unaccessed
+$8a19       (   1): data
 $8a1a-$8a26 (  13): unaccessed
-$8a27-$8a27 (   1): data
+$8a27       (   1): data
 $8a28-$8a36 (  15): unaccessed
-$8a37-$8a37 (   1): data
+$8a37       (   1): data
 $8a38-$8a46 (  15): unaccessed
-$8a47-$8a47 (   1): data
+$8a47       (   1): data
 $8a48-$8a56 (  15): unaccessed
-$8a57-$8a57 (   1): data
+$8a57       (   1): data
 $8a58-$8a65 (  14): unaccessed
 $8a66-$8a67 (   2): data
 $8a68-$8a76 (  15): unaccessed
-$8a77-$8a77 (   1): data
+$8a77       (   1): data
 $8a78-$8a88 (  17): unaccessed
-$8a89-$8a89 (   1): data
+$8a89       (   1): data
 $8a8a-$8a8b (   2): unaccessed
 $8a8c-$8a8d (   2): data
 $8a8e-$8a8f (   2): unaccessed
 $8a90-$8a92 (   3): data
-$8a93-$8a93 (   1): unaccessed
+$8a93       (   1): unaccessed
 $8a94-$8a97 (   4): data
-$8a98-$8a98 (   1): unaccessed
+$8a98       (   1): unaccessed
 $8a99-$8aa5 (  13): data
-$8aa6-$8aa6 (   1): unaccessed
+$8aa6       (   1): unaccessed
 $8aa7-$8aa8 (   2): data
-$8aa9-$8aa9 (   1): unaccessed
-$8aaa-$8aaa (   1): data
-$8aab-$8aab (   1): unaccessed
+$8aa9       (   1): unaccessed
+$8aaa       (   1): data
+$8aab       (   1): unaccessed
 $8aac-$8ab6 (  11): data
-$8ab7-$8ab7 (   1): unaccessed
+$8ab7       (   1): unaccessed
 $8ab8-$8abd (   6): data
-$8abe-$8abe (   1): unaccessed
+$8abe       (   1): unaccessed
 $8abf-$8ac2 (   4): data
-$8ac3-$8ac3 (   1): unaccessed
-$8ac4-$8ac4 (   1): data
+$8ac3       (   1): unaccessed
+$8ac4       (   1): data
 $8ac5-$8ac6 (   2): unaccessed
-$8ac7-$8ac7 (   1): data
+$8ac7       (   1): data
 $8ac8-$8ae8 (  33): unaccessed
-$8ae9-$8ae9 (   1): data
+$8ae9       (   1): data
 $8aea-$8aeb (   2): unaccessed
 $8aec-$8aed (   2): data
 $8aee-$8aef (   2): unaccessed
 $8af0-$8af2 (   3): data
-$8af3-$8af3 (   1): unaccessed
+$8af3       (   1): unaccessed
 $8af4-$8af7 (   4): data
-$8af8-$8af8 (   1): unaccessed
+$8af8       (   1): unaccessed
 $8af9-$8b05 (  13): data
-$8b06-$8b06 (   1): unaccessed
+$8b06       (   1): unaccessed
 $8b07-$8b08 (   2): data
-$8b09-$8b09 (   1): unaccessed
-$8b0a-$8b0a (   1): data
-$8b0b-$8b0b (   1): unaccessed
+$8b09       (   1): unaccessed
+$8b0a       (   1): data
+$8b0b       (   1): unaccessed
 $8b0c-$8b16 (  11): data
-$8b17-$8b17 (   1): unaccessed
+$8b17       (   1): unaccessed
 $8b18-$8b1d (   6): data
-$8b1e-$8b1e (   1): unaccessed
+$8b1e       (   1): unaccessed
 $8b1f-$8b22 (   4): data
-$8b23-$8b23 (   1): unaccessed
-$8b24-$8b24 (   1): data
+$8b23       (   1): unaccessed
+$8b24       (   1): data
 $8b25-$8b26 (   2): unaccessed
-$8b27-$8b27 (   1): data
+$8b27       (   1): data
 $8b28-$8b45 (  30): unaccessed
 $8b46-$8b47 (   2): data
 $8b48-$8b6a (  35): unaccessed
-
 $8b6b-$8b6c (   2): data (indirectly accessed)
 $8b6d-$8b6e (   2): unaccessed
 $8b6f-$8b74 (   6): data (indirectly accessed)
@@ -234,121 +233,121 @@ $8bb0-$8bb7 (   8): unaccessed
 $8bb8-$8be7 (  48): data (indirectly accessed)
 $8be8-$8bf7 (  16): unaccessed
 $8bf8-$8bfa (   3): data (indirectly accessed)
-$8bfb-$8bfb (   1): unaccessed
+$8bfb       (   1): unaccessed
 $8bfc-$8bfe (   3): data (indirectly accessed)
-$8bff-$8bff (   1): unaccessed
+$8bff       (   1): unaccessed
 $8c00-$8c02 (   3): data (indirectly accessed)
-$8c03-$8c03 (   1): unaccessed
+$8c03       (   1): unaccessed
 $8c04-$8c06 (   3): data (indirectly accessed)
-$8c07-$8c07 (   1): unaccessed
+$8c07       (   1): unaccessed
 $8c08-$8c0a (   3): data (indirectly accessed)
-$8c0b-$8c0b (   1): unaccessed
+$8c0b       (   1): unaccessed
 $8c0c-$8c0e (   3): data (indirectly accessed)
-$8c0f-$8c0f (   1): unaccessed
+$8c0f       (   1): unaccessed
 $8c10-$8c12 (   3): data (indirectly accessed)
-$8c13-$8c13 (   1): unaccessed
+$8c13       (   1): unaccessed
 $8c14-$8c16 (   3): data (indirectly accessed)
-$8c17-$8c17 (   1): unaccessed
+$8c17       (   1): unaccessed
 $8c18-$8c1a (   3): data (indirectly accessed)
-$8c1b-$8c1b (   1): unaccessed
+$8c1b       (   1): unaccessed
 $8c1c-$8c1e (   3): data (indirectly accessed)
-$8c1f-$8c1f (   1): unaccessed
+$8c1f       (   1): unaccessed
 $8c20-$8c22 (   3): data (indirectly accessed)
-$8c23-$8c23 (   1): unaccessed
+$8c23       (   1): unaccessed
 $8c24-$8c26 (   3): data (indirectly accessed)
-$8c27-$8c27 (   1): unaccessed
+$8c27       (   1): unaccessed
 $8c28-$8c2a (   3): data (indirectly accessed)
-$8c2b-$8c2b (   1): unaccessed
+$8c2b       (   1): unaccessed
 $8c2c-$8c2e (   3): data (indirectly accessed)
-$8c2f-$8c2f (   1): unaccessed
+$8c2f       (   1): unaccessed
 $8c30-$8c32 (   3): data (indirectly accessed)
-$8c33-$8c33 (   1): unaccessed
+$8c33       (   1): unaccessed
 $8c34-$8c36 (   3): data (indirectly accessed)
-$8c37-$8c37 (   1): unaccessed
+$8c37       (   1): unaccessed
 $8c38-$8c3a (   3): data (indirectly accessed)
-$8c3b-$8c3b (   1): unaccessed
+$8c3b       (   1): unaccessed
 $8c3c-$8c3e (   3): data (indirectly accessed)
-$8c3f-$8c3f (   1): unaccessed
+$8c3f       (   1): unaccessed
 $8c40-$8c42 (   3): data (indirectly accessed)
-$8c43-$8c43 (   1): unaccessed
+$8c43       (   1): unaccessed
 $8c44-$8c46 (   3): data (indirectly accessed)
-$8c47-$8c47 (   1): unaccessed
+$8c47       (   1): unaccessed
 $8c48-$8c4a (   3): data (indirectly accessed)
-$8c4b-$8c4b (   1): unaccessed
+$8c4b       (   1): unaccessed
 $8c4c-$8c4e (   3): data (indirectly accessed)
-$8c4f-$8c4f (   1): unaccessed
+$8c4f       (   1): unaccessed
 $8c50-$8c52 (   3): data (indirectly accessed)
-$8c53-$8c53 (   1): unaccessed
+$8c53       (   1): unaccessed
 $8c54-$8c56 (   3): data (indirectly accessed)
-$8c57-$8c57 (   1): unaccessed
+$8c57       (   1): unaccessed
 $8c58-$8c5a (   3): data (indirectly accessed)
-$8c5b-$8c5b (   1): unaccessed
+$8c5b       (   1): unaccessed
 $8c5c-$8c5e (   3): data (indirectly accessed)
-$8c5f-$8c5f (   1): unaccessed
+$8c5f       (   1): unaccessed
 $8c60-$8c62 (   3): data (indirectly accessed)
-$8c63-$8c63 (   1): unaccessed
+$8c63       (   1): unaccessed
 $8c64-$8c66 (   3): data (indirectly accessed)
-$8c67-$8c67 (   1): unaccessed
+$8c67       (   1): unaccessed
 $8c68-$8c6a (   3): data (indirectly accessed)
-$8c6b-$8c6b (   1): unaccessed
+$8c6b       (   1): unaccessed
 $8c6c-$8c6e (   3): data (indirectly accessed)
-$8c6f-$8c6f (   1): unaccessed
+$8c6f       (   1): unaccessed
 $8c70-$8c72 (   3): data (indirectly accessed)
-$8c73-$8c73 (   1): unaccessed
+$8c73       (   1): unaccessed
 $8c74-$8c76 (   3): data (indirectly accessed)
-$8c77-$8c77 (   1): unaccessed
+$8c77       (   1): unaccessed
 $8c78-$8c7a (   3): data (indirectly accessed)
-$8c7b-$8c7b (   1): unaccessed
+$8c7b       (   1): unaccessed
 $8c7c-$8c7e (   3): data (indirectly accessed)
-$8c7f-$8c7f (   1): unaccessed
+$8c7f       (   1): unaccessed
 $8c80-$8c82 (   3): data (indirectly accessed)
-$8c83-$8c83 (   1): unaccessed
+$8c83       (   1): unaccessed
 $8c84-$8c86 (   3): data (indirectly accessed)
-$8c87-$8c87 (   1): unaccessed
+$8c87       (   1): unaccessed
 $8c88-$8c8a (   3): data (indirectly accessed)
-$8c8b-$8c8b (   1): unaccessed
+$8c8b       (   1): unaccessed
 $8c8c-$8c8e (   3): data (indirectly accessed)
-$8c8f-$8c8f (   1): unaccessed
+$8c8f       (   1): unaccessed
 $8c90-$8c92 (   3): data (indirectly accessed)
-$8c93-$8c93 (   1): unaccessed
+$8c93       (   1): unaccessed
 $8c94-$8c96 (   3): data (indirectly accessed)
-$8c97-$8c97 (   1): unaccessed
+$8c97       (   1): unaccessed
 $8c98-$8c9a (   3): data (indirectly accessed)
-$8c9b-$8c9b (   1): unaccessed
+$8c9b       (   1): unaccessed
 $8c9c-$8c9e (   3): data (indirectly accessed)
-$8c9f-$8c9f (   1): unaccessed
+$8c9f       (   1): unaccessed
 $8ca0-$8ca2 (   3): data (indirectly accessed)
-$8ca3-$8ca3 (   1): unaccessed
+$8ca3       (   1): unaccessed
 $8ca4-$8ca6 (   3): data (indirectly accessed)
-$8ca7-$8ca7 (   1): unaccessed
+$8ca7       (   1): unaccessed
 $8ca8-$8caa (   3): data (indirectly accessed)
-$8cab-$8cab (   1): unaccessed
+$8cab       (   1): unaccessed
 $8cac-$8cae (   3): data (indirectly accessed)
-$8caf-$8caf (   1): unaccessed
+$8caf       (   1): unaccessed
 $8cb0-$8cb2 (   3): data (indirectly accessed)
-$8cb3-$8cb3 (   1): unaccessed
+$8cb3       (   1): unaccessed
 $8cb4-$8cb6 (   3): data (indirectly accessed)
-$8cb7-$8cb7 (   1): unaccessed
+$8cb7       (   1): unaccessed
 $8cb8-$8cba (   3): data (indirectly accessed)
-$8cbb-$8cbb (   1): unaccessed
+$8cbb       (   1): unaccessed
 $8cbc-$8cbe (   3): data (indirectly accessed)
-$8cbf-$8cbf (   1): unaccessed
+$8cbf       (   1): unaccessed
 $8cc0-$8cc2 (   3): data (indirectly accessed)
-$8cc3-$8cc3 (   1): unaccessed
+$8cc3       (   1): unaccessed
 $8cc4-$8cc6 (   3): data (indirectly accessed)
-$8cc7-$8cc7 (   1): unaccessed
+$8cc7       (   1): unaccessed
 $8cc8-$8cca (   3): data (indirectly accessed)
-$8ccb-$8ccb (   1): unaccessed
+$8ccb       (   1): unaccessed
 $8ccc-$8cce (   3): data (indirectly accessed)
-$8ccf-$8ccf (   1): unaccessed
+$8ccf       (   1): unaccessed
 $8cd0-$8cd2 (   3): data (indirectly accessed)
-$8cd3-$8cd3 (   1): unaccessed
+$8cd3       (   1): unaccessed
 $8cd4-$8cd6 (   3): data (indirectly accessed)
-$8cd7-$8cd7 (   1): unaccessed
+$8cd7       (   1): unaccessed
 $8cd8-$8cda (   3): data (indirectly accessed)
-$8cdb-$8cdb (   1): unaccessed
+$8cdb       (   1): unaccessed
 $8cdc-$8cde (   3): data (indirectly accessed)
-$8cdf-$8cdf (   1): unaccessed
+$8cdf       (   1): unaccessed
 $8ce0-$8ce2 (   3): data (indirectly accessed)
 $8ce3-$8ce7 (   5): unaccessed
 $8ce8-$8ce9 (   2): data (indirectly accessed)
@@ -379,12 +378,12 @@ $d221-$d224 (   4): unaccessed
 $d225-$d50d ( 745): data
 $d50e-$d50f (   2): unaccessed
 $d510-$d514 (   5): data
-$d515-$d515 (   1): unaccessed
+$d515       (   1): unaccessed
 $d516-$d519 (   4): data
-$d51a-$d51a (   1): unaccessed
-$d51b-$d51b (   1): data
+$d51a       (   1): unaccessed
+$d51b       (   1): data
 $d51c-$d51e (   3): unaccessed
-$d51f-$d51f (   1): data
+$d51f       (   1): data
 $d520-$d521 (   2): unaccessed
 $d522-$d523 (   2): data
 $d524-$d52f (  12): unaccessed
@@ -414,35 +413,35 @@ $dcaa-$dcce (  37): unaccessed
 $dccf-$dd21 (  83): code
 $dd22-$dd4e (  45): unaccessed
 $dd4f-$df9f ( 593): code
-$dfa0-$dfa0 (   1): code, data
+$dfa0       (   1): code, data
 $dfa1-$e012 ( 114): code
 $e013-$e015 (   3): unaccessed
 $e016-$e0d2 ( 189): code
 $e0d3-$e1a4 ( 210): unaccessed
 $e1a5-$e25c ( 184): code
-$e25d-$e25d (   1): code, data
+$e25d       (   1): code, data
 $e25e-$e471 ( 532): code
-$e472-$e472 (   1): code, data
+$e472       (   1): code, data
 $e473-$e5d6 ( 356): code
-$e5d7-$e5d7 (   1): code, data
+$e5d7       (   1): code, data
 $e5d8-$ea7e (1191): code
-$ea7f-$ea7f (   1): code, data
+$ea7f       (   1): code, data
 $ea80-$ec46 ( 455): code
-$ec47-$ec47 (   1): code, data
+$ec47       (   1): code, data
 $ec48-$ec98 (  81): code
 $ec99-$eefa ( 610): unaccessed
 $eefb-$f08f ( 405): code
-$f090-$f090 (   1): code, data
+$f090       (   1): code, data
 $f091-$f110 ( 128): code
 $f111-$f115 (   5): unaccessed
 $f116-$f28b ( 374): code
-$f28c-$f28c (   1): code, data
+$f28c       (   1): code, data
 $f28d-$f44a ( 446): code
-$f44b-$f44b (   1): code, data
+$f44b       (   1): code, data
 $f44c-$f4f8 ( 173): code
 $f4f9-$f503 (  11): unaccessed
 $f504-$f67f ( 380): code
-$f680-$f680 (   1): code, data
+$f680       (   1): code, data
 $f681-$f7cf ( 335): code
 $f7d0-$f7fc (  45): unaccessed
 $f7fd-$f97f ( 387): code
@@ -462,6 +461,8 @@ $fffe-$ffff (   2): unaccessed (IRQ vector)
 I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:
 
 `python cdl_summary.py --prg-size 32 --part c --origin 0 --bank-size 8 quantum.cdl`
+
+No CHR data was read programmatically via `$2007`.
 
 Each line: PPU address range, description.
 
@@ -510,7 +511,7 @@ $0e60-$0e9f: unaccessed
 $0ea0-$0eff: rendered
 $0f00-$0f01: unaccessed
 $0f02-$0f12: rendered
-$0f13-$0f13: unaccessed
+$0f13      : unaccessed
 $0f14-$0fff: rendered
 
 $1000-$1fff: rendered
@@ -577,9 +578,9 @@ $0600-$0fff: rendered
 
 $1000-$14ef: rendered
 $14f0-$1502: unaccessed
-$1503-$1503: rendered
+$1503      : rendered
 $1504-$150a: unaccessed
-$150b-$150b: rendered
+$150b      : rendered
 $150c-$179f: unaccessed
 $17a0-$17ef: rendered
 $17f0-$17ff: unaccessed
@@ -587,15 +588,9 @@ $1800-$1fff: rendered
 ```
 
 ### CHR bank 3
-```
-$0000-$0fff: rendered
-
-$1000-$1d9f: rendered
-$1da0-$1def: unaccessed
-$1df0-$1e4f: rendered
-$1e50-$1eef: unaccessed
-$1ef0-$1fff: rendered
-```
+Tiles rendered:
+* first half: `$00-$ff`
+* second half: `$00-$d9`, `$df-$e4`, `$ef-$ff`
 
 ## CPU RAM map
 * `000`-`004`: ??

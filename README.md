@@ -15,9 +15,9 @@ Notes:
 * Rename the `.nes` file to `quantum-original.nes`.
 * Extract the PRG ROM data to `prg-original.bin` and the CHR ROM data to `chr.bin` from the `.nes` file. Use my [ines-split](http://github.com/qalle2/ines-split) or a general-purpose tool like a hex editor (the `.nes` file consists of a 16-byte iNES header, then the PRG ROM data and finally the CHR ROM data.)
 
-# How to assemble
+## How to assemble
 * Install [Ophis](http://michaelcmartin.github.io/Ophis/) (a 6502 assembler for Windows/Linux/Mac).
-* Either run `assemble.bat` (on Windows; also verifies the assembled files are identical to the original files) or assemble manually:
+* Either run `assemble.bat` on Windows (also verifies the assembled files are identical to the original files) or assemble manually:
   * `ophis -v -o prg.bin prg.asm`
   * `prg.bin` should be identical to `prg-original.bin`
   * `ophis -v -o "quantum_(e).nes" quantum.asm` (`(e)` in the output filename causes FCEUX to correctly start the ROM in PAL mode)
@@ -131,6 +131,7 @@ $8934-$8938 (   5): code
 $8939-$893a (   2): unaccessed
 $893b-$8949 (  15): code
 $894a-$895a (  17): unaccessed
+
 $895b-$896a (  16): data
 $896b-$896b (   1): unaccessed
 $896c-$8973 (   8): data
@@ -223,6 +224,7 @@ $8b27-$8b27 (   1): data
 $8b28-$8b45 (  30): unaccessed
 $8b46-$8b47 (   2): data
 $8b48-$8b6a (  35): unaccessed
+
 $8b6b-$8b6c (   2): data (indirectly accessed)
 $8b6d-$8b6e (   2): unaccessed
 $8b6f-$8b74 (   6): data (indirectly accessed)
@@ -361,7 +363,9 @@ $8d74-$8dbf (  76): data (indirectly accessed)
 $8dc0-$8e12 (  83): unaccessed
 $8e13-$a08c (4730): data (indirectly accessed)
 $a08d-$bfff (8051): unaccessed
+
 $c000-$c0a7 ( 168): code
+
 $c0a8-$c0b5 (  14): data
 $c0b6-$c0b7 (   2): unaccessed
 $c0b8-$c127 ( 112): data (indirectly accessed)
@@ -404,6 +408,7 @@ $dc41-$dc4b (  11): data
 $dc4c-$dc51 (   6): unaccessed
 $dc52-$dc91 (  64): data
 $dc92-$dc95 (   4): unaccessed
+
 $dc96-$dca9 (  20): code
 $dcaa-$dcce (  37): unaccessed
 $dccf-$dd21 (  83): code
@@ -448,8 +453,9 @@ $f9b7-$fb34 ( 382): code
 $fb35-$fb3c (   8): unaccessed
 $fb3d-$fc25 ( 233): code
 $fc26-$fff9 ( 980): unaccessed
-$fffa-$fffd (   4): data
-$fffe-$ffff (   2): unaccessed
+
+$fffa-$fffd (   4): data (NMI&amp;reset vectors)
+$fffe-$ffff (   2): unaccessed (IRQ vector)
 ```
 
 ## FCEUX Code/Data Log - CHR ROM
@@ -505,7 +511,9 @@ $0ea0-$0eff: rendered
 $0f00-$0f01: unaccessed
 $0f02-$0f12: rendered
 $0f13-$0f13: unaccessed
-$0f14-$1fff: rendered
+$0f14-$0fff: rendered
+
+$1000-$1fff: rendered
 ```
 
 ### CHR bank 1
@@ -538,7 +546,9 @@ $0ed0-$0edf: rendered
 $0ee0-$0eef: unaccessed
 $0ef0-$0f0f: rendered
 $0f10-$0f1f: unaccessed
-$0f20-$1b3f: rendered
+$0f20-$0fff: rendered
+
+$1000-$1b3f: rendered
 $1b40-$1bff: unaccessed
 $1c00-$1cff: rendered
 $1d00-$1dff: unaccessed
@@ -563,7 +573,9 @@ $03e0-$043f: rendered
 $0440-$04ff: unaccessed
 $0500-$053f: rendered
 $0540-$05ff: unaccessed
-$0600-$14ef: rendered
+$0600-$0fff: rendered
+
+$1000-$14ef: rendered
 $14f0-$1502: unaccessed
 $1503-$1503: rendered
 $1504-$150a: unaccessed
@@ -576,7 +588,9 @@ $1800-$1fff: rendered
 
 ### CHR bank 3
 ```
-$0000-$1d9f: rendered
+$0000-$0fff: rendered
+
+$1000-$1d9f: rendered
 $1da0-$1def: unaccessed
 $1df0-$1e4f: rendered
 $1e50-$1eef: unaccessed

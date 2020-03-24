@@ -1,4 +1,4 @@
-    ; data in first half of PRG ROM
+; data in first half of PRG ROM
 
     ; unaccessed ($894a)
     .byte $c0, $00
@@ -27,7 +27,7 @@ table03:
 ; -----------------------------------------------------------------------------
 
 or_masks:
-    ; $8967
+    ; $8967 (some bytes unaccessed)
     ; read by: sub06
     .byte $00, $10, $20, $30, $40, $50, $60, $70
     .byte $80, $90, $a0, $b0, $c0, $d0, $e0, $f0
@@ -35,8 +35,7 @@ or_masks:
     .byte $60, $50, $40, $30, $20, $10, $00
 
 table05:
-    ; $8986
-    ; some bytes unaccessed
+    ; $8986 (most bytes unaccessed)
     ; read by: sub06
     ; Math stuff? (On each line, the numbers increase linearly.)
     .byte  0,  0,  0,  1,  1,  1,  2,  2,  3,  3,  3,  4,  4,  4,  5,  5  ; value ~= index/4
@@ -62,9 +61,9 @@ table05:
     ; Disregarding the first nine values, the numbers decrease exponentially.
     ; (Each value equals approximately 0.944 times the previous value.)
     ; Some bytes unaccessed.
+    ; read by: sub07, sub08, sub10
 word_lo:
     ; $8a86
-    ; read by: sub07, sub08, sub10
     .byte <1884, <1948, <2024, <1852, <1948, <1839, <1906, <2028
     .byte <2047, <2034, <1920, <1812, <1710, <1614, <1524, <1438
     .byte <1358, <1281, <1209, <1142, <1077, <1017,  <960,  <906
@@ -79,7 +78,6 @@ word_lo:
     .byte   <21,   <20,   <19,   <18,   <17,   <16,   <15,   <14
 word_hi:
     ; $8ae6
-    ; read by: sub07, sub08, sub10
     .byte >1884, >1948, >2024, >1852, >1948, >1839, >1906, >2028
     .byte >2047, >2034, >1920, >1812, >1710, >1614, >1524, >1438
     .byte >1358, >1281, >1209, >1142, >1077, >1017,  >960,  >906
@@ -95,8 +93,7 @@ word_hi:
 
 ; -----------------------------------------------------------------------------
 
-    ; $8b46
-    ; read by: sub13
+    ; $8b46 (read by: sub13)
 pointer_lo:
     .byte <indirect_data1
 pointer_hi:

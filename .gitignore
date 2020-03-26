@@ -1,4 +1,5 @@
 *.bin
 *.cdl
+*.mlb
 *.nes
 chr*.png

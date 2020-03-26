@@ -16,12 +16,16 @@ Notes:
 * Extract the PRG ROM data to `prg-original.bin` and the CHR ROM data to `chr.bin` from the `.nes` file. Use my [ines-split](http://github.com/qalle2/ines-split) or a general-purpose tool like a hex editor (the `.nes` file consists of a 16-byte iNES header, then the PRG ROM data and finally the CHR ROM data.)
 
 ## How to assemble
-* Install [Ophis](http://michaelcmartin.github.io/Ophis/) (a 6502 assembler for Windows/Linux/Mac).
-* Either run `assemble.bat` on Windows (also verifies the assembled files are identical to the original files) or assemble manually:
-  * `ophis -v -o prg.bin prg.asm`
-  * `prg.bin` should be identical to `prg-original.bin`
-  * `ophis -v -o "quantum_(e).nes" quantum.asm` (`(e)` in the output filename causes FCEUX to correctly start the ROM in PAL mode)
-  * `quantum_(e).nes` should be identical to `quantum-original.nes`
+* Install the asm6f assembler:
+  * [GitHub page](https://github.com/freem/asm6f)
+  * [64-bit Windows binary](http://qallee.net/misc/asm6f-win64.zip) (compiled by me)
+* You have two options:
+  * Option 1: run `assemble.bat` (only works on Windows; also compares the assembled files to the originals).
+  * Option 2: assemble the source manually:
+    * `asm6f prg.asm prg.bin`
+    * `prg.bin` should be identical to `prg-original.bin`
+    * `asm6f quantum.asm "quantum_(e).nes"` (`(e)` in the output filename causes FCEUX to correctly start the ROM in PAL mode)
+    * `quantum_(e).nes` should be identical to `quantum-original.nes`
 
 ## The type of the iNES ROM file (from the header)
 * mapper: CNROM (iNES mapper number 3)

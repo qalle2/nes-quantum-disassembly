@@ -1,10 +1,10 @@
 ; PRG ROM of Quantum Disco Brothers. Assembles with Ophis.
 ; TODO: data on unaccessed parts is out of date
 
-    .include "macros.asm"
-    .include "constants.asm"
+    include "macros.asm"
+    include "constants.asm"
 
-    .org $8000
+    org $8000
 
 ; -----------------------------------------------------------------------------
 ; Unaccessed block ($8000)
@@ -37,7 +37,7 @@
     lda #%10000000
     sta ppu_ctrl
 
-*   jmp -
+-   jmp -
 
 ; -----------------------------------------------------------------------------
 
@@ -95,7 +95,9 @@ sub01:
     sta $03e4
 
     ; 144 -> $cb
-    `iny4
+    rept 4
+        iny
+    endr
     tya
     clc
     adc #128
@@ -212,10 +214,10 @@ sub02:
     cmp #0
     bpl +    ; always taken
     lda #0   ; unaccessed ($8157)
-*   cmp #63
++   cmp #63
     bcc +    ; always taken
     lda #63  ; unaccessed ($815d)
-*   lsr
++   lsr
     lsr
     ora $0394,x
     ldy apu_reg_offsets,x
@@ -241,7 +243,7 @@ sub03:
     sta $03ac,x
     ora #%00001000
     sta pulse1_length,y
-*   rts
++   rts
 
 sub03_1:
     and #%00001111
@@ -270,7 +272,7 @@ sub04:
     cmp $d2
     beq +
     bpl sub04_2
-*   lda #$00
++   lda #$00
     sta $d2
     lda $d4
     cmp #$40
@@ -282,7 +284,7 @@ sub04:
     cpx $d6
     bcc +
     ldx $d7
-*   stx $d5
++   stx $d5
 sub04_1:
     jmp sub10_02
 
@@ -300,13 +302,13 @@ sub04_loop1:
     and $ef
     sta $ef
     lda #$00
-*   sta $e5,x
++   sta $e5,x
 sub04_3:
     cpx #$02
     bne +
     lda #$ff
     sta triangle_ctrl
-*   dex
++   dex
     bpl sub04_loop1
 
     lda apu_ctrl
@@ -315,7 +317,7 @@ sub04_3:
     lda $ef
     and #%00001111
     sta $ef
-*   lda $ef
++   lda $ef
     sta apu_ctrl
     ldx #3
 
@@ -323,7 +325,7 @@ sub04_loop2:
     cpx #2
     beq +
     jsr sub05
-*   jsr sub07
++   jsr sub07
     dex
     bpl sub04_loop2
 
@@ -345,25 +347,27 @@ sub05:
     lda $035f,x
     beq +
     sta $0324,x
-*   lda $0324,x
++   lda $0324,x
     tay
     and #%11110000
     beq +           ; always taken
 
     ; unaccessed ($823b)
-    `lsr4
+    rept 4
+        lsr
+    endr
     adc $0300,x
     sta $0300,x
     jmp sub05_1
 
-*   tya
++   tya
     and #%00001111
     eor #%11111111
     sec
     adc $0300,x
     sta $0300,x
 sub05_1:
-*   jmp +
+    jmp +
 
 sub05_2:
     lda $0320,x
@@ -371,7 +375,7 @@ sub05_2:
     clc
     adc $0300,x
     sta $0300,x
-*   ldy $035a,x
++   ldy $035a,x
     cpy #$07
     bne sub05_3  ; always taken
 
@@ -379,7 +383,7 @@ sub05_2:
     lda $035f,x
     beq +
     sta $0340,x
-*   lda $0340,x
++   lda $0340,x
     bne unaccessed1
 
 sub05_3:
@@ -388,10 +392,10 @@ sub05_3:
     lda $0300,x
     bpl +
     lda #$00
-*   cmp #$3f
++   cmp #$3f
     bcc +        ; always taken
     lda #$3f     ; unaccessed ($8287)
-*   sta $0300,x
++   sta $0300,x
     jmp sub02
 
 ; -----------------------------------------------------------------------------
@@ -407,7 +411,9 @@ unaccessed1:
     adc $0300,x
     jsr sub02
     pla
-    `lsr4
+    rept 4
+        lsr
+    endr
     clc
     adc $033c,x
     cmp #$20
@@ -420,7 +426,9 @@ unaccessed2:
     adc $0300,x
     jsr sub02
     pla
-    `lsr4
+    rept 4
+        lsr
+    endr
     clc
     adc $033c,x
     cmp #$20
@@ -486,7 +494,9 @@ sub06_3:
     tya
     jsr sub03
     pla
-    `lsr4
+    rept 4
+        lsr
+    endr
     clc
     adc $0330,x
     cmp #$20
@@ -504,7 +514,9 @@ sub06_4:
     tya
     jsr sub03
     pla
-    `lsr4
+    rept 4
+        lsr
+    endr
     clc
     adc $0330,x
     cmp #$20
@@ -533,7 +545,7 @@ sub07_1:
     lda $035f,x
     beq +
     sta $0334,x
-*   lda $0334,x
++   lda $0334,x
     bne sub06_3
 
 sub07_2:
@@ -557,7 +569,7 @@ sub07_3:
     jmp sub07_1
 
     ; unaccessed block ($838e)
-*   lda $03a0,x
++   lda $03a0,x
     bmi +
     clc
     adc $dc,x
@@ -566,7 +578,7 @@ sub07_3:
     adc #0
     sta $0308,x
     jmp sub07_1
-*   clc
++   clc
     adc $dc,x
     sta $dc,x
     lda $0308,x
@@ -578,7 +590,7 @@ sub07_4:
     lda $035f,x
     beq +
     sta $0318,x
-*   lda $dc,x
++   lda $dc,x
     sec
     sbc $0318,x
     sta $dc,x
@@ -591,7 +603,7 @@ sub07_5:
     lda $035f,x
     beq +
     sta $0318,x
-*   lda $dc,x
++   lda $dc,x
     clc
     adc $0318,x
     sta $dc,x
@@ -604,10 +616,10 @@ sub07_6:
     lda $0350,x
     beq +
     sta $0314,x
-*   lda $035f,x
++   lda $035f,x
     beq +
     sta $0318,x
-*   ldy $0314,x
++   ldy $0314,x
 
     lda word_lo-1,y
     sta ptr2+0
@@ -622,7 +634,7 @@ sub07_6:
     bmi +
     bpl sub07_7  ; always taken
     jmp sub07_1  ; unaccessed ($8414)
-*   lda $dc,x
++   lda $dc,x
     clc
     adc $0318,x
     sta $dc,x
@@ -676,14 +688,14 @@ sub08:
     bne sub08_1
     rts
 
-*   jmp unaccessed6  ; unaccessed ($8478)
++   jmp unaccessed6  ; unaccessed ($8478)
 
 sub08_1:
     lda $039c,x
     ldy $03a8,x
     bne +
     and #%00000011
-*   cmp #0
++   cmp #0
     beq +
     cmp #1
     beq sub08_2
@@ -693,7 +705,7 @@ sub08_1:
     beq sub08_4  ; always taken
     rts          ; unaccessed ($8495)
 
-*   ldy $e9,x
++   ldy $e9,x
     lda word_hi-1,y
     sta $0308,x
     sta $cb
@@ -758,7 +770,7 @@ unaccessed4:
     cmp $d6
     bcc +
     lda $d7
-*   sta $d5
++   sta $d5
     jmp sub09_1
 
 ; -----------------------------------------------------------------------------
@@ -803,7 +815,7 @@ sub09_1:
     lda $dc,x
     jmp sub03
 
-*   rts
++   rts
 
     ; unaccessed block ($854e)
 unaccessed5:
@@ -823,7 +835,7 @@ unaccessed6:
     lda $035f,x
     beq +
     sta $0398,x
-*   sec
++   sec
     lda $d2
     beq unaccessed8
 
@@ -845,7 +857,9 @@ unaccessed8:
 
 unaccessed9:
     lda $0398,x
-    `lsr4
+    rept 4
+        lsr
+    endr
     clc
     adc $e9,x
     tay
@@ -890,7 +904,7 @@ sub10_03:
     lda $0355,x
     bne +
     jmp sub10_06
-*   cmp $0310,x
++   cmp $0310,x
     beq sub10_01
     sta $0310,x
     asl
@@ -976,7 +990,9 @@ sub10_04:
     bcs unaccessed12
     sta $0328,x
     tya
-    `lsr4
+    rept 4
+        lsr
+    endr
     sta $03a4,x
     lda $cb
     and #%00001111
@@ -990,7 +1006,9 @@ unaccessed12:
     adc #1
     sta $0328,x
     tya
-    `lsr4
+    rept 4
+        lsr
+    endr
     eor #%11111111
     clc
     adc #1
@@ -1048,7 +1066,7 @@ sub10_08:
     dex
     bmi +
     jmp sub10_03
-*   jmp sub11_16
++   jmp sub11_16
 
 sub10_09:
     lda table03,x
@@ -1092,7 +1110,7 @@ sub11_loop1:
     lda $d2
     bne +
     jmp sub11_01
-*   jmp sub11_04
++   jmp sub11_04
 sub11_01:
     lda $d5
     asl
@@ -1153,7 +1171,7 @@ sub11_loop2:
     lda (ptr2),y
     bne +         ; never taken
     jmp sub10_11
-*   lda $cb       ; unaccessed ($8798)
++   lda $cb       ; unaccessed ($8798)
 sub11_02:
     clc
     adc ptr4+0
@@ -1193,7 +1211,7 @@ sub11_05:
     dec $038a,x
     bpl +
     jmp sub11_06
-*   jmp sub11_15
++   jmp sub11_15
 sub11_06:
     lda $036e,x
     sta ptr2+0
@@ -1206,8 +1224,10 @@ sub11_06:
     iny
     lda (ptr2),y
     bcc +
-    `lsr4
-*   ldy $0378,x
+    rept 4
+        lsr
+    endr
++   ldy $0378,x
     sty $cb
     bit $cb
     ldy $e0,x
@@ -1224,7 +1244,7 @@ sub11_06:
     iny
     jmp sub11_08
 
-*   lda (ptr2),y
++   lda (ptr2),y
     and #%11110000
     sta $cc
     iny
@@ -1240,8 +1260,10 @@ sub11_07:
     sbc #$ff
     bit $cd
     jmp sub11_08
-*   lda (ptr2),y
-    `lsr4
++   lda (ptr2),y
+    rept 4
+        lsr
+    endr
     clc
     adc #1
     iny
@@ -1260,8 +1282,10 @@ sub11_09:
     sta $0355,x
     bit $cd
     jmp sub11_10
-*   lda (ptr2),y
-    `lsr4
++   lda (ptr2),y
+    rept 4
+        lsr
+    endr
     iny
     clc
     adc #1
@@ -1276,8 +1300,10 @@ sub11_10:
     bit $cd
     jmp sub11_11
 
-*   lda (ptr2),y
-    `lsr4
++   lda (ptr2),y
+    rept 4
+        lsr
+    endr
     iny
     clv
 sub11_11:
@@ -1290,7 +1316,7 @@ sub11_12:
     lda (ptr2),y
     iny
     jmp sub11_13
-*   lda (ptr2),y
++   lda (ptr2),y
     and #%11110000
     sta $cc
     iny
@@ -1304,13 +1330,13 @@ sub11_14:
     lda #$40
     bvs +
     lda #$00
-*   sta $0378,x
++   sta $0378,x
 
 sub11_15:
     dex
     bmi +
     jmp sub11_05
-*   rts
++   rts
 
 sub11_16:
     ldx #3
@@ -1324,7 +1350,7 @@ sub11_loop3:
     sta $ef
     lda #$00
     ldy #$00
-*   sty $e5,x
++   sty $e5,x
 sub11_17:
     dex
     bpl sub11_loop3
@@ -1335,7 +1361,7 @@ sub11_17:
     lda $ef
     and #%00001111
     sta $ef
-*   lda $ef
++   lda $ef
     sta apu_ctrl
 
     ldx #3
@@ -1349,7 +1375,7 @@ sub11_loop4:
     cmp #$0c
     beq +
     jmp sub11_18
-*   lda $0300,x
++   lda $0300,x
     lsr
     lsr
     ora $0394,x
@@ -1382,7 +1408,7 @@ unaccessed13:
     lda #$05
     sta $ff
     lda #$1e
-*   jsr sub04
++   jsr sub04
     lda #$06
     rti
     rti
@@ -1417,7 +1443,7 @@ sub13:
     dex
     beq +
     ldy #$05  ; unaccessed ($8939)
-*   sty $ff
++   sty $ff
     asl
     tay
 
@@ -1429,11 +1455,11 @@ sub13:
 
 ; -----------------------------------------------------------------------------
 
-    .include "data0.asm"
+    include "data0.asm"
 
     ; The program continues at the next 16-KiB boundary for some reason.
     ; (Technically, there is only one 32-KiB PRG ROM bank.)
-    .advance $c000, pad_byte
+    pad $c000
 
 ; -----------------------------------------------------------------------------
 
@@ -1447,7 +1473,7 @@ init:
     ; clear RAM
     ldx #0
     txa
-*   sta $00,x
+-   sta $00,x
     sta $0100,x
     sta $0200,x
     sta $0300,x
@@ -1463,12 +1489,12 @@ init:
     jsr update_palette
 
     ; update fourth sprite subpalette
-    `set_ppu_addr vram_palette+7*4
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $1c  ; medium-dark cyan
-    `write_ppu_data $2b  ; medium-light green
-    `write_ppu_data $39  ; light yellow
-    `reset_ppu_addr
+    set_ppu_addr vram_palette + 7 * 4
+    write_ppu_data $0f  ; black
+    write_ppu_data $1c  ; medium-dark cyan
+    write_ppu_data $2b  ; medium-light green
+    write_ppu_data $39  ; light yellow
+    reset_ppu_addr
 
     ; the demo part to run
     lda #0
@@ -1492,7 +1518,7 @@ init:
     lda #$ff
     sta pulse1_ctrl
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     lda #$00
     ldx #$01
@@ -1504,26 +1530,26 @@ init:
     lda #%00011110
     sta ppu_mask
 
-*   lda demo_part
+-   lda demo_part
     cmp #9  ; last part?
     bne +
     lda #$0d
     sta dmc_addr
     lda #$fa
     sta dmc_length
-*   jmp --
++   jmp -
 
 ; -----------------------------------------------------------------------------
 
-    .include "data1.asm"
+    include "data1.asm"  ; $c0a8
 
 ; -----------------------------------------------------------------------------
 
-wait_vbl:
+wait_vbl:  ; $dc96
     ; Wait for VBlank.
     ; Called by: init
 
-*   bit ppu_status
+-   bit ppu_status
     bpl -
     rts
 
@@ -1535,9 +1561,11 @@ hide_sprites:
     ; nmisub16, nmisub20, nmisub22
 
     ldx #0
-*   lda #245
+-   lda #245
     sta sprite_page+sprite_y,x
-    `inx4
+    rept 4
+        inx
+    endr
     bne -
     rts
 
@@ -1553,7 +1581,7 @@ hide_sprites:
     ; clear sound registers
     lda #$00
     ldx #0
-*   sta apu_regs,x
+-   sta apu_regs,x
     inx
     cpx #15
     bne -
@@ -1574,7 +1602,7 @@ init_palette_copy:
     ; nmisub15, game_over_screen, nmisub19
 
     ldx #0
-*   lda palette_table,x
+-   lda palette_table,x
     sta palette_copy,x
     inx
     cpx #32
@@ -1589,7 +1617,7 @@ clear_palette_copy:
     ; Called by: greets_screen
 
     ldx #0
-*   lda #$0f
+-   lda #$0f
     sta palette_copy,x
     inx
     cpx #32
@@ -1604,16 +1632,16 @@ update_palette:
     ; Called by: init, hide_sprites, nmisub03, nmisub06, nmisub08, nmisub10,
     ; nmisub12, nmisub13, nmisub15, game_over_screen, greets_screen, nmisub19
 
-    `set_ppu_addr vram_palette+0*4
+    set_ppu_addr vram_palette + 0 * 4
 
     ldx #0
-*   lda palette_copy,x
+-   lda palette_copy,x
     sta ppu_data
     inx
     cpx #32
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1632,7 +1660,7 @@ delay_loop:
     clc
     adc #85
     bcc +
-*   sta delay_var1
++   sta delay_var1
 
     inc delay_cnt
     lda delay_cnt
@@ -1703,7 +1731,9 @@ fade_out_palette_loop:
     sta temp1
     ; copy color brightness (0-3) to X
     and #%00110000
-    `lsr4
+    rept 4
+        lsr
+    endr
     tax
     ; take color hue (0-15)
     lda temp1
@@ -1723,7 +1753,7 @@ fade_out_palette_loop:
 change_background_color:
     ; Change background color: #$3f (black) if $e8 < 8, otherwise $e8.
 
-    `set_ppu_addr vram_palette+0*4
+    set_ppu_addr vram_palette + 0 * 4
 
     lda $e8
     cmp #8
@@ -1734,21 +1764,21 @@ change_background_color:
     jmp change_background_exit
 
 change_background_black:
-    `write_ppu_data $3f  ; black
+    write_ppu_data $3f  ; black
 change_background_exit:
     rts
 
 ; -----------------------------------------------------------------------------
 
 update_sixteen_sprites:
-    ; Update 16 (8*2) sprites.
+    ; Update 16 (8 * 2) sprites.
     ; Called by: nmisub13
 
     ; Input: X, Y, $9a, $a8
 
     ; Modifies: A, X, Y, $9a, $9c, $a5, $a6, $a7, $a8, loopcnt
 
-    ; Sprite page offsets: $a8*4 ... ($a8+15)*4
+    ; Sprite page offsets: $a8 * 4 ... ($a8 + 15) * 4
     ; Tiles: $9a ... $9a+15
     ; X positions: X+0, X+8, ..., X+56, X+0, X+8, ..., X+56
     ; Y positions: Y for first 8 sprites, Y+8 for the rest
@@ -1815,7 +1845,9 @@ update_sixteen_sprites_loop_inner:
     inc $9c
 
     ; Y + 4 -> $a8
-    `iny4
+    rept 4
+        iny
+    endr
     sty $a8
 
     ; X += 8
@@ -1844,12 +1876,12 @@ update_sixteen_sprites_loop_inner:
 ; -----------------------------------------------------------------------------
 
 update_six_sprites:
-    ; Update 6 (3*2) sprites.
+    ; Update 6 (3 * 2) sprites.
     ; Called by: nmisub13
 
     ; Input: X, Y, $9a, $a8
 
-    ; Sprite page offsets: $a8*4 ... ($a8+5)*4
+    ; Sprite page offsets: $a8 * 4 ... ($a8 + 5) * 4
     ; Tiles: $9a ... $9a+5
     ; X positions: X+0, X+8, X+16, X+0, X+8, X+16
     ; Y positions: Y+0, Y+0, Y+0, Y+8, Y+8, Y+8
@@ -1916,7 +1948,9 @@ update_six_sprites_loop_inner:
     inc $9c
 
     ; Y + 4 -> $a8
-    `iny4
+    rept 4
+        iny
+    endr
     sty $a8
 
     ; X += 8
@@ -1945,12 +1979,12 @@ update_six_sprites_loop_inner:
 ; -----------------------------------------------------------------------------
 
 update_eight_sprites:
-    ; Update 8 (4*2) sprites.
+    ; Update 8 (4 * 2) sprites.
     ; Called by: nmisub13
 
     ; Input: X, Y, $9a, $a8
 
-    ; Sprite page offsets: $a8*4 ... ($a8+7)*4
+    ; Sprite page offsets: $a8 * 4 ... ($a8 + 7) * 4
     ; Tiles: $9a ... $9a+7
     ; X positions: X+0, X+8, ..., X+24, X+0, X+8, ..., X+24
     ; Y positions: Y+0 for first 4 sprites, Y+8 for the rest
@@ -2017,7 +2051,9 @@ update_eight_sprites_loop_inner:
     inc $9c
 
     ; Y + 4 -> $a8
-    `iny4
+    rept 4
+        iny
+    endr
     sty $a8
 
     ; X += 8
@@ -2064,7 +2100,7 @@ sub15_loop:
     sta $9b
     jmp sub15_1
 
-*   lda #$e1
++   lda #$e1
     clc
     adc $9b
     sta sprite_page+sprite_y,x
@@ -2083,7 +2119,9 @@ sub15_loop:
     sta sprite_page+sprite_x,x
 
 sub15_1:
-    `inx4
+    rept 4
+        inx
+    endr
     iny
     lda $9a
     clc
@@ -2111,7 +2149,7 @@ sub16:
     ldy #0
     stx $90
 
-*   ldy $90
+-   ldy $90
     lda (ptr1),y
     clc
     sbc #$40
@@ -2128,7 +2166,7 @@ sub16:
     lda #0
     sta $90
 
-*   ldy $90
+-   ldy $90
     lda (ptr1),y
     clc
     sbc #$40
@@ -2146,7 +2184,7 @@ sub16:
     cmp #16
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2162,16 +2200,16 @@ move_stars_up:
     sta $9a
     ldx star_count
 
-*   ; X*4 -> Y
-    txa
+    ; X*4 -> Y
+-   txa
     asl
     asl
     tay
     ; subtract star_y_speeds,x + 1 from the sprite's Y position
-    lda sprite_page+45*4+sprite_y,y
+    lda sprite_page + 45 * 4 + sprite_y, y
     clc
     sbc star_y_speeds,x
-    sta sprite_page+45*4+sprite_y,y
+    sta sprite_page + 45 * 4 + sprite_y, y
     ; loop
     dex
     cpx #255
@@ -2188,8 +2226,8 @@ sub18:
     ; 10 -> X
     ldx star_count
 
-*   ; X*4 -> Y
-    txa
+    ; X*4 -> Y
+-   txa
     asl
     asl
     tay
@@ -2220,7 +2258,7 @@ sub18:
 nmisub01:
     ; Called by: NMI
 
-    `chr_bankswitch 0
+    chr_bankswitch 0
     lda $95
 
     cmp #1
@@ -2258,10 +2296,10 @@ nmisub01_01:
     cmp #$dc
     bne +
     jmp ++
-*   inc $96
++   inc $96
     inc $96
 
-*   lda #%10000000
+++  lda #%10000000
     sta ppu_ctrl
     lda #%00011110
     sta ppu_mask
@@ -2300,7 +2338,7 @@ nmisub01_02:
     cmp #$f0
     bcs +
     jmp nmisub01_11
-*   lda #$00
++   lda #$00
     sta $96
     jmp nmisub01_11
 
@@ -2400,7 +2438,7 @@ nmisub01_11:
     cmp #$a0
     bcc +
     jmp unaccessed18
-*   ldx $93
++   ldx $93
 
     lda table19,x
     clc
@@ -2516,7 +2554,7 @@ sub19:
 
     jsr move_stars_up
 
-    `sprite_dma
+    sprite_dma
     rts
 
 ; -----------------------------------------------------------------------------
@@ -2532,38 +2570,38 @@ nmisub02:
     ldy #$00
 
     ; fill rows 1-8 of Name Table 2 with #$00-#$ff
-    `set_ppu_addr vram_name_table2+32
+    set_ppu_addr vram_name_table2+32
     ldx #0
-*   stx ppu_data
+-   stx ppu_data
     inx
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     ; update first and second color in first sprite subpalette
-    `set_ppu_addr vram_palette+4*4
-    `write_ppu_data $00  ; dark gray
-    `write_ppu_data $30  ; white
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+4*4
+    write_ppu_data $00  ; dark gray
+    write_ppu_data $30  ; white
+    reset_ppu_addr
 
     ; update second and third sprite subpalette
-    `set_ppu_addr vram_palette+5*4+1
-    `write_ppu_data $3d  ; light gray
-    `write_ppu_data $0c  ; dark cyan
-    `write_ppu_data $3c  ; light cyan
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $3c  ; light cyan
-    `write_ppu_data $0c  ; dark cyan
-    `write_ppu_data $1a  ; medium-dark green
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+5*4+1
+    write_ppu_data $3d  ; light gray
+    write_ppu_data $0c  ; dark cyan
+    write_ppu_data $3c  ; light cyan
+    write_ppu_data $0f  ; black
+    write_ppu_data $3c  ; light cyan
+    write_ppu_data $0c  ; dark cyan
+    write_ppu_data $1a  ; medium-dark green
+    reset_ppu_addr
 
     ; update first background subpalette
-    `set_ppu_addr vram_palette+0*4
-    `write_ppu_data $38  ; light yellow
-    `write_ppu_data $01  ; dark purple
-    `write_ppu_data $26  ; medium-light red
-    `write_ppu_data $0f  ; black
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+0*4
+    write_ppu_data $38  ; light yellow
+    write_ppu_data $01  ; dark purple
+    write_ppu_data $26  ; medium-light red
+    write_ppu_data $0f  ; black
+    reset_ppu_addr
 
     lda #1
     sta flag1
@@ -2581,16 +2619,16 @@ nmisub02:
 nmisub03:
     ; Called by: NMI
 
-    `chr_bankswitch 0
-    `sprite_dma
+    chr_bankswitch 0
+    sprite_dma
 
     lda #%10010000
     sta ppu_ctrl
 
     ; update fourth color of first background subpalette
-    `set_ppu_addr vram_palette+0*4+3
-    `write_ppu_data $0f  ; black
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+0*4+3
+    write_ppu_data $0f  ; black
+    reset_ppu_addr
 
     lda #0
     sta ppu_scroll
@@ -2604,14 +2642,14 @@ nmisub03:
     cmp #$c1
     beq +
     inc $014e
-*   lda $ac
++   lda $ac
     cmp #$02
     bne +
     lda $ab
     cmp #$32
     bne +
     jsr sub15
-*   lda $ac
++   lda $ac
     cmp #$01
     bne nmisub03_1
     lda $ab
@@ -2643,7 +2681,7 @@ nmisub03_loop1:
     dex
     jmp nmisub03_loop1
 
-*   lda #129
++   lda #129
     sta sprite_page+24*4+sprite_y
     lda #$e5
     sta sprite_page+24*4+sprite_tile
@@ -2662,9 +2700,9 @@ nmisub03_loop1:
     sta sprite_page+25*4+sprite_x
 
     ; update fourth color of first background subpalette
-    `set_ppu_addr vram_palette+0*4+3
-    `write_ppu_data $30  ; white
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+0*4+3
+    write_ppu_data $30  ; white
+    reset_ppu_addr
 
 nmisub03_1:
     lda $ac
@@ -2703,8 +2741,10 @@ nmisub03_loop2:
     sbc $9b
     sbc $9c
     sta $0154,x
-*   inx
-    `iny4
++   inx
+    rept 4
+        iny
+    endr
     cpx #22
     bne nmisub03_loop2
 
@@ -2725,7 +2765,7 @@ nmisub03_2:
     lda #$00
     sta $a3
 
-*   jsr move_stars_up
++   jsr move_stars_up
     lda #2  ; 2nd part
     sta demo_part
     rts
@@ -2737,7 +2777,7 @@ nmisub04:
 
     lda #$00
     ldx #0
-*   sta pulse1_ctrl,x
+-   sta pulse1_ctrl,x
     inx
     cpx #15
     bne -
@@ -2783,20 +2823,20 @@ nmisub05:
 nmisub05_loop:
 
     ldx #25
-*   dex
+-   dex
     bne -
 
-    `set_ppu_addr_via_x vram_palette+0*4
+    set_ppu_addr_via_x vram_palette+0*4
 
     inc $8c
     lda $8c
     cmp #$05
     beq +
     jmp ++
-*   inc $89
++   inc $89
     lda #$00
     sta $8c
-*   inc $89
+++  inc $89
     lda $89
     sbc $8a
     adc $8b
@@ -2839,9 +2879,9 @@ nmisub06:
     jsr update_palette
 
     ; update first color of fourth background subpalette
-    `set_ppu_addr vram_palette+3*4
-    `write_ppu_data $0f  ; black
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+3*4
+    write_ppu_data $0f  ; black
+    reset_ppu_addr
 
     lda #1
     sta flag1
@@ -2854,12 +2894,12 @@ nmisub06:
 nmisub07:
     ; Called by: NMI
 
-    `chr_bankswitch 1
+    chr_bankswitch 1
     lda $0148
     cmp #$00
     beq +
     jmp nmisub07_1
-*   dec $8a
++   dec $8a
 
     ldx #0
     lda #$00
@@ -2891,7 +2931,7 @@ nmisub07_loop2:
     sta ppu_addr
 
     ldy #0
-*   lda $0600,x
+-   lda $0600,x
     sta ppu_data
     lda $0600,x
     sta ppu_data
@@ -2923,7 +2963,7 @@ nmisub07_1:
     lda #$00
     sta $89
 
-*   lda $89
+-   lda $89
     adc $8a
     tay
     lda table19,y
@@ -2947,7 +2987,7 @@ nmisub07_loop3:
     sta ppu_addr
 
     ldy #0
-*   lda $0600,x
+-   lda $0600,x
     sta ppu_data
     lda $0600,x
     sta ppu_data
@@ -2973,12 +3013,12 @@ nmisub07_loop3:
     sta $0148
 
 nmisub07_2:
-    `reset_ppu_addr
+    reset_ppu_addr
 
     lda #$00
     sta $89
 
-*   ldx #$04
+-   ldx #$04
     jsr delay
     lda $89
     clc
@@ -3037,9 +3077,9 @@ nmisub08:
     jsr fill_attribute_tables_top
 
     ; update first color of fourth background subpalette
-    `set_ppu_addr vram_palette+3*4
-    `write_ppu_data $0f  ; black
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+3*4
+    write_ppu_data $0f  ; black
+    reset_ppu_addr
 
     lda #1
     sta flag1
@@ -3051,14 +3091,14 @@ nmisub09:
     ; Called by: NMI
 
     jsr change_background_color
-    `chr_bankswitch 1
+    chr_bankswitch 1
     dec $8a
     dec $8a
 
     ldx #0
     lda #0
     sta $89
-*   lda $89
+-   lda $89
     adc $8a
     tay
     lda table19,y
@@ -3074,7 +3114,7 @@ nmisub09:
     beq +
     jmp nmisub09_1
 
-*   ldx #0
++   ldx #0
     ldy #0
     lda #$00
 
@@ -3087,7 +3127,7 @@ nmisub09_loop1:
     sta ppu_addr
 
     ldy #0
-*   lda $0600,x
+-   lda $0600,x
     sta ppu_data
     lda $0600,x
     sta ppu_data
@@ -3124,7 +3164,7 @@ nmisub09_loop2:
     sta ppu_addr
 
     ldy #0
-*   lda $0600,x
+-   lda $0600,x
     sta ppu_data
     lda $0600,x
     sta ppu_data
@@ -3149,7 +3189,7 @@ nmisub09_loop2:
     sta $0148
 
 nmisub09_2:
-    `reset_ppu_addr
+    reset_ppu_addr
 
     ldx $8b
     lda table22,x
@@ -3216,13 +3256,13 @@ nmisub11:
     sta $8b
     dec $8a
 
-*   lda #%10000100
++   lda #%10000100
     sta ppu_ctrl
 
     ; update first color of first background subpalette
-    `set_ppu_addr_via_x vram_palette+0*4
-    `write_ppu_data $0f  ; black
-    `reset_ppu_addr
+    set_ppu_addr_via_x vram_palette+0*4
+    write_ppu_data $0f  ; black
+    reset_ppu_addr
 
     ldx #$ff
     jsr delay
@@ -3230,9 +3270,9 @@ nmisub11:
     jsr delay
 
     ; update first color of first background subpalette
-    `set_ppu_addr_via_x vram_palette+0*4
-    `write_ppu_data $0f  ; black
-    `reset_ppu_addr
+    set_ppu_addr_via_x vram_palette+0*4
+    write_ppu_data $0f  ; black
+    reset_ppu_addr
 
     lda #$00
     sta $89
@@ -3241,10 +3281,10 @@ nmisub11:
 nmisub11_loop:
 
     ldx #25
-*   dex
+-   dex
     bne -
 
-    `set_ppu_addr_via_x vram_palette+0*4
+    set_ppu_addr_via_x vram_palette+0*4
 
     ldx $8a
     lda table22,x
@@ -3265,12 +3305,12 @@ nmisub11_loop:
     dey
     bne nmisub11_loop
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     ; update first color of first background subpalette
-    `set_ppu_addr_via_x vram_palette+0*4
-    `write_ppu_data $0f  ; black
-    `reset_ppu_addr
+    set_ppu_addr_via_x vram_palette+0*4
+    write_ppu_data $0f  ; black
+    reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -3286,14 +3326,14 @@ nmisub12:
     jsr update_palette
 
     ; update fourth sprite subpalette
-    `set_ppu_addr vram_palette+7*4
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $19  ; medium-dark green
-    `write_ppu_data $33  ; light purple
-    `write_ppu_data $30  ; white
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+7*4
+    write_ppu_data $0f  ; black
+    write_ppu_data $19  ; medium-dark green
+    write_ppu_data $33  ; light purple
+    write_ppu_data $30  ; white
+    reset_ppu_addr
 
-    `set_ppu_addr vram_name_table0
+    set_ppu_addr vram_name_table0
 
 nmisub12_1:
     lda #$00
@@ -3306,7 +3346,7 @@ nmisub12_loop1:
 nmisub12_loop2:
 
     ldx #0
-*   txa
+-   txa
     clc
     adc $9e
     sta ppu_data
@@ -3340,7 +3380,7 @@ nmisub12_loop3:
 nmisub12_loop4:
 
     ldx #0
-*   txa
+-   txa
     clc
     adc $9e
     sta ppu_data
@@ -3367,7 +3407,7 @@ nmisub12_loop4:
 nmisub12_loop5:
 
     ldx #$f0
-*   stx ppu_data
+-   stx ppu_data
     inx
     cpx #$f8
     bne -
@@ -3376,7 +3416,7 @@ nmisub12_loop5:
     cpy #8
     bne nmisub12_loop5
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     inc $a0
     lda $a0
@@ -3384,32 +3424,32 @@ nmisub12_loop5:
     bne +
     jmp nmisub12_2
 
-*   `set_ppu_addr vram_name_table2
++   set_ppu_addr vram_name_table2
 
     jmp nmisub12_1
 
 nmisub12_2:
     ; clear Attribute Table 0
-    `set_ppu_addr vram_attr_table0
+    set_ppu_addr vram_attr_table0
     ldx #0
-*   lda #$00
+-   lda #$00
     sta ppu_data
     inx
     cpx #64
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     ; clear Attribute Table 2
-    `set_ppu_addr vram_attr_table2
+    set_ppu_addr vram_attr_table2
     ldx #0
-*   lda #$00
+-   lda #$00
     sta ppu_data
     inx
     cpx #64
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     jsr hide_sprites
 
@@ -3433,7 +3473,7 @@ nmisub12_2:
 nmisub13:
     ; Called by: NMI
 
-    `sprite_dma
+    sprite_dma
 
     lda $a2
     cmp #$08
@@ -3455,7 +3495,7 @@ nmisub13_01:
     lda #3  ; 9th part
     sta demo_part
 
-    `set_ppu_addr vram_palette+0*4
+    set_ppu_addr vram_palette+0*4
 
     lda $a2
     cmp #8
@@ -3468,22 +3508,22 @@ nmisub13_01:
     cmp #2
     beq +
 
-*   `write_ppu_data $34  ; light purple
-    `write_ppu_data $24  ; medium-light purple
-    `write_ppu_data $14  ; medium-dark purple
-    `write_ppu_data $04  ; dark purple
++   write_ppu_data $34  ; light purple
+    write_ppu_data $24  ; medium-light purple
+    write_ppu_data $14  ; medium-dark purple
+    write_ppu_data $04  ; dark purple
 
 nmisub13_02:
-    `write_ppu_data $38  ; light yellow
-    `write_ppu_data $28  ; medium-light yellow
-    `write_ppu_data $18  ; medium-dark yellow
-    `write_ppu_data $08  ; dark yellow
+    write_ppu_data $38  ; light yellow
+    write_ppu_data $28  ; medium-light yellow
+    write_ppu_data $18  ; medium-dark yellow
+    write_ppu_data $08  ; dark yellow
 
 nmisub13_03:
-    `write_ppu_data $32  ; light blue
-    `write_ppu_data $22  ; medium-light blue
-    `write_ppu_data $12  ; medium-dark blue
-    `write_ppu_data $02  ; dark blue
+    write_ppu_data $32  ; light blue
+    write_ppu_data $22  ; medium-light blue
+    write_ppu_data $12  ; medium-dark blue
+    write_ppu_data $02  ; dark blue
 
 nmisub13_04:
     inc $89
@@ -3497,7 +3537,7 @@ nmisub13_04:
     cmp #$b4
     beq +
     jmp nmisub13_05
-*   inc $a2
++   inc $a2
     lda #$00
     sta $a1
 
@@ -3692,7 +3732,7 @@ nmisub13_14:
 nmisub13_15:
     jsr hide_sprites
 nmisub13_16:
-    `chr_bankswitch 1
+    chr_bankswitch 1
 
     lda #%10011000
     sta ppu_ctrl
@@ -3726,14 +3766,14 @@ nmisub14:
     ; the left half consists of tiles #$00, #$01, ..., #$ff;
     ; the right half consists of tile #$7f
 
-    `set_ppu_addr vram_name_table0
+    set_ppu_addr vram_name_table0
 
     ldy #0
 nmisub14_loop1:
 
     ; write Y...Y+15
     ldx #0
-*   sty ppu_data
+-   sty ppu_data
     iny
     inx
     cpx #16
@@ -3741,7 +3781,7 @@ nmisub14_loop1:
 
     ; write 16 * byte #$7f
     ldx #0
-*   `write_ppu_data $7f
+-   write_ppu_data $7f
     inx
     cpx #16
     bne -
@@ -3760,7 +3800,7 @@ nmisub14_loop2:
 
     ; first inner loop
     ldx #0
-*   sty ppu_data
+-   sty ppu_data
     iny
     inx
     cpx #16
@@ -3768,7 +3808,7 @@ nmisub14_loop2:
 
     ; second inner loop
     ldx #0
-*   `write_ppu_data $7f
+-   write_ppu_data $7f
     inx
     cpx #16
     bne -
@@ -3777,29 +3817,29 @@ nmisub14_loop2:
     bne nmisub14_loop2
 
     ; write bytes #$e0-#$e4 to Name Table 0, row 29, columns 10-14
-    `reset_ppu_addr
-    `set_ppu_addr vram_name_table0+29*32+10
-    `write_ppu_data $e0
-    `write_ppu_data $e1
-    `write_ppu_data $e2
-    `write_ppu_data $e3
-    `write_ppu_data $e4
-    `reset_ppu_addr
+    reset_ppu_addr
+    set_ppu_addr vram_name_table0+29*32+10
+    write_ppu_data $e0
+    write_ppu_data $e1
+    write_ppu_data $e2
+    write_ppu_data $e3
+    write_ppu_data $e4
+    reset_ppu_addr
 
     ; update first background subpalette and first sprite subpalette
-    `set_ppu_addr vram_palette+0*4
+    set_ppu_addr vram_palette+0*4
     ldx #0
-    `write_ppu_data $30  ; white
-    `write_ppu_data $25  ; medium-light red
-    `write_ppu_data $17  ; medium-dark orange
-    `write_ppu_data $0f  ; black
-    `set_ppu_addr vram_palette+4*4+1
-    `write_ppu_data $02  ; dark blue
-    `write_ppu_data $12  ; medium-dark blue
-    `write_ppu_data $22  ; medium-light blue
-    `reset_ppu_addr
+    write_ppu_data $30  ; white
+    write_ppu_data $25  ; medium-light red
+    write_ppu_data $17  ; medium-dark orange
+    write_ppu_data $0f  ; black
+    set_ppu_addr vram_palette+4*4+1
+    write_ppu_data $02  ; dark blue
+    write_ppu_data $12  ; medium-dark blue
+    write_ppu_data $22  ; medium-light blue
+    reset_ppu_addr
 
-    `reset_ppu_scroll
+    reset_ppu_scroll
 
     lda #$00
     sta $89
@@ -3822,7 +3862,7 @@ nmisub14_loop2:
 nmisub15:
     ; Called by: NMI
 
-    `sprite_dma
+    sprite_dma
 
     inc $8a
     inc $8b
@@ -3876,7 +3916,9 @@ nmisub15_loop1:
     ; Y   += 4
     ; X   += 8
     ; $8d += 1
-    `iny4
+    rept 4
+        iny
+    endr
     txa
     clc
     adc #8
@@ -3888,20 +3930,20 @@ nmisub15_loop1:
     cmp #15
     beq +
     jmp ++
-*   inc $8c
++   inc $8c
     lda #0
     sta $8d
 
     ; if $8c = 16 then clear it
-*   lda $8c
+++  lda $8c
     cmp #16
     beq +
     jmp ++
-*   lda #0
++   lda #0
     sta $8c
 
     ; loop until Y = 96
-*   cpy #96
+++  cpy #96
     bne nmisub15_loop1
 
     ; 24 -> X
@@ -3955,7 +3997,9 @@ nmisub15_loop2:
     ; Y   += 4
     ; X   += 8
     ; $8c += 1
-    `iny4
+    rept 4
+        iny
+    endr
     txa
     clc
     adc #8
@@ -3967,14 +4011,14 @@ nmisub15_loop2:
     cmp #16
     beq +
     jmp ++
-*   lda #0
++   lda #0
     sta $8c
 
     ; loop until Y = 192
-*   cpy #192
+++  cpy #192
     bne nmisub15_loop2
 
-    `chr_bankswitch 3
+    chr_bankswitch 3
 
     lda #%10001000
     sta ppu_ctrl
@@ -4010,7 +4054,7 @@ nmisub15_loop2:
     sta $014b
     jmp nmisub15_exit
 
-*   lda #$20
++   lda #$20
     sta $014a
     lda #$21
     sta $014b
@@ -4036,7 +4080,7 @@ nmisub15_exit:
     sta ppu_ctrl
     sta ppu_mask
 
-    `set_ppu_addr vram_name_table0+8*32+10
+    set_ppu_addr vram_name_table0+8*32+10
 
     ldx #$50
     ldy #0
@@ -4047,8 +4091,8 @@ unaccessed19:
     cpy #12
     bne unaccessed19
 
-    `reset_ppu_addr
-    `set_ppu_addr vram_name_table0+9*32+10
+    reset_ppu_addr
+    set_ppu_addr vram_name_table0+9*32+10
 
     ldy #0
     ldx #$5c
@@ -4059,8 +4103,8 @@ unaccessed20:
     cpy #12
     bne unaccessed20
 
-    `reset_ppu_addr
-    `set_ppu_addr vram_name_table0+10*32+10
+    reset_ppu_addr
+    set_ppu_addr vram_name_table0+10*32+10
 
     ldy #0
     ldx #$68
@@ -4071,7 +4115,7 @@ unaccessed21:
     cpy #12
     bne unaccessed21
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     lda #1
     sta flag1
@@ -4081,10 +4125,10 @@ unaccessed21:
     lda #$00
     sta $8a
 
-    `set_ppu_addr vram_palette+6*4+2
-    `write_ppu_data $00
-    `write_ppu_data $10
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+6*4+2
+    write_ppu_data $00
+    write_ppu_data $10
+    reset_ppu_addr
 
     lda #%10000000
     sta ppu_ctrl
@@ -4099,19 +4143,19 @@ unaccessed21:
     cmp #$01
     beq unaccessed22
 
-    `set_ppu_addr vram_palette+4*4
-    `write_ppu_data $0f
-    `write_ppu_data $0f
-    `write_ppu_data $0f
-    `write_ppu_data $0f
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+4*4
+    write_ppu_data $0f
+    write_ppu_data $0f
+    write_ppu_data $0f
+    write_ppu_data $0f
+    reset_ppu_addr
 
-    `set_ppu_addr vram_palette+0*4
-    `write_ppu_data $0f
-    `write_ppu_data $30
-    `write_ppu_data $10
-    `write_ppu_data $00
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+0*4
+    write_ppu_data $0f
+    write_ppu_data $30
+    write_ppu_data $10
+    write_ppu_data $00
+    reset_ppu_addr
 
 unaccessed22:
     lda #$01
@@ -4127,19 +4171,19 @@ unaccessed22:
     cmp #8
     beq +
     jmp unaccessed24
-*   lda #$00
++   lda #$00
     sta $8a
     inc $8f
     lda $8f
     cmp #$eb
     beq +
     jmp ++
-*   lda #0
++   lda #0
     sta flag1
     lda #7
     sta demo_part
 
-*   `set_ppu_addr vram_name_table0+27*32+1
+++  set_ppu_addr vram_name_table0+27*32+1
 
     ldx #0
 unaccessed23:
@@ -4155,10 +4199,10 @@ unaccessed23:
     cpx #31
     bne unaccessed23
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
 unaccessed24:
-    `chr_bankswitch 2
+    chr_bankswitch 2
     inc $89
     ldx $89
     lda table20,x
@@ -4173,7 +4217,7 @@ unaccessed24:
     lda #%00011110
     sta ppu_mask
 
-    `sprite_dma
+    sprite_dma
 
     ldx #$ff
     jsr delay
@@ -4187,7 +4231,7 @@ unaccessed24:
     lda #%00000000
     sta ppu_ctrl
 
-    `chr_bankswitch 0
+    chr_bankswitch 0
 
     lda $8a
     sta ppu_scroll
@@ -4259,7 +4303,7 @@ unaccessed25:
     dex
     jmp unaccessed25
 
-*   inc $013a
++   inc $013a
     lda $013a
     cmp #$06
     bne +
@@ -4267,7 +4311,7 @@ unaccessed25:
     inc $0139
     lda #$00
     sta $013a
-*   inc $0138
++   inc $0138
     lda $0138
     cmp #$0c
     bne +
@@ -4280,7 +4324,7 @@ unaccessed25:
     lda #$00
     sta $0137
 
-*   lda #%10001000
++   lda #%10001000
     sta ppu_ctrl
     lda #%00011000
     sta ppu_mask
@@ -4306,13 +4350,13 @@ nmisub16_loop1:
     sta ppu_addr
 
     ldy #0
-*   stx ppu_data
+-   stx ppu_data
     inx
     iny
     cpy #3
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     lda $9a
     clc
@@ -4333,13 +4377,13 @@ nmisub16_loop2:
     sta ppu_addr
 
     ldy #0
-*   stx ppu_data
+-   stx ppu_data
     inx
     iny
     cpy #3
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     lda $9a
     clc
@@ -4350,35 +4394,35 @@ nmisub16_loop2:
     bne nmisub16_loop2
 
     ; update all sprite subpalettes
-    `set_ppu_addr vram_palette+4*4
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $01  ; dark blue
-    `write_ppu_data $1c  ; medium-dark cyan
-    `write_ppu_data $30  ; white
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $00  ; dark gray
-    `write_ppu_data $10  ; light gray
-    `write_ppu_data $20  ; white
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $19  ; medium-light green
-    `write_ppu_data $26  ; medium-light red
-    `write_ppu_data $30  ; white
-    `write_ppu_data $22  ; medium-light blue
-    `write_ppu_data $16  ; medium-dark red
-    `write_ppu_data $27  ; medium-light orange
-    `write_ppu_data $18  ; medium-dark yellow
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+4*4
+    write_ppu_data $0f  ; black
+    write_ppu_data $01  ; dark blue
+    write_ppu_data $1c  ; medium-dark cyan
+    write_ppu_data $30  ; white
+    write_ppu_data $0f  ; black
+    write_ppu_data $00  ; dark gray
+    write_ppu_data $10  ; light gray
+    write_ppu_data $20  ; white
+    write_ppu_data $0f  ; black
+    write_ppu_data $19  ; medium-light green
+    write_ppu_data $26  ; medium-light red
+    write_ppu_data $30  ; white
+    write_ppu_data $22  ; medium-light blue
+    write_ppu_data $16  ; medium-dark red
+    write_ppu_data $27  ; medium-light orange
+    write_ppu_data $18  ; medium-dark yellow
+    reset_ppu_addr
 
     ; update first background subpalette
-    `set_ppu_addr vram_palette+0*4
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $20  ; white
-    `write_ppu_data $10  ; light gray
-    `write_ppu_data $00  ; dark gray
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+0*4
+    write_ppu_data $0f  ; black
+    write_ppu_data $20  ; white
+    write_ppu_data $10  ; light gray
+    write_ppu_data $00  ; dark gray
+    reset_ppu_addr
 
     ldx data3
-*   lda table31,x
+-   lda table31,x
     sta $0104,x
     lda table32,x
     sta $0108,x
@@ -4387,7 +4431,7 @@ nmisub16_loop2:
     bne -
 
     ldx data5
-*   lda #$00
+-   lda #$00
     sta $0112,x
     lda #$f0
     sta $0116,x
@@ -4437,7 +4481,7 @@ nmisub16_loop4:
     dex
     jmp nmisub16_loop4
 
-*   lda #$00
++   lda #$00
     sta $0100
     sta $0101
     sta $0102
@@ -4455,7 +4499,7 @@ nmisub16_loop4:
 nmisub17:
     ; Called by: NMI
 
-    `sprite_dma
+    sprite_dma
 
     inc $0100
     ldx $0100
@@ -4465,7 +4509,7 @@ nmisub17:
     lda table20,x
     adc #15
     sta $0110
-    `chr_bankswitch 2
+    chr_bankswitch 2
     ldx data3
 
 nmisub17_loop1:
@@ -4478,7 +4522,7 @@ nmisub17_loop1:
     beq +
     inc $0108,x
     jmp nmisub17_1
-*   lda table32,x
++   lda table32,x
     sta $0108,x
 nmisub17_1:
     lda table31,x
@@ -4519,7 +4563,7 @@ nmisub17_loop2:
     dex
     jmp nmisub17_loop2
 
-*   lda $0100
++   lda $0100
     ldx $0101
     cmp table38,x
     bne nmisub17_3
@@ -4533,7 +4577,7 @@ nmisub17_loop2:
     lda #$00
     sta $0101
 
-*   ldx $0102
++   ldx $0102
     ldy $0100
     lda #$ff
     sta $0112,x
@@ -4561,7 +4605,7 @@ nmisub17_loop3:
     bcc +
     sta $0112,x
     jmp nmisub17_4
-*   lda #$f0
++   lda #$f0
     sta $0116,x
 nmisub17_4:
     dex
@@ -4609,7 +4653,7 @@ nmisub17_loop5:
     lda #%00011010
     sta ppu_mask
 
-    `set_ppu_scroll 0, 50
+    set_ppu_scroll 0, 50
     rts
 
 ; -----------------------------------------------------------------------------
@@ -4630,10 +4674,10 @@ game_over_screen:
     ; Copy 96 (32*3) bytes of text from an encrypted table to rows 14-16 of
     ; Name Table 0. Subtract 17 from each byte.
 
-    `set_ppu_addr vram_name_table0+14*32
+    set_ppu_addr vram_name_table0+14*32
 
     ldx #0
-*   lda game_over,x
+-   lda game_over,x
     clc
     sbc #16
     sta ppu_data
@@ -4652,7 +4696,7 @@ game_over_screen:
 nmisub18:
     ; Called by: NMI
 
-    `set_ppu_scroll 0, 0
+    set_ppu_scroll 0, 0
 
     lda #%10010000
     sta ppu_ctrl
@@ -4691,22 +4735,22 @@ greets_screen:
 
 greets_heading_loop:
     ; go to column 9 of row 3-5
-    lda #>[$2000+3*32+9]
+    lda #>($2000+3*32+9)
     sta ppu_addr
     lda $9a
     clc
-    adc #<[$2000+3*32+9]
+    adc #<($2000+3*32+9)
     sta ppu_addr
 
     ; copy the row (16 tiles)
     ldy #0
-*   stx ppu_data
+-   stx ppu_data
     inx
     iny
     cpy #16
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     ; move output offset to next row: $9a += 32
     ; loop while less than 3*32
@@ -4721,11 +4765,11 @@ greets_heading_loop:
     ; Name Table 0. Subtract 17 from each byte.
 
     ; go to row 8, column 0 of Name Table 0
-    `set_ppu_addr vram_name_table0+8*32
+    set_ppu_addr vram_name_table0+8*32
 
     ; copy the first 256 bytes
     ldx #0
-*   lda greets+0,x
+-   lda greets+0,x
     clc
     sbc #16
     sta ppu_data
@@ -4734,7 +4778,7 @@ greets_heading_loop:
 
     ; copy another 256 bytes
     ldx #0
-*   lda greets+256,x
+-   lda greets+256,x
     clc
     sbc #16
     sta ppu_data
@@ -4743,7 +4787,7 @@ greets_heading_loop:
 
     ; copy another 128 bytes
     ldx #0
-*   lda greets+2*256,x
+-   lda greets+2*256,x
     clc
     sbc #16
     sta ppu_data
@@ -4751,7 +4795,7 @@ greets_heading_loop:
     cpx #128
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     lda #1
     sta flag1
@@ -4764,7 +4808,7 @@ greets_heading_loop:
 nmisub19:
     ; Called by: NMI
 
-    `chr_bankswitch 2
+    chr_bankswitch 2
     lda $0150
     cmp #$00
     bne +
@@ -4775,14 +4819,14 @@ nmisub19:
     jsr update_palette
 
     ; update first background subpalette
-    `set_ppu_addr vram_palette+0*4
-    `write_ppu_data $0f  ; black
-    `write_ppu_data $30  ; white
-    `write_ppu_data $1a  ; medium-dark green
-    `write_ppu_data $09  ; dark green
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+0*4
+    write_ppu_data $0f  ; black
+    write_ppu_data $30  ; white
+    write_ppu_data $1a  ; medium-dark green
+    write_ppu_data $09  ; dark green
+    reset_ppu_addr
 
-*   lda #0
++   lda #0
     sta ppu_scroll
     ldx $0153
     lda table19,x
@@ -4794,7 +4838,7 @@ nmisub19:
     cmp #$00
     beq +
     dec $0153
-*   lda $0150
++   lda $0150
     cmp #$03
     bne +
     lda $014f
@@ -4810,7 +4854,7 @@ nmisub19:
     lda #$00
     sta $a3
 
-*   lda #12  ; 11th part
++   lda #12  ; 11th part
     sta demo_part
 
     lda #%10010000
@@ -4842,17 +4886,17 @@ nmisub20:
     sta $8b
 
     ; update first background subpalette
-    `set_ppu_addr vram_palette+0*4
-    `write_ppu_data $05  ; dark red
-    `write_ppu_data $25  ; medium-light red
-    `write_ppu_data $15  ; medium-dark red
-    `write_ppu_data $30  ; white
-    `reset_ppu_addr
+    set_ppu_addr vram_palette+0*4
+    write_ppu_data $05  ; dark red
+    write_ppu_data $25  ; medium-light red
+    write_ppu_data $15  ; medium-dark red
+    write_ppu_data $30  ; white
+    reset_ppu_addr
 
     lda #$c8
     sta $013d
 
-    `set_ppu_scroll 0, 200
+    set_ppu_scroll 0, 200
 
     lda #$00
     sta $014c
@@ -4872,18 +4916,18 @@ nmisub21:
     cmp #$02
     beq +
     jmp nmisub21_1
-*   ldy #$80
++   ldy #$80
 
 nmisub21_loop1:
-    lda #>[vram_name_table0+8*32+4]
+    lda #>(vram_name_table0+8*32+4)
     sta ppu_addr
-    lda #<[vram_name_table0+8*32+4]
+    lda #<(vram_name_table0+8*32+4)
     clc
     adc $013b
     sta ppu_addr
 
     ldx #0
-*   sty ppu_data
+-   sty ppu_data
     iny
     inx
     cpx #8
@@ -4897,15 +4941,15 @@ nmisub21_loop1:
     bne nmisub21_loop1
 
 nmisub21_loop2:
-    lda #>[vram_name_table0+16*32+4]
+    lda #>(vram_name_table0+16*32+4)
     sta ppu_addr
-    lda #<[vram_name_table0+16*32+4]
+    lda #<(vram_name_table0+16*32+4)
     clc
     adc $013b
     sta ppu_addr
 
     ldx #0
-*   sty ppu_data
+-   sty ppu_data
     iny
     inx
     cpx #8
@@ -4918,21 +4962,21 @@ nmisub21_loop2:
     cpy #$00
     bne nmisub21_loop2
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     lda #$00
     sta $013b
 
 nmisub21_loop3:
-    lda #>[vram_name_table0+8*32+20]
+    lda #>(vram_name_table0+8*32+20)
     sta ppu_addr
-    lda #<[vram_name_table0+8*32+20]
+    lda #<(vram_name_table0+8*32+20)
     clc
     adc $013b
     sta ppu_addr
 
     ldx #0
-*   sty ppu_data
+-   sty ppu_data
     iny
     inx
     cpx #8
@@ -4946,15 +4990,15 @@ nmisub21_loop3:
     bne nmisub21_loop3
 
 nmisub21_loop4:
-    lda #>[vram_name_table0+16*32+20]
+    lda #>(vram_name_table0+16*32+20)
     sta ppu_addr
-    lda #<[vram_name_table0+16*32+20]
+    lda #<(vram_name_table0+16*32+20)
     clc
     adc $013b
     sta ppu_addr
 
     ldx #0
-*   sty ppu_data
+-   sty ppu_data
     iny
     inx
     cpx #8
@@ -4967,7 +5011,7 @@ nmisub21_loop4:
     cpy #0
     bne nmisub21_loop4
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
 nmisub21_1:
     lda $013c
@@ -4975,7 +5019,7 @@ nmisub21_1:
     bcc +
     jmp nmisub21_2
 
-*   lda #$00
++   lda #$00
     sta ppu_scroll
     lda $013d
     clc
@@ -4984,7 +5028,7 @@ nmisub21_1:
 
 nmisub21_2:
     lda ram1
-    `chr_bankswitch 2
+    chr_bankswitch 2
     lda #$00
     sta $89
     lda $013e
@@ -4995,7 +5039,7 @@ nmisub21_2:
     cmp #$c8
     beq +
     jmp nmisub21_3
-*   lda #$01
++   lda #$01
     sta $013e
 
 nmisub21_3:
@@ -5022,11 +5066,11 @@ nmisub21_loop5:
     bcc +
     bcs ++
 
-*   lda #%00001110
++   lda #%00001110
     sta ppu_mask
     jmp nmisub21_4
 
-*   lda $89
+++  lda $89
     cmp $9b
     bcs +
     lda #%11101110
@@ -5035,10 +5079,10 @@ nmisub21_loop5:
 nmisub21_4:
     jmp ++
 
-*   lda #%00001110
++   lda #%00001110
     sta ppu_mask
 
-*   lda $89
+++  lda $89
     clc
     adc $8b
     adc $8a
@@ -5080,7 +5124,7 @@ write_row:
     ; Called by: nmisub22
 
     ldy #0
-*   stx ppu_data
+-   stx ppu_data
     iny
     cpy #32
     bne -
@@ -5092,7 +5136,7 @@ write_row:
 
 unaccessed26:
     ldy #0
-*   stx ppu_data
+-   stx ppu_data
     iny
     cpy #32
     bne -
@@ -5113,7 +5157,7 @@ nmisub22:
 
     ; write 24 rows of tiles to the start of Name Table 0
 
-    `set_ppu_addr vram_name_table0
+    set_ppu_addr vram_name_table0
 
     ldx #$25
     jsr write_row
@@ -5164,10 +5208,10 @@ nmisub22:
     ldx #$38
     jsr write_row
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
     ; update first background subpalette from table18b
-    `set_ppu_addr vram_palette+0*4
+    set_ppu_addr vram_palette+0*4
     lda table18b+0
     sta ppu_data
     lda table18b+1
@@ -5176,10 +5220,10 @@ nmisub22:
     sta ppu_data
     lda table18b+3
     sta ppu_data
-    `reset_ppu_addr
+    reset_ppu_addr
 
     ; update first sprite subpalette from table18c
-    `set_ppu_addr vram_palette+4*4
+    set_ppu_addr vram_palette+4*4
     lda table18c+0
     sta ppu_data
     lda table18c+1
@@ -5188,7 +5232,7 @@ nmisub22:
     sta ppu_data
     lda table18c+3
     sta ppu_data
-    `reset_ppu_addr
+    reset_ppu_addr
 
     ldx data7
 nmisub22_loop:
@@ -5235,7 +5279,7 @@ nmisub23:
     lda table22,x
     sta $9b
 
-    `sprite_dma
+    sprite_dma
 
     ldx data7
 nmisub23_loop1:
@@ -5276,32 +5320,32 @@ nmisub23_loop2:
     cpx #255
     bne nmisub23_loop2
 
-    `chr_bankswitch 0
+    chr_bankswitch 0
     inc $8a
     lda $8a
     cmp #$08
     beq +
     jmp nmisub23_2
-*   lda #$00
++   lda #$00
     sta $8a
     inc $8f
     lda $8f
     cmp #$eb
     beq +
     jmp nmisub23_1
-*   lda #0
++   lda #0
     sta flag1
     lda #7  ; 7th part
     sta demo_part
 
 nmisub23_1:
-    lda #>[vram_name_table0+19*32+1]
+    lda #>(vram_name_table0+19*32+1)
     sta ppu_addr
-    lda #<[vram_name_table0+19*32+1]
+    lda #<(vram_name_table0+19*32+1)
     sta ppu_addr
 
     ldx #0
-*   txa
+-   txa
     clc
     adc $8f
     tay
@@ -5313,7 +5357,7 @@ nmisub23_1:
     cpx #31
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
 
 nmisub23_2:
     inc $89
@@ -5411,21 +5455,21 @@ fill_attribute_tables:
     ; Called by: init, nmisub06, nmisub08, nmisub14, nmisub16
     ; game_over_screen, greets_screen, nmisub20
 
-    `set_ppu_addr vram_attr_table0
+    set_ppu_addr vram_attr_table0
 
     ldx #64
-*   sty ppu_data
+-   sty ppu_data
     dex
     bne -
 
-    `set_ppu_addr vram_attr_table2
+    set_ppu_addr vram_attr_table2
 
     ldx #64
-*   sty ppu_data
+-   sty ppu_data
     dex
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -5434,41 +5478,41 @@ fill_attribute_tables_top:
     ; Fill top parts (first 32 bytes) of Attribute Tables 0 and 2 with Y.
     ; Called by: nmisub08
 
-    `set_ppu_addr vram_attr_table0
+    set_ppu_addr vram_attr_table0
 
     ldx #32
-*   sty ppu_data
+-   sty ppu_data
     dex
     bne -
 
-    `set_ppu_addr vram_attr_table2
+    set_ppu_addr vram_attr_table2
 
     ldx #32
-*   sty ppu_data
+-   sty ppu_data
     dex
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
 ; Unaccessed block ($f7d0).
 
-    `set_ppu_addr vram_attr_table0+4*8
+    set_ppu_addr vram_attr_table0+4*8
 
     ldx #32
-*   sty ppu_data
+-   sty ppu_data
     dex
     bne -
 
-    `set_ppu_addr vram_attr_table2+4*8
+    set_ppu_addr vram_attr_table2+4*8
 
     ldx #32
-*   sty ppu_data
+-   sty ppu_data
     dex
     bne -
 
-    `reset_ppu_addr
+    reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -5492,11 +5536,11 @@ fill_name_tables:
 
     ; fill the Name Tables with the specified byte
 
-    `set_ppu_addr vram_name_table0
+    set_ppu_addr vram_name_table0
 
     ldx #0
     ldy #0
-*   lda $8e
+-   lda $8e
     sta ppu_data
     sta ppu_data
     sta ppu_data
@@ -5504,11 +5548,11 @@ fill_name_tables:
     inx
     bne -
 
-    `set_ppu_addr vram_name_table2
+    set_ppu_addr vram_name_table2
 
     ldx #0
     ldy #0
-*   lda $8e
+-   lda $8e
     sta ppu_data
     sta ppu_data
     sta ppu_data
@@ -5519,7 +5563,7 @@ fill_name_tables:
     lda #1
     sta flag1
 
-    `reset_ppu_addr
+    reset_ppu_addr
     rts
 
 ; -----------------------------------------------------------------------------
@@ -5542,18 +5586,18 @@ fill_nt_and_clear_at:
     sta ppu_mask
 
     ; clear Attribute Table 0
-    `set_ppu_addr vram_attr_table0
+    set_ppu_addr vram_attr_table0
     ldx #0
-*   lda #%00000000
+-   lda #%00000000
     sta ppu_data
     inx
     cpx #64
     bne -
 
     ; clear Attribute Table 1
-    `set_ppu_addr vram_attr_table1
+    set_ppu_addr vram_attr_table1
     ldx #0
-*   lda #%00000000
+-   lda #%00000000
     sta ppu_data
     inx
     cpx #64
@@ -5569,22 +5613,22 @@ fill_nt_and_clear_at:
     ldx #0
     ldy #0  ; why?
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     cpx #192
@@ -5600,22 +5644,22 @@ fill_nt_and_clear_at:
     ldx #0
     ldy #0
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     cpx #192
@@ -5631,22 +5675,22 @@ fill_nt_and_clear_at:
     ldx #0
     ldy #0
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     bne -
 
-*   lda $8e
+-   lda $8e
     sta ppu_data
     inx
     cpx #192
@@ -5659,8 +5703,8 @@ fill_nt_and_clear_at:
     lda #$72
     sta $96
 
-    `reset_ppu_addr
-    `reset_ppu_scroll
+    reset_ppu_addr
+    reset_ppu_scroll
 
     lda #%00000000
     sta ppu_ctrl
@@ -5729,9 +5773,9 @@ nmi_part1:
     cmp #0
     beq +
     jmp ++
-*   lda #1
++   lda #1
     sta flag1
-*   jsr nmisub01
+++  jsr nmisub01
     jsr sub12
     inc $93
     inc $93
@@ -5741,7 +5785,7 @@ nmi_part1:
     cmp #$e6
     beq +
     jmp nmi_part1_exit
-*   inc $95
++   inc $95
     lda #$00
     sta $94
 nmi_part1_exit:
@@ -5756,20 +5800,20 @@ nmi_part4:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub10
-*   jsr nmisub11
++   jsr nmisub10
+++  jsr nmisub11
     jsr sub12
     inc $98
     lda $98
     cmp #$ff
     beq +
     jmp nmi_part4_exit
-*   inc $99
++   inc $99
     lda $99
     cmp #$03
     beq +
     jmp nmi_part4_exit
-*   lda #4
++   lda #4
     sta demo_part
     lda #0
     sta flag1
@@ -5785,20 +5829,20 @@ nmi_part2:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub02
-*   jsr nmisub03
++   jsr nmisub02
+++  jsr nmisub03
     jsr sub12
     inc $ab
     lda $ab
     cmp #$ff
     beq +
     jmp nmi_part2_exit
-*   inc $ac
++   inc $ac
     lda $ac
     cmp #$03
     beq +
     jmp nmi_part2_exit
-*   lda #11
++   lda #11
     sta demo_part
     lda #0
     sta flag1
@@ -5814,8 +5858,8 @@ nmi_part9:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub12
-*   jsr nmisub13
++   jsr nmisub12
+++  jsr nmisub13
     jsr sub12
     jmp nmi_exit
 
@@ -5828,20 +5872,20 @@ nmi_part5:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub14
-*   jsr nmisub15
++   jsr nmisub14
+++  jsr nmisub15
     jsr sub12
     inc $a9
     lda $a9
     cmp #$ff
     beq +
     jmp nmi_part5_exit
-*   inc $aa
++   inc $aa
     lda $aa
     cmp #$04
     beq +
     jmp nmi_part5_exit
-*   lda #5
++   lda #5
     sta demo_part
     lda #0
     sta flag1
@@ -5857,8 +5901,8 @@ nmi_part6:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub22
-*   jsr nmisub23
++   jsr nmisub22
+++  jsr nmisub23
     jsr sub12
     jmp nmi_exit
 
@@ -5871,20 +5915,20 @@ nmi_part8:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub16
-*   jsr nmisub17
++   jsr nmisub16
+++  jsr nmisub17
     jsr sub12
     inc $0135
     lda $0135
     cmp #$ff
     beq +
     jmp nmi_part8_exit
-*   inc $0136
++   inc $0136
     lda $0136
     cmp #$03
     beq +
     jmp nmi_part8_exit
-*   lda #3
++   lda #3
     sta demo_part
     lda #0
     sta flag1
@@ -5900,16 +5944,16 @@ nmi_part7:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub20
-*   jsr nmisub21
++   jsr nmisub20
+++  jsr nmisub21
     jsr sub12
     inc $013f
     lda $013f
     cmp #$ff
     beq +
     jmp ++
-*   inc $0140
-*   lda $0140
++   inc $0140
+++  lda $0140
     cmp #$03
     bne nmi_part7_exit
     lda $013f
@@ -5932,19 +5976,19 @@ nmi_part13:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub04
-*   jsr nmisub05
++   jsr nmisub04
+++  jsr nmisub05
     inc $0141
     lda $0141
     cmp #$ff
     beq +
     jmp $fb3d
-*   inc $0142
++   inc $0142
     lda $0142
     cmp #$0e
     beq +
     jmp nmi_part13_exit
-*   lda #0
++   lda #0
     sta demo_part
     lda #0
     sta flag1
@@ -5960,16 +6004,16 @@ nmi_part10:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub06
-*   jsr nmisub07
++   jsr nmisub06
+++  jsr nmisub07
     jsr sub12
     inc $0143
     lda $0143
     cmp #$ff
     beq +
     jmp ++
-*   inc $0144
-*   lda $0144
++   inc $0144
+++  lda $0144
     cmp #$02
     bne nmi_part10_exit
     lda $0143
@@ -5991,20 +6035,20 @@ nmi_part3:
     cmp #0
     beq +
     jmp ++
-*   jsr nmisub08
-*   jsr nmisub09
++   jsr nmisub08
+++  jsr nmisub09
     jsr sub12
     inc $0145
     lda $0145
     cmp #$ff
     beq +
     jmp nmi_part3_exit
-*   inc $0146
++   inc $0146
     lda $0146
     cmp #$03
     beq +
     jmp nmi_part3_exit
-*   lda #1
++   lda #1
     sta demo_part
     lda #0
     sta flag1
@@ -6020,16 +6064,16 @@ nmi_part11:
     cmp #0
     beq +
     jmp ++
-*   jsr greets_screen
-*   jsr nmisub19
++   jsr greets_screen
+++  jsr nmisub19
     jsr sub12
     inc $014f
     lda $014f
     cmp #$ff
     beq +
     jmp ++
-*   inc $0150
-*   lda $0150
++   inc $0150
+++  lda $0150
     cmp #$03
     bne nmi_part11_exit
     lda $014f
@@ -6051,15 +6095,15 @@ nmi_part12:
     cmp #0
     beq +
     jmp ++
-*   jsr game_over_screen
-*   jsr nmisub18
++   jsr game_over_screen
+++  jsr nmisub18
     inc $0151
     lda $0151
     cmp #$ff
     beq +
     jmp ++
-*   inc $0152
-*   lda $0152
++   inc $0152
+++  lda $0152
     cmp #$0a
     bne nmi_part12_exit
     lda $0151
@@ -6085,6 +6129,6 @@ irq:
 
 ; -----------------------------------------------------------------------------
 
-    ; Interrupt vectors (at the end of PRG ROM; IRQ unaccessed)
-    .advance $fffa, pad_byte
-    .word nmi, init, irq
+    ; interrupt vectors (at the end of PRG ROM; IRQ unaccessed)
+    pad $fffa
+    dw nmi, init, irq

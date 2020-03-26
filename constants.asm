@@ -1,66 +1,66 @@
     ; NES memory-mapped registers
 
-    .alias ppu_ctrl   $2000
-    .alias ppu_mask   $2001
-    .alias ppu_status $2002
-    .alias ppu_scroll $2005
-    .alias ppu_addr   $2006
-    .alias ppu_data   $2007
+    ppu_ctrl   equ $2000
+    ppu_mask   equ $2001
+    ppu_status equ $2002
+    ppu_scroll equ $2005
+    ppu_addr   equ $2006
+    ppu_data   equ $2007
 
-    .alias apu_regs      $4000
-    .alias pulse1_ctrl   $4000
-    .alias pulse1_sweep  $4001
-    .alias pulse1_timer  $4002
-    .alias pulse1_length $4003
-    .alias triangle_ctrl $4008
-    .alias noise_period  $400e
-    .alias noise_length  $400f
-    .alias dmc_ctrl      $4010
-    .alias dmc_load      $4011
-    .alias dmc_addr      $4012
-    .alias dmc_length    $4013
-    .alias oam_dma       $4014
-    .alias apu_ctrl      $4015
-    .alias apu_counter   $4017
+    apu_regs      equ $4000
+    pulse1_ctrl   equ $4000
+    pulse1_sweep  equ $4001
+    pulse1_timer  equ $4002
+    pulse1_length equ $4003
+    triangle_ctrl equ $4008
+    noise_period  equ $400e
+    noise_length  equ $400f
+    dmc_ctrl      equ $4010
+    dmc_load      equ $4011
+    dmc_addr      equ $4012
+    dmc_length    equ $4013
+    oam_dma       equ $4014
+    apu_ctrl      equ $4015
+    apu_counter   equ $4017
 
 ; -----------------------------------------------------------------------------
 
-    .alias ram1       $00  ; ??
-    .alias demo_part  $01  ; which part is running (see int.asm)
-    .alias temp1      $01
-    .alias flag1      $02  ; flag used in NMI? (seems to always be 0 or 1)
-    .alias ptr1       $03  ; pointer (2 bytes)
-    .alias delay_var1 $86
-    .alias delay_cnt  $87
-    .alias delay_var2 $88
-    .alias loopcnt    $9b  ; loop counter (may have other uses)
-    .alias ptr2       $c8  ; pointer (2 bytes)
-    .alias ptr3       $ce  ; pointer (2 bytes)
-    .alias ptr4       $d0  ; pointer (2 bytes)
-    .alias ptr5       $d8  ; pointer (2 bytes)
-    .alias ptr6       $da  ; pointer (2 bytes)
+    ram1       equ $00  ; ??
+    demo_part  equ $01  ; which part is running (see int.asm)
+    temp1      equ $01
+    flag1      equ $02  ; flag used in NMI? (seems to always be 0 or 1)
+    ptr1       equ $03  ; pointer (2 bytes)
+    delay_var1 equ $86
+    delay_cnt  equ $87
+    delay_var2 equ $88
+    loopcnt    equ $9b  ; loop counter (may have other uses)
+    ptr2       equ $c8  ; pointer (2 bytes)
+    ptr3       equ $ce  ; pointer (2 bytes)
+    ptr4       equ $d0  ; pointer (2 bytes)
+    ptr5       equ $d8  ; pointer (2 bytes)
+    ptr6       equ $da  ; pointer (2 bytes)
 
-    .alias sprite_page $0500  ; 256 bytes
+    sprite_page equ $0500  ; 256 bytes
 
-    .alias palette_copy $07c0  ; 32 bytes
+    palette_copy equ $07c0  ; 32 bytes
 
 ; -----------------------------------------------------------------------------
 
     ; video RAM
-    .alias vram_name_table0 $2000
-    .alias vram_attr_table0 $23c0
-    .alias vram_name_table1 $2400
-    .alias vram_attr_table1 $27c0
-    .alias vram_name_table2 $2800
-    .alias vram_attr_table2 $2bc0
-    .alias vram_palette     $3f00
+    vram_name_table0 equ $2000
+    vram_attr_table0 equ $23c0
+    vram_name_table1 equ $2400
+    vram_attr_table1 equ $27c0
+    vram_name_table2 equ $2800
+    vram_attr_table2 equ $2bc0
+    vram_palette     equ $3f00
 
 ; -----------------------------------------------------------------------------
 
-    .alias pad_byte $00
+    pad_byte equ $00
 
     ; offsets for each sprite on sprite page
-    .alias sprite_y    0
-    .alias sprite_tile 1
-    .alias sprite_attr 2
-    .alias sprite_x    3
+    sprite_y    equ 0
+    sprite_tile equ 1
+    sprite_attr equ 2
+    sprite_x    equ 3

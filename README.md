@@ -41,43 +41,43 @@ Notes:
 * The internal part numbers are at RAM address `0x0001`.
 
 ![](shot/01.png)
-1st part (internally part 0, starts at frame ~6): "GREETINGS! WE COME FROM..."
+1st part (internally part 0, starts at frame ~6): "GREETINGS! WE COME FROM..."; uses CHR bank 0
 
 ![](shot/02.png)
-2nd part (internally part 2, starts at frame 1156): "wAMMA - QUANTUM DISCO BROTHERS"
+2nd part (internally part 2, starts at frame 1156): "wAMMA - QUANTUM DISCO BROTHERS"; uses CHR bank 0
 
 ![](shot/03.png)
-3rd part (internally part 11, starts at frame 1923): red&purple gradients
+3rd part (internally part 11, starts at frame 1923): red&purple gradients; uses CHR bank 1
 
 ![](shot/04.png)
-4th part (internally part 1, starts at frame 2690): horizontal color bars
+4th part (internally part 1, starts at frame 2690): horizontal color bars; uses CHR bank 1
 
 ![](shot/05.png)
-5th part (internally part 4, starts at frame 3458): a woman
+5th part (internally part 4, starts at frame 3458): a woman; uses CHR bank 3
 
 ![](shot/06.png)
-6th part (internally part 5, starts at frame 4481): "IT IS FRIDAY..."
+6th part (internally part 5, starts at frame 4481): "IT IS FRIDAY..."; uses CHR bank 0
 
 ![](shot/07.png)
-7th part (internally part 7, starts at frame 6362): Coca Cola cans
+7th part (internally part 7, starts at frame 6362): Coca Cola cans; uses CHR bank 2
 
 ![](shot/08.png)
-8th part (internally part 6, starts at frame 7304): Bowser's spaceship
+8th part (internally part 6, starts at frame 7304): Bowser's spaceship; uses CHR bank 2
 
 ![](shot/09.png)
-9th part (internally part 3, starts at frame 8071): credits
+9th part (internally part 3, starts at frame 8071): credits; uses CHR bank 1
 
 ![](shot/10.png)
-10th part (internally part 10, starts at frame 9692): a checkered wavy animation
+10th part (internally part 10, starts at frame 9692): a checkered wavy animation; uses CHR bank 1
 
 ![](shot/11.png)
-11th part (internally part 12, starts at frame 10380): "GREETS TO ALL NINTENDAWGS"
+11th part (internally part 12, starts at frame 10380): "GREETS TO ALL NINTENDAWGS"; uses CHR bank 2
 
 ![](shot/12.png)
-12th part (internally part 13, starts at frame 11298): "GAME OVER - CONTINUE?"
+12th part (internally part 13, starts at frame 11298): "GAME OVER - CONTINUE?"; uses CHR bank 2
 
 ![](shot/13.png)
-13th part (internally part 9, starts at frame 14018): more horizontal color bars
+13th part (internally part 9, starts at frame 14018): more horizontal color bars; uses CHR bank 2
 
 The demo should probably end at this point, as on [this YouTube video](https://www.youtube.com/watch?v=hhoa_K75BKI). However, on FCEUX, it starts to glitch from frame ~17603 on. I omitted the glitchy part from the Code/Data Logger file.
 
@@ -468,133 +468,15 @@ I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following
 
 No CHR data was read programmatically via `$2007`.
 
-Each line: PPU address range, description.
-
-### CHR bank 0
-```
-$0000-$000f: rendered
-$0010-$009f: unaccessed
-$00a0-$019f: rendered
-$01a0-$01af: unaccessed
-$01b0-$020f: rendered
-$0210-$021f: unaccessed
-$0220-$022f: rendered
-$0230-$023f: unaccessed
-$0240-$025f: rendered
-$0260-$029f: unaccessed
-$02a0-$02ff: rendered
-$0300-$036f: unaccessed
-$0370-$03ff: rendered
-$0400-$047f: unaccessed
-$0480-$04ff: rendered
-$0500-$057f: unaccessed
-$0580-$069f: rendered
-$06a0-$06df: unaccessed
-$06e0-$079f: rendered
-$07a0-$07df: unaccessed
-$07e0-$087f: rendered
-$0880-$089f: unaccessed
-$08a0-$097f: rendered
-$0980-$099f: unaccessed
-$09a0-$0a1f: rendered
-$0a20-$0a3f: unaccessed
-$0a40-$0a5f: rendered
-$0a60-$0abf: unaccessed
-$0ac0-$0b1f: rendered
-$0b20-$0b3f: unaccessed
-$0b40-$0b5f: rendered
-$0b60-$0bbf: unaccessed
-$0bc0-$0bff: rendered
-$0c00-$0c1f: unaccessed
-$0c20-$0c6f: rendered
-$0c70-$0c8f: unaccessed
-$0c90-$0cff: rendered
-$0d00-$0d1f: unaccessed
-$0d20-$0e5f: rendered
-$0e60-$0e9f: unaccessed
-$0ea0-$0eff: rendered
-$0f00-$0f01: unaccessed
-$0f02-$0f12: rendered
-$0f13      : unaccessed
-$0f14-$0fff: rendered
-
-$1000-$1fff: rendered
-```
-
-### CHR bank 1
-```
-$0000-$017f: rendered
-$0180-$018f: unaccessed
-$0190-$01af: rendered
-$01b0-$01bf: unaccessed
-$01c0-$02ff: rendered
-$0300-$030f: unaccessed
-$0310-$084f: rendered
-$0850-$0c3f: unaccessed
-$0c40-$0d1f: rendered
-$0d20-$0d2f: unaccessed
-$0d30-$0d4f: rendered
-$0d50-$0d5f: unaccessed
-$0d60-$0daf: rendered
-$0db0-$0dbf: unaccessed
-$0dc0-$0dcf: rendered
-$0dd0-$0ddf: unaccessed
-$0de0-$0e4f: rendered
-$0e50-$0e5f: unaccessed
-$0e60-$0e6f: rendered
-$0e70-$0e7f: unaccessed
-$0e80-$0e9f: rendered
-$0ea0-$0eaf: unaccessed
-$0eb0-$0ebf: rendered
-$0ec0-$0ecf: unaccessed
-$0ed0-$0edf: rendered
-$0ee0-$0eef: unaccessed
-$0ef0-$0f0f: rendered
-$0f10-$0f1f: unaccessed
-$0f20-$0fff: rendered
-
-$1000-$1b3f: rendered
-$1b40-$1bff: unaccessed
-$1c00-$1cff: rendered
-$1d00-$1dff: unaccessed
-$1e00-$1f7f: rendered
-$1f80-$1fff: unaccessed
-```
-
-### CHR bank 2
-```
-$0000-$0002: unaccessed
-$0003-$0005: rendered
-$0006-$000a: unaccessed
-$000b-$000d: rendered
-$000e-$008f: unaccessed
-$0090-$00ff: rendered
-$0100-$018f: unaccessed
-$0190-$01ef: rendered
-$01f0-$028f: unaccessed
-$0290-$02ff: rendered
-$0300-$03df: unaccessed
-$03e0-$043f: rendered
-$0440-$04ff: unaccessed
-$0500-$053f: rendered
-$0540-$05ff: unaccessed
-$0600-$0fff: rendered
-
-$1000-$14ef: rendered
-$14f0-$1502: unaccessed
-$1503      : rendered
-$1504-$150a: unaccessed
-$150b      : rendered
-$150c-$179f: unaccessed
-$17a0-$17ef: rendered
-$17f0-$17ff: unaccessed
-$1800-$1fff: rendered
-```
-
-### CHR bank 3
-Tiles rendered:
-* first half: `$00-$ff`
-* second half: `$00-$d9`, `$df-$e4`, `$ef-$ff`
+Tiles rendered (completely or partially):
+* bank 0 - first half: `$00`, `$0a-$19`, `$1b-$20`, `$22`, `$24-$25`, `$2a-$2f`, `$37-$3f`, `$48-$4f`, `$58-$69`, `$6e-$79`, `$7e-$87`, `$8a-$97`, `$9a-$a1`, `$a4-$a5`, `$ac-$b1`, `$b4-$b5`, `$bc-$bf`, `$c2-$c6`, `$c9-$cf`, `$d2-$e5`, `$ea-$ff`
+* bank 0 - second half: `$00-$ff`
+* bank 1 - first half: `$00-$17`, `$19-$1a`, `$1c-$2f`, `$31-$84`, `$c4-$d1`, `$d3-$d4`, `$d6-$da`, `$dc`, `$de-$e4`, `$e6`, `$e8-$e9`, `$eb`, `$ed`, `$ef-$f0`, `$f2-$ff`
+* bank 1 - second half: `$00-$b3`, `$c0-$cf`, `$e0-$f7`
+* bank 2 - first half: `$00`, `$09-$0f`, `$19-$1e`, `$29-$2f`, `$3e-$43`, `$50-$53`, `$60-$ff`
+* bank 2 - second half: `$00-$4e`, `$50`, `$7a-$7e`, `$80-$ff`
+* bank 3 - first half: `$00-$ff`
+* bank 3 - second half: `$00-$d9`, `$df-$e4`, `$ef-$ff`
 
 ## CPU RAM map
 * `000`-`004`: ??

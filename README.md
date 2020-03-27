@@ -478,6 +478,24 @@ Tiles rendered (completely or partially):
 * bank 3 - first half: `$00-$ff`
 * bank 3 - second half: `$00-$d9`, `$df-$e4`, `$ef-$ff`
 
+## Unused graphics
+The actual colors are unknown.
+
+![](unused/cat.png)
+A cat in the first half of CHR bank 0. Colored by me.
+
+![](unused/ninja.png)
+Three ninja animation frames in the first half of CHR bank 2. Colored by me.
+
+![](unused/moon.png)
+A small crescent moon in the first half of CHR bank 2. Here, colored the same as the big crescent moon used in the 8th part of the demo.
+
+![](unused/asteroids.png)
+Big asteroids (fireballs?) in the first half of CHR bank 2. Here, colored the same as the small asteroids/fireballs used in the 8th part of the demo.
+
+![](unused/eyes.png)
+The eyes of a ninja in the second half of CHR bank 2. Colored by me.
+
 ## CPU RAM map
 * `000`-`004`: ??
 * `005`-`085`: unaccessed (except for the initial cleanup)

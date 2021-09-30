@@ -1,5 +1,4 @@
+chr-png/*.*
 *.bin
 *.cdl
-*.mlb
 *.nes
-chr*.png

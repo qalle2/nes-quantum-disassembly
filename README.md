@@ -6,26 +6,26 @@ Notes:
 * The CHR ROM (graphics data) is not included.
 * This disassembly is at an early stage.
 * I have not been involved with wAMMA or in the making of this demo.
-* This project had an incorrect license for a short time by mistake.
 
 ## How to get the original files
-* Download the original *Quantum Disco Brothers* file from e.g. [the scene.org file archive](http://files.scene.org/view/parties/2006/stream06/demo/quantum_disco_brothers_by_wamma.zip).
-* If the file is compressed, extract it to get an iNES ROM file (`.nes`).
-* The `.nes` file should be 65,552 bytes and have the MD5 hash `2c932e9e8ae7859517905e2539565a89`.
-* Rename the `.nes` file to `quantum-original.nes`.
-* Extract the PRG ROM data to `prg-original.bin` and the CHR ROM data to `chr.bin` from the `.nes` file. Use my [ines-split](http://github.com/qalle2/ines-split) or a general-purpose tool like a hex editor (the `.nes` file consists of a 16-byte iNES header, then the PRG ROM data and finally the CHR ROM data.)
+1. Download the original *Quantum Disco Brothers* file from e.g. [pouet.net](https://www.pouet.net/prod.php?which=26485).
+1. If the file is compressed, extract it to get an iNES ROM file (`quantum_disco_brothers_by_wAMMA.nes`).
+1. The `.nes` file should have the MD5 hash `2c932e9e8ae7859517905e2539565a89`.
+1. Extract the PRG ROM data to `prg.bin` and the CHR ROM data to `chr.bin`.
+Use e.g. *ines_split.py* from my [NES utilities](http://github.com/qalle2/nes-util).
+Command: `python3 ines_split.py -p prg.bin -c chr.bin quantum_disco_brothers_by_wAMMA.nes`
 
 ## How to assemble
 * Install the asm6f assembler:
   * [GitHub page](https://github.com/freem/asm6f)
   * [64-bit Windows binary](http://qallee.net/misc/asm6f-win64.zip) (compiled by me)
 * You have two options:
-  * Option 1: run `assemble.bat` (only works on Windows; also compares the assembled files to the originals).
-  * Option 2: assemble the source manually:
-    * `asm6f prg.asm prg.bin`
-    * `prg.bin` should be identical to `prg-original.bin`
-    * `asm6f quantum.asm "quantum_(e).nes"` (`(e)` in the output filename causes FCEUX to correctly start the ROM in PAL mode)
-    * `quantum_(e).nes` should be identical to `quantum-original.nes`
+  * Run the Linux script `assemble.sh` (also compares the assembled files to the originals)&hellip;
+  * &hellip;or assemble manually:
+    * assemble the PRG ROM: `asm6 prg.asm prg-reassembled.bin`
+    * verify that the PRG ROM is identical to the original PRG ROM: `diff -q prg.bin prg-reassembled.bin` (on Linux)
+    * assemble the iNES file: `asm6 quantum.asm "quantum-reassembled_(e).nes"` (the `(e)` in the filename tells FCEUX to correctly start the ROM in PAL mode)
+    * verify that the iNES file is identical to the original iNES file: `diff -q quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Linux)
 
 ## The type of the iNES ROM file (from the header)
 * mapper: CNROM (iNES mapper number 3)

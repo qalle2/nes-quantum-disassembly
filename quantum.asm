@@ -1,10 +1,12 @@
-; NES Quantum Disco Brothers disassembly. Assembles with asm6f.
+; NES Quantum Disco Brothers disassembly. Assembles with asm6.
 
 ; iNES header
-    inesprg 2  ; PRG ROM size: 32 KiB
-    ineschr 4  ; CHR ROM size: 32 KiB
-    inesmap 3  ; mapper: CNROM
-    inesmir 0  ; name table mirroring: horizontal
+    base $0000
+    db "NES", $1a   ; id
+    db 2            ; 32 KiB PRG ROM
+    db 4            ; 32 KiB CHR ROM
+    db $30, $00     ; mapper 3 (CNROM), horizontal name table mirroring
+    pad $0010, $00  ; padding
 
 ; PRG ROM (32 KiB); assembled earlier (see the batch/readme files)
     incbin "prg.bin"

@@ -1,8 +1,23 @@
 # nes-quantum-disassembly
 
-An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA.
+An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA. Assembles with [ASM6](https://github.com/qalle2/asm6/).
 
-Notes:
+## Table of contents
+
+* [Notes](#notes)
+* [How to get the original files](#how-to-get-the-original-files)
+* [How to assemble](#how-to-assemble)
+* [iNES ROM header info](#ines-rom-header-info)
+* [The parts of the demo](#the-parts-of-the-demo)
+* [Code/data log](#code-data-log)
+* [Unused graphics](#unused-graphics)
+* [CPU RAM map](#cpu-ram-map)
+* [Misc notes](#misc-notes)
+* [References](#references)
+* [Software used](#software-used)
+
+## Notes
+
 * The CHR ROM (graphics data) is not included.
 * This disassembly is at an early stage.
 * I have not been involved with wAMMA or in the making of this demo.
@@ -18,18 +33,14 @@ Command: `python3 ines_split.py -p prg.bin -c chr.bin quantum_disco_brothers_by_
 
 ## How to assemble
 
-* Install the asm6f assembler:
-  * [GitHub page](https://github.com/freem/asm6f)
-  * [64-bit Windows binary](http://qallee.net/misc/asm6f-win64.zip) (compiled by me)
-* You have two options:
-  * Run the Linux script `assemble.sh` (also compares the assembled files to the originals)&hellip;
-  * &hellip;or assemble manually:
-    * assemble the PRG ROM: `asm6 prg.asm prg-reassembled.bin`
-    * verify that the PRG ROM is identical to the original PRG ROM: `diff -q prg.bin prg-reassembled.bin` (on Linux)
-    * assemble the iNES file: `asm6 quantum.asm "quantum-reassembled_(e).nes"` (the `(e)` in the filename tells FCEUX to correctly start the ROM in PAL mode)
-    * verify that the iNES file is identical to the original iNES file: `diff -q quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Linux)
+1. Assemble the PRG ROM: `asm6 prg.asm prg-reassembled.bin`
+1. Verify that the PRG ROM is identical to the original PRG ROM: `diff -q prg.bin prg-reassembled.bin` (on Linux)
+1. Assemble the iNES file: `asm6 quantum.asm "quantum-reassembled_(e).nes"` (the `(e)` in the filename tells FCEUX to correctly start the ROM in PAL mode)
+1. Verify that the iNES file is identical to the original iNES file: `diff -q quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Linux)
 
-## The type of the iNES ROM file (from the header)
+Note: the Linux script `assemble.sh` is intended for my personal use. Do not run it before reading it.
+
+## iNES ROM header info
 
 * mapper: CNROM (iNES mapper number 3)
 * PRG ROM: 32 KiB (1 &times; 32 KiB)
@@ -85,7 +96,7 @@ Command: `python3 ines_split.py -p prg.bin -c chr.bin quantum_disco_brothers_by_
 
 The demo should probably end at this point, as on [this YouTube video](https://www.youtube.com/watch?v=hhoa_K75BKI). However, on FCEUX, it starts to glitch from frame ~17603 on. I omitted the glitchy part from the Code/Data Logger file.
 
-## FCEUX Code/Data Log
+## Code/data log
 
 I created a code/data log file (`.cdl`) of the ROM using the Code/Data Logger in FCEUX.
 The file is in `quantum.cdl.gz` (gz compressed).
@@ -546,5 +557,4 @@ The eyes of a ninja in the second half of CHR bank 2. Colored by me.
 * FCEUX (Code/Data Logger etc.)
 * HxD (hex editor)
 * my [cdl-summary](http://github.com/qalle2/cdl-summary)
-* my [ines-info](http://github.com/qalle2/ines-info)
-* my [ines-split](http://github.com/qalle2/ines-split)
+* my [NES utilities](http://github.com/qalle2/nes-util)

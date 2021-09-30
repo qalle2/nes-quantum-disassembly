@@ -9,7 +9,7 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 * [How to assemble](#how-to-assemble)
 * [iNES ROM header info](#ines-rom-header-info)
 * [The parts of the demo](#the-parts-of-the-demo)
-* [Code/data log](#code-data-log)
+* [Code/data log](#codedata-log)
 * [Unused graphics](#unused-graphics)
 * [CPU RAM map](#cpu-ram-map)
 * [Misc notes](#misc-notes)
@@ -25,18 +25,17 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 ## How to get the original files
 
 1. Download the original *Quantum Disco Brothers* file from e.g. [pouet.net](https://www.pouet.net/prod.php?which=26485).
-1. If the file is compressed, extract it to get an iNES ROM file (`quantum_disco_brothers_by_wAMMA.nes`).
-1. The `.nes` file should have the MD5 hash `2c932e9e8ae7859517905e2539565a89`.
-1. Extract the PRG ROM data to `prg.bin` and the CHR ROM data to `chr.bin`.
-Use e.g. *ines_split.py* from my [NES utilities](http://github.com/qalle2/nes-util).
-Command: `python3 ines_split.py -p prg.bin -c chr.bin quantum_disco_brothers_by_wAMMA.nes`
+1. If the file is compressed, extract it to get an iNES ROM file (`quantum_disco_brothers_by_wAMMA.nes`, MD5 hash `2c932e9e8ae7859517905e2539565a89`).
+1. Extract the CHR ROM data to `chr.bin` (MD5 hash `8b2f42589e682cad6be6125ab5faee94`):
+  * Either use *ines_split.py* from my [NES utilities](http://github.com/qalle2/nes-util)&hellip;
+  * &hellip;or open the `.nes` file in a hex editor and copy the last 32,768 (0x8000) bytes to `chr.bin`
 
 ## How to assemble
 
-1. Assemble the PRG ROM: `asm6 prg.asm prg-reassembled.bin`
-1. Verify that the PRG ROM is identical to the original PRG ROM: `diff -q prg.bin prg-reassembled.bin` (on Linux)
-1. Assemble the iNES file: `asm6 quantum.asm "quantum-reassembled_(e).nes"` (the `(e)` in the filename tells FCEUX to correctly start the ROM in PAL mode)
-1. Verify that the iNES file is identical to the original iNES file: `diff -q quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Linux)
+1. Assemble: `asm6 quantum.asm "quantum-reassembled_(e).nes"` (the `(e)` in the filename tells FCEUX to start the ROM in PAL mode)
+1. Verify that the `.nes` file is identical to the original:
+  * `diff -q quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Linux)
+  * `fc /b quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Windows)
 
 Note: the Linux script `assemble.sh` is intended for my personal use. Do not run it before reading it.
 
@@ -94,7 +93,9 @@ Note: the Linux script `assemble.sh` is intended for my personal use. Do not run
 ![](shot/13.png)
 13th part (internally part 9, starts at frame 14018): more horizontal color bars; uses CHR bank 2
 
-The demo should probably end at this point, as on [this YouTube video](https://www.youtube.com/watch?v=hhoa_K75BKI). However, on FCEUX, it starts to glitch from frame ~17603 on. I omitted the glitchy part from the Code/Data Logger file.
+The demo should probably end at this point, as on [this YouTube video](https://www.youtube.com/watch?v=hhoa_K75BKI).
+However, on FCEUX, it starts to glitch from frame ~17603 on.
+I omitted the glitchy part from the code/data log file.
 
 ## Code/data log
 

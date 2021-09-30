@@ -27,24 +27,35 @@
     apu_counter   equ $4017
 
     ; zero page
+    ; note: "unaccessed" = unaccessed except for the initial cleanup
     ram1       equ $00  ; ??
     demo_part  equ $01  ; which part is running (see int.asm)
     temp1      equ $01
     flag1      equ $02  ; flag used in NMI? (seems to always be 0 or 1)
     ptr1       equ $03  ; pointer (2 bytes)
+    ; $05-$85: unaccessed
     delay_var1 equ $86
     delay_cnt  equ $87
     delay_var2 equ $88
     loopcnt    equ $9b  ; loop counter (may have other uses)
+    ; $ad-$c7: unaccessed
     ptr2       equ $c8  ; pointer (2 bytes)
     ptr3       equ $ce  ; pointer (2 bytes)
     ptr4       equ $d0  ; pointer (2 bytes)
     ptr5       equ $d8  ; pointer (2 bytes)
     ptr6       equ $da  ; pointer (2 bytes)
+    ; $f0-$fe: unaccessed
 
     ; other RAM
+    ; note: "unaccessed" = unaccessed except for the initial cleanup
+    ; $1ac-$1eb: unaccessed
+    ; $1ec-$1ff: probably stack
+    ; $200-$2ff: unaccessed
+    ; $400-$4ff: unaccessed
     sprite_page  equ $0500  ; 256 bytes
+    ; $680-$7bf: unaccessed
     palette_copy equ $07c0  ; 32 bytes
+    ; $7e0-$7ff: unaccessed
 
     ; video RAM
     vram_name_table0 equ $2000
@@ -63,9 +74,28 @@
 
 ; --- Macros --------------------------------------------------------------------------------------
 
+macro add _operand
+        clc
+        adc _operand
+endm
+
 macro chr_bankswitch _bank  ; write bank number (0-3) over the same value in PRG ROM
 _label  lda #(_bank)
         sta _label + 1
+endm
+
+macro iny4
+        iny
+        iny
+        iny
+        iny
+endm
+
+macro lsr4
+        lsr
+        lsr
+        lsr
+        lsr
 endm
 
 macro reset_ppu_addr
@@ -98,6 +128,11 @@ endm
 macro sprite_dma
         lda #>(sprite_page)
         sta oam_dma
+endm
+
+macro sub _operand
+        sec
+        sbc _operand
 endm
 
 macro write_ppu_data _byte
@@ -161,8 +196,7 @@ sub1    sta ptr4+0
 
         ; ptr4 + 16 -> ptr6
         lda #16
-        clc
-        adc ptr4+0
+        add ptr4+0
         sta ptr6+0
         lda ptr4+1
         adc #0
@@ -204,12 +238,9 @@ sub1    sta ptr4+0
         sta $03e4
 
         ; 144 -> $cb
-        rept 4
-            iny
-        endr
+        iny4
         tya
-        clc
-        adc #128
+        add #128
         sta $cb
 
         ; ptr4 + $cb -> ptr5
@@ -397,8 +428,7 @@ sub4b   lda #$06
 sub4_loop1
         lda $e5,x
         bmi sub4c
-        sec
-        sbc #1
+        sub #1
         bpl +
         lda table03,x
         and $ef
@@ -452,9 +482,7 @@ sub5    lda $035a,x
         beq +           ; always taken
 
         ; unaccessed ($823b)
-        rept 4
-            lsr
-        endr
+        lsr4
         adc $0300,x
         sta $0300,x
         jmp sub5a
@@ -481,10 +509,10 @@ sub5b   lda $0320,x
         beq +
         sta $0340,x
 +       lda $0340,x
-        bne unaccessed1
+        bne unacc1
 
 sub5c   lda $0344,x
-        bne unaccessed1  ; never taken
+        bne unacc1  ; never taken
         lda $0300,x
         bpl +
         lda #$00
@@ -497,44 +525,36 @@ sub5c   lda $0344,x
 ; -------------------------------------------------------------------------------------------------
 ; Unaccessed block ($828f)
 
-unaccessed1
-        pha
+unacc1  pha
         and #%00001111
         ldy $033c,x
         jsr sub6
-        bmi unaccessed2
+        bmi unacc2
         clc
         adc $0300,x
         jsr sub2
         pla
-        rept 4
-            lsr
-        endr
+        lsr4
         clc
         adc $033c,x
         cmp #$20
-        bpl unaccessed3
+        bpl unacc3
         sta $033c,x
         rts
 
-unaccessed2
-        clc
+unacc2  clc
         adc $0300,x
         jsr sub2
         pla
-        rept 4
-            lsr
-        endr
+        lsr4
         clc
         adc $033c,x
         cmp #$20
-        bpl unaccessed3
+        bpl unacc3
         sta $033c,x
         rts
 
-unaccessed3
-        sec
-        sbc #$40
+unacc3  sub #$40
         sta $033c,x
         rts
 
@@ -562,8 +582,7 @@ sub6a   pha
         tay
         lda table05,y
         eor #%11111111
-        clc
-        adc #1
+        add #1
         cmp #$80
         rts
 
@@ -586,9 +605,7 @@ sub6c   pha
         tya
         jsr sub3
         pla
-        rept 4
-            lsr
-        endr
+        lsr4
         clc
         adc $0330,x
         cmp #$20
@@ -605,9 +622,7 @@ sub6d   clc
         tya
         jsr sub3
         pla
-        rept 4
-            lsr
-        endr
+        lsr4
         clc
         adc $0330,x
         cmp #$20
@@ -615,8 +630,7 @@ sub6d   clc
         sta $0330,x
         rts
 
-sub6e   sec
-        sbc #$40
+sub6e   sub #$40
         sta $0330,x
         rts
 
@@ -704,9 +718,9 @@ sub7f   lda $0350,x
         sta $0318,x
 +       ldy $0314,x
 
-        lda word_lo-1,y
+        lda notes_lo-1,y
         sta ptr2+0
-        lda word_hi-1,y
+        lda notes_hi-1,y
         sta ptr2+1
 
         sec
@@ -768,7 +782,7 @@ sub8    lda $035a,x
         bne sub8a
         rts
 
-+       jmp unaccessed6  ; unaccessed ($8478)
++       jmp unacc6  ; unaccessed ($8478)
 
 sub8a   lda $039c,x
         ldy $03a8,x
@@ -785,10 +799,10 @@ sub8a   lda $039c,x
         rts          ; unaccessed ($8495)
 
 +       ldy $e9,x
-        lda word_hi-1,y
+        lda notes_hi-1,y
         sta $0308,x
         sta $cb
-        lda word_lo-1,y
+        lda notes_lo-1,y
         sta $dc,x
         jmp sub3
 
@@ -796,10 +810,10 @@ sub8b   lda $e9,x
         clc
         adc $0328,x
         tay
-        lda word_hi-1,y
+        lda notes_hi-1,y
         sta $0308,x
         sta $cb
-        lda word_lo-1,y
+        lda notes_lo-1,y
         sta $dc,x
         jmp sub3
 
@@ -807,10 +821,10 @@ sub8c   lda $e9,x
         clc
         adc $03a4,x
         tay
-        lda word_hi-1,y
+        lda notes_hi-1,y
         sta $0308,x
         sta $cb
-        lda word_lo-1,y
+        lda notes_lo-1,y
         sta $dc,x
         jmp sub3
 
@@ -818,10 +832,10 @@ sub8d   lda $e9,x
         clc
         adc $032c,x
         tay
-        lda word_hi-1,y
+        lda notes_hi-1,y
         sta $0308,x
         sta $cb
-        lda word_lo-1,y
+        lda notes_lo-1,y
         sta $dc,x
         jmp sub3
 
@@ -834,13 +848,10 @@ sub8f   sta $d3
 ; -------------------------------------------------------------------------------------------------
 ; Unaccessed block ($84f8)
 
-unaccessed4
-        sec
-        sbc #1
+unacc4  sub #1
         sta $d4
         lda $d5
-        clc
-        adc #1
+        add #1
         cmp $d6
         bcc +
         lda $d7
@@ -860,11 +871,11 @@ sub9    ldy $035a,x
         cpy #$0f
         beq sub8f
         cpy #$0d
-        beq unaccessed4  ; never taken
+        beq unacc4  ; never taken
 
 sub9a   lda $035f,x
         cpy #$08
-        beq unaccessed5  ; never taken
+        beq unacc5  ; never taken
 
         lda $0328,x
         bne sub9b
@@ -890,8 +901,7 @@ sub9a   lda $035f,x
 +       rts
 
         ; unaccessed block ($854e)
-unaccessed5
-        jsr unaccessed6
+unacc5  jsr unacc6
         lda $0308,x
         sta $cb
         lda $dc,x
@@ -902,53 +912,46 @@ sub9b   jmp sub8a
 ; -------------------------------------------------------------------------------------------------
 ; Unaccessed block ($855e)
 
-unaccessed6
-        lda $035f,x
+unacc6  lda $035f,x
         beq +
         sta $0398,x
 +       sec
         lda $d2
-        beq unaccessed8
+        beq unacc8
 
-unaccessed7
-        cmp #1
-        beq unaccessed9
+unacc7  cmp #1
+        beq unacc9
         cmp #2
-        beq unaccessed10
+        beq unacc10
         sbc #3
-        bne unaccessed7
+        bne unacc7
 
-unaccessed8
-        ldy $e9,x
-        lda word_lo-1,y
+unacc8  ldy $e9,x
+        lda notes_lo-1,y
         sta $dc,x
-        lda word_hi-1,y
+        lda notes_hi-1,y
         sta $0308,x
         rts
 
-unaccessed9
-        lda $0398,x
-        rept 4
-            lsr
-        endr
+unacc9  lda $0398,x
+        lsr4
         clc
         adc $e9,x
         tay
-        lda word_lo-1,y
+        lda notes_lo-1,y
         sta $dc,x
-        lda word_hi-1,y
+        lda notes_hi-1,y
         sta $0308,x
         rts
 
-unaccessed10
-        lda $0398,x
+unacc10 lda $0398,x
         and #%00001111
         clc
         adc $e9,x
         tay
-        lda word_lo-1,y
+        lda notes_lo-1,y
         sta $dc,x
-        lda word_hi-1,y
+        lda notes_hi-1,y
         sta $0308,x
         rts
 
@@ -993,7 +996,7 @@ sub10c  lda $0355,x
         iny
         sta $0344,x
         lda (ptr6),y
-        bmi unaccessed11
+        bmi unacc11
         iny
         and #%01111111
         sta $cb
@@ -1014,14 +1017,12 @@ sub10c  lda $0355,x
         lda $cb
         and #%00001111
         eor #%11111111
-        clc
-        adc #1
+        add #1
         sta $0320,x
         jmp sub10d
 
         ; unaccessed block ($862d)
-unaccessed11
-        iny
+unacc11 iny
         and #%01111111
         sta $cb
         lda $0394,x
@@ -1054,12 +1055,10 @@ sub10d  iny
         lda (ptr6),y
         tay
         and #%00001111
-        bcs unaccessed12
+        bcs unacc12
         sta $0328,x
         tya
-        rept 4
-            lsr
-        endr
+        lsr4
         sta $03a4,x
         lda $cb
         and #%00001111
@@ -1067,24 +1066,18 @@ sub10d  iny
         jmp sub10e
 
         ; unaccessed block ($8681)
-unaccessed12
-        eor #%11111111
-        clc
-        adc #1
+unacc12 eor #%11111111
+        add #1
         sta $0328,x
         tya
-        rept 4
-            lsr
-        endr
+        lsr4
         eor #%11111111
-        clc
-        adc #1
+        add #1
         sta $03a4,x
         lda $cb
         and #%00001111
         eor #%11111111
-        clc
-        adc #1
+        add #1
         sta $032c,x
 
 sub10e  lda table02,x
@@ -1117,9 +1110,9 @@ sub10f  ldy $0350,x
         sta $0330,x
         cpx #$03
         beq sub10_10
-        lda word_lo-1,y
+        lda notes_lo-1,y
         sta $dc,x
-        lda word_hi-1,y
+        lda notes_hi-1,y
 
 sub10_07
         sta $0308,x
@@ -1237,8 +1230,7 @@ sub11_loop2
         jmp sub10_11
 +       lda $cb       ; unaccessed ($8798)
 sub11_02
-        clc
-        adc ptr4+0
+        add ptr4+0
         sta $036e,x
         sta ptr3+0
         lda (ptr2),y
@@ -1256,8 +1248,7 @@ sub11_02
 
         adc #1
         lsr
-        clc
-        adc #2
+        add #2
         sta $e0,x
         lda #$00
         sta $0378,x
@@ -1288,9 +1279,7 @@ sub11_06
         iny
         lda (ptr2),y
         bcc +
-        rept 4
-            lsr
-        endr
+        lsr4
 +       ldy $0378,x
         sty $cb
         bit $cb
@@ -1325,11 +1314,8 @@ sub11_07
         bit $cd
         jmp sub11_08
 +       lda (ptr2),y
-        rept 4
-            lsr
-        endr
-        clc
-        adc #1
+        lsr4
+        add #1
         iny
         clv
 
@@ -1347,12 +1333,9 @@ sub11_09
         bit $cd
         jmp sub11_10
 +       lda (ptr2),y
-        rept 4
-            lsr
-        endr
+        lsr4
         iny
-        clc
-        adc #1
+        add #1
         sta $0355,x
         clv
 sub11_10
@@ -1365,9 +1348,7 @@ sub11_10
         jmp sub11_11
 
 +       lda (ptr2),y
-        rept 4
-            lsr
-        endr
+        lsr4
         iny
         clv
 sub11_11
@@ -1461,11 +1442,10 @@ sub11_18
 
         ldx #0
         ldy #16
-unaccessed13
-        dex
-        bne unaccessed13
+unacc13 dex
+        bne unacc13
         dey
-        bne unaccessed13
+        bne unacc13
 
         dec $ff
         bpl +
@@ -1484,18 +1464,17 @@ unaccessed13
 sub12   bit $ff
         bmi sub12_skip  ; always taken
 
-        ; unaccessed block ($8925)
+        ; unaccessed ($8925)
         dec $ff
         bpl sub12_skip
         lda #$05
         sta $ff
-        jmp unaccessed14
+        jmp unacc14
 
 sub12_skip
         jmp sub4
 
-unaccessed14
-        rts  ; unaccessed ($8933)
+unacc14 rts  ; $8933
 
 ; -------------------------------------------------------------------------------------------------
 
@@ -1509,9 +1488,9 @@ sub13   ldy #$ff
         asl
         tay
 
-        lda pointer_hi,y
+        lda ptr_hi,y
         tax
-        lda pointer_lo,y
+        lda ptr_lo,y
         jsr sub1  ; A = pointer low, X = pointer high
         rts
 
@@ -1522,32 +1501,29 @@ sub13   ldy #$ff
         db 255, 254, 253, 252, 251, 250, 249, 248
         db 247, 246, 245, 244, 243, 242, 241
 
-apu_reg_offsets:
-        ; $895b
-        ; read by: sub02, sub03, sub11
+apu_reg_offsets
+        ; read by: sub2, sub3, sub11
         db 0, 4, 8, 12
 
-table02:
-        ; $895f
+table02
         ; read by: sub10
         db 1, 2, 4, 8
 
-table03:
-        ; $8963
-        ; read by: sub04, sub10, sub11
+table03
+        ; read by: sub4, sub10, sub11
         db 254, 253, 251, 247
 
-or_masks:
+or_masks
         ; $8967 (some bytes unaccessed)
-        ; read by: sub06
+        ; read by: sub6
         db $00, $10, $20, $30, $40, $50, $60, $70
         db $80, $90, $a0, $b0, $c0, $d0, $e0, $f0
         db $e0, $d0, $c0, $b0, $a0, $90, $80, $70
         db $60, $50, $40, $30, $20, $10, $00
 
-table05:
+table05
         ; $8986 (most bytes unaccessed)
-        ; read by: sub06
+        ; read by: sub6
         ; Math stuff? (On each line, the numbers increase linearly.)
         db  0,  0,  0,  1,  1,  1,  2,  2,  3,  3,  3,  4,  4,  4,  5,  5  ; value ~= index/4
         db  0,  0,  1,  2,  3,  3,  4,  5,  6,  6,  7,  8,  9,  9, 10, 11
@@ -1567,11 +1543,11 @@ table05:
         db  0,  3,  7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55, 59  ; value ~= index*4
 
         ; 96 integers. First all low bytes, then all high bytes.
-        ; Disregarding the first nine values, the numbers decrease exponentially.
-        ; (Each value equals approximately 0.944 times the previous value.)
-        ; Some bytes unaccessed.
-        ; read by: sub07, sub08, sub10
-word_lo:
+        ; Disregarding the first nine values, each value equals approximately 0.944 times the
+        ; previous value.
+        ; Note frequencies?
+        ; read by: sub7, sub8, sub10
+notes_lo
         ; $8a86
         dl 1884, 1948, 2024, 1852, 1948, 1839, 1906, 2028
         dl 2047, 2034, 1920, 1812, 1710, 1614, 1524, 1438
@@ -1585,8 +1561,7 @@ word_lo:
         dl   53,   50,   48,   45,   42,   40,   38,   36
         dl   34,   32,   30,   28,   27,   25,   24,   22
         dl   21,   20,   19,   18,   17,   16,   15,   14
-word_hi:
-        ; $8ae6
+notes_hi
         dh 1884, 1948, 2024, 1852, 1948, 1839, 1906, 2028
         dh 2047, 2034, 1920, 1812, 1710, 1614, 1524, 1438
         dh 1358, 1281, 1209, 1142, 1077, 1017,  960,  906
@@ -1600,11 +1575,9 @@ word_hi:
         dh   34,   32,   30,   28,   27,   25,   24,   22
         dh   21,   20,   19,   18,   17,   16,   15,   14
 
-        ; $8b46 (read by: sub13)
-pointer_lo:
-        db <indirect_data1
-pointer_hi:
-        db >indirect_data1
+        ; read by: sub13
+ptr_lo  db <indirect_data1
+ptr_hi  db >indirect_data1
 
         ; unaccessed ($8b48)
         db $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
@@ -1612,7 +1585,7 @@ pointer_hi:
         db $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
         db $8d, $a0, $8d, $a0, $8d, $a0, $8d, $a0
 
-indirect_data1:
+indirect_data1
         ; $8b68-$8dbf (600 bytes)
         ; read (via pointer_lo and pointer_hi) by: sub01, sub10, sub11
         ; Some bytes unaccessed.
@@ -1705,9 +1678,6 @@ indirect_data1:
         db $72, $23, $77, $13, $7b, $23, $72, $27
         db $37, $2e, $07
 
-        ; $8e13
-        ; $3f followed by $00...$1f occurs often from now on
-        ; (PPU palette addresses?)
         db $00, $3f, $33, $4f, $13, $13, $03, $00
         db $03, $0f, $3f, $03, $f3, $00, $ff, $13
         db $03, $13, $03, $0f, $03, $0f, $03, $13
@@ -2248,7 +2218,7 @@ indirect_data1:
         db $0f, $0d, $1f, $3f, $0f, $1f, $0f, $1f
 
         ; $9e8b
-        ; no more $3f + $00...$1f
+        ; no more $3f + $00-$1f
         db $1f, $0f, $1c, $0c, $0c, $0f, $f4, $03
         db $19, $f8, $05, $61, $0f, $24, $85, $0f
         db $63, $11, $89, $0f, $64, $81, $1d, $f8
@@ -2413,39 +2383,39 @@ pointers:  ; $c0a8
         dw indirect7
         dw indirect8  ; unaccessed ($c0b6)
 
-indirect1:
+indirect1
         db $6c, $6c, $6c, $47, $52, $45, $45, $54
         db $49, $4e, $47, $53, $5f, $6c, $6c, $6c
-indirect2:
+indirect2
         db $6c, $6c, $57, $45, $6c, $43, $4f, $4d
         db $45, $6c, $46, $52, $4f, $4d, $6c, $6c
-indirect3:
+indirect3
         db $6c, $41, $4e, $6c, $5b, $5e, $42, $49
         db $54, $6c, $57, $4f, $52, $4c, $44, $6c
-indirect4:
+indirect4
         db $6c, $6c, $42, $52, $49, $4e, $47, $49
         db $4e, $47, $6c, $54, $48, $45, $6c, $6c
-indirect5:
+indirect5
         db $6c, $6c, $6c, $6c, $47, $49, $46, $54
         db $6c, $4f, $46, $6c, $6c, $6c, $6c, $6c
-indirect6:
+indirect6
         db $6c, $47, $41, $4c, $41, $43, $54, $49
         db $43, $6c, $44, $49, $53, $43, $4f, $6c
-indirect7:
+indirect7
         db $47, $45, $54, $6c, $55, $50, $6c, $41
         db $4e, $44, $6c, $44, $41, $4e, $43, $45
-indirect8:
+indirect8
         ; unaccessed ($c128)
         db $4d, $55, $53, $48, $52, $4f, $4f, $4d
         db $6c, $4d, $41, $4e, $49, $41, $43, $53
 
-table10:
+table10
         ; 22 bytes
         db $3a, $3b, $3c, $3d, $3e, $3b, $3f, $ff
         db $f1, $f2, $f3, $f4, $f5, $ff, $f6, $f7
         db $f5, $3e, $f8, $f9, $f7, $f3
 
-table11:
+table11
         ; 256 bytes
         db $5b, $5b, $5b, $5b, $5b, $5b, $5b, $5b
         db $5b, $5b, $5b, $5b, $5b, $5b, $49, $54
@@ -2483,7 +2453,7 @@ table11:
         ; unaccessed ($c24e)
         db $5b, $5b, $5b, $5b, $0d, $0a
 
-palette_table:
+palette_table
         ; 32 bytes
         db $2f, $10, $00, $20  ; light gray, gray, white
         db $0f, $05, $26, $30  ; dark red, light red, white
@@ -3007,153 +2977,62 @@ palette_table:
         ; unaccessed ($d221)
         db $6d, $65, $55, $55
 
-game_over:
+game_over
         ; Name Table data for the "GAME OVER - CONTINUE?" screen with a simple
         ; encryption (17 is subtracted from each value). 96 (32*3) bytes.
 
         ; "           GAME OVER            "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $36+17, $30+17, $3c+17, $34+17, $4a+17
-        db $3e+17, $45+17, $34+17, $41+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b47 414d455b 4f564552 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "                                "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "           CONTINUE?            "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $32+17, $3e+17, $3d+17, $43+17, $38+17
-        db $3d+17, $44+17, $34+17, $7a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b43 4f4e5449 4e55458b 5b5b5b5b 5b5b5b5b 5b5b5b5b
 
-greets:
+greets
         ; Name Table data for the "GREETS TO ALL NINTENDAWGS" screen with a simple
         ; encryption (17 is subtracted from each value). 640 (32*20) bytes.
 
         ; "           NAE(M)OK             "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $3d+17, $30+17, $34+17, $4d+17, $3c+17
-        db $4e+17, $3e+17, $3a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b4e 41455e4d 5f4f4b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "         BYTER(A)PERS           "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $31+17, $48+17, $43+17, $34+17, $41+17, $4d+17, $30+17
-        db $4e+17, $3f+17, $34+17, $41+17, $42+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b425954 45525e41 5f504552 535b5b5b 5b5b5b5b 5b5b5b5b
         ; "       JUMALAU(T)A              "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $39+17
-        db $44+17, $3c+17, $30+17, $3b+17, $30+17, $44+17, $4d+17, $43+17
-        db $4e+17, $30+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b4a 554d414c 41555e54 5f415b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "           SHI(T)FACED CLOWNS   "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $42+17, $37+17, $38+17, $4d+17, $43+17
-        db $4e+17, $35+17, $30+17, $32+17, $34+17, $33+17, $4a+17, $32+17
-        db $3b+17, $3e+17, $46+17, $3d+17, $42+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b53 48495e54 5f464143 45445b43 4c4f574e 535b5b5b
         ; "              ( )               "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4d+17, $4a+17
-        db $4e+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5e5b 5f5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "       DEKADEN(C)E              "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $33+17
-        db $34+17, $3a+17, $30+17, $33+17, $34+17, $3d+17, $4d+17, $32+17
-        db $4e+17, $34+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b44 454b4144 454e5e43 5f455b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "       ANANASM(U)RSKA           "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $30+17
-        db $3d+17, $30+17, $3d+17, $30+17, $42+17, $3c+17, $4d+17, $44+17
-        db $4e+17, $41+17, $42+17, $3a+17, $30+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b41 4e414e41 534d5e55 5f52534b 415b5b5b 5b5b5b5b 5b5b5b5b
         ; "             T(R)ACTION         "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $43+17, $4d+17, $41+17
-        db $4e+17, $30+17, $32+17, $43+17, $38+17, $3e+17, $3d+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b545e52 5f414354 494f4e5b 5b5b5b5b 5b5b5b5b
         ; "             D(R)AGON MAGIC     "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $33+17, $4d+17, $41+17
-        db $4e+17, $30+17, $36+17, $3e+17, $3d+17, $4a+17, $3c+17, $30+17
-        db $36+17, $38+17, $32+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b445e52 5f41474f 4e5b4d41 4749435b 5b5b5b5b
         ; "           ASP(E)KT             "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $30+17, $42+17, $3f+17, $4d+17, $34+17
-        db $4e+17, $3a+17, $43+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b41 53505e45 5f4b545b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "              (N)ALLEPERHE      "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4d+17, $3d+17
-        db $4e+17, $30+17, $3b+17, $3b+17, $34+17, $3f+17, $34+17, $41+17
-        db $37+17, $34+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5e4e 5f414c4c 45504552 48455b5b 5b5b5b5b
         ; "            FI(T)               "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $35+17, $38+17, $4d+17, $43+17
-        db $4e+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 46495e54 5f5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "                                "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "               +                "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4c+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5d 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "                                "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "  PWP/FAIRLIGHT/MFX/MOONHAZARD  "
-        db $4a+17, $4a+17, $3f+17, $46+17, $3f+17, $4b+17, $35+17, $30+17
-        db $38+17, $41+17, $3b+17, $38+17, $36+17, $37+17, $43+17, $4b+17
-        db $3c+17, $35+17, $47+17, $4b+17, $3c+17, $3e+17, $3e+17, $3d+17
-        db $37+17, $30+17, $49+17, $30+17, $41+17, $33+17, $4a+17, $4a+17
-
+        hex 5b5b5057 505c4641 49524c49 4748545c 4d46585c 4d4f4f4e 48415a41 52445b5b
         ; "    ISO/RNO/DAMONES/HEDELMAE    "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $38+17, $42+17, $3e+17, $4b+17
-        db $41+17, $3d+17, $3e+17, $4b+17, $33+17, $30+17, $3c+17, $3e+17
-        db $3d+17, $34+17, $42+17, $4b+17, $37+17, $34+17, $33+17, $34+17
-        db $3b+17, $3c+17, $30+17, $34+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 49534f5c 524e4f5c 44414d4f 4e45535c 48454445 4c4d4145 5b5b5b5b
         ; "                                "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; "             WAMMA              "
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $46+17, $30+17, $3c+17
-        db $3c+17, $30+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-        db $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17, $4a+17
-
+        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b57414d 4d415b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
         ; " QUALITY PRODUCTIONS SINCE 1930 "
-        db $4a+17, $40+17, $44+17, $30+17, $3b+17, $38+17, $43+17, $48+17
-        db $4a+17, $3f+17, $41+17, $3e+17, $33+17, $44+17, $32+17, $43+17
-        db $38+17, $3e+17, $3d+17, $42+17, $4a+17, $42+17, $38+17, $3d+17
-        db $32+17, $34+17, $4a+17, $7b+17, $7c+17, $7d+17, $7e+17, $4a+17
-
-table17:
+        hex 5b515541 4c495459 5b50524f 44554354 494f4e53 5b53494e 43455b8c 8d8e8f5b
+table17
         ; $d505, 44 bytes, some bytes unaccessed
         db $48, $4a, $4c, $4e, $60, $62, $64, $66
         db $68, $6a, $6c, $6e, $80, $82, $84, $86
@@ -3162,16 +3041,16 @@ table17:
         db $c8, $ca, $cc, $ce, $e0, $e2, $e4, $e6
         db $e8, $ea, $ec, $ee
 
-color_or_table:
+color_or_table
         db $0f, $00, $10, $20
 
-table18b:
+table18b
         db $3c, $0f, $3c, $22
 
-table18c:
+table18c
         db $3c, $3c, $3c, $3c
 
-table19:
+table19
         ; 256 bytes.
         ; If the formula (x+60)%256 is applied, looks like a smooth curve with
         ; values 0-121.
@@ -3209,7 +3088,7 @@ table19:
         db  11,  11,  10,  10,   9,   9,   8,   7
         db   7,   6,   5,   5,   4,   3,   2,   1
 
-table20:
+table20
         ; A smooth curve with 256 values between 4-64.
 
         db 34, 36, 37, 38, 39, 40, 42, 43
@@ -3245,7 +3124,7 @@ table20:
         db 15, 16, 17, 18, 19, 20, 22, 23
         db 24, 25, 26, 27, 29, 30, 31, 32
 
-woman_sprite_x:
+woman_sprite_x
         ; Sprite X positions in the woman part of the demo. 256 bytes.
         ; 194 (-62) is added to these.
         ; If the formula (x+182)%256 is applied, looks like a smooth curve with
@@ -3284,7 +3163,7 @@ woman_sprite_x:
         db 221, 221, 221, 221, 220, 220, 220, 220
         db 220, 220, 220, 221, 221, 221, 221, 221
 
-table22:
+table22
         ; A smooth curve with 256 values between 2-22.
 
         db 10, 11, 12, 12, 13, 14, 15, 15
@@ -3320,7 +3199,7 @@ table22:
         db  3,  3,  3,  4,  4,  4,  4,  5
         db  5,  6,  6,  7,  8,  8,  9, 10
 
-table23:
+table23
         ; 256 bytes.
         ; Note: on each line:
         ;     - the high nybbles are 0, 1, 2, 3, 2, 1, 0, 0
@@ -3400,16 +3279,16 @@ table27:  ; $dad1 (25 bytes)
 
 ; Unaccessed block ($daea)
 
-data2:
+data2
         db $0b
 
-table28:
+table28
         db $00, $00, $00
         db $08, $08, $08
         db $10, $10, $10
         db $18, $18, $18
 
-table29:
+table29
         db $00, $01, $02
         db $10, $11, $12
         db $20, $21, $22
@@ -3419,23 +3298,23 @@ table29:
         db $40, $40, $40
         db $40, $40, $40
 
-table30:
+table30
         db $00, $08, $10
         db $00, $08, $10
         db $00, $08, $10
         db $00, $08, $10
 
-data3:
+data3
         ; $db1b
         db $03
 
-table31:
+table31
         db $04, $06, $06, $06
 
-table32:
+table32
         db $09, $0e, $0c, $3e
 
-table33:
+table33
         db $0b, $0f, $0d, $3f
 
         ; unaccessed ($db28)
@@ -3479,7 +3358,7 @@ data5:  ; $db6f
 data6:  ; $db70
         db $3f
 
-table38:
+table38
         ; $db71, 64 bytes.
         ; Looks like a sawtooth wave with values 8-255.
         ; Last 15 bytes are unaccessed.
@@ -3492,7 +3371,7 @@ table38:
         db  19,  25,  37,  85, 106, 111,  94, 103
         db 128, 136, 186, 200, 225, 235, 240, 244
 
-table39:
+table39
         db $40, $43, $42, $41
 
         ; unaccessed ($dbb5)
@@ -3523,23 +3402,23 @@ table43:  ; $dc00 (16 bytes)
 ; Star sprites in the first two parts of the demo.
 ; The last 5 bytes of each 16-byte table are unaccessed.
 
-star_count:
+star_count
         ; Number of stars, minus one.
         db 10
 
-star_initial_x:
+star_initial_x
         db  19,  80,  84, 111, 158, 171, 208, 239
         db   6,  90,  95, 214, 202,  19,  25,  37
 
-star_initial_y:
+star_initial_y
         db  85, 223,  81,  33,  61, 154, 125, 136
         db 204, 143, 170,  67, 138, 110, 144, 118
 
-star_y_speeds:
+star_y_speeds
         db 2, 3, 3, 5, 4, 2, 4, 3
         db 2, 2, 3, 4, 3, 2, 7, 6
 
-star_tiles:
+star_tiles
         db $af, $ae, $ae, $be, $be, $bf, $af, $bf
         db $bf, $af, $ae, $ae, $bf, $be, $be, $be
 
@@ -3565,7 +3444,7 @@ table51:  ; $dc82 (16 bytes)
         db $ea, $eb, $fa, $fb, $ec, $ed, $fc, $fd
         db $ea, $eb, $fa, $fb, $ec, $ed, $fc, $fd
 
-table52:
+table52
         ; unaccessed ($dc92)
         db $00, $03, $06, $03
 
@@ -3591,9 +3470,10 @@ hide_sprites
         ldx #0
 -       lda #245
         sta sprite_page+sprite_y,x
-        rept 4
-            inx
-        endr
+        inx
+        inx
+        inx
+        inx
         bne -
         rts
 
@@ -3685,8 +3565,7 @@ delay
 
 delay_loop
         lda delay_var1
-        clc
-        adc #85
+        add #85
         bcc +
 +       sta delay_var1
 
@@ -3702,9 +3581,7 @@ delay_loop
 
         stx delay_var2
         ldx #0
-unaccessed15
-        clc
-        adc #85
+unacc15 add #85
         clc
         nop
         nop
@@ -3712,30 +3589,27 @@ unaccessed15
         sbc #15
         inx
         cpx delay_var2
-        bne unaccessed15
+        bne unacc15
 
         rts
 
         stx delay_var2
         ldy #0
         ldx #0
-unaccessed16
-
-        ldy #0
-unaccessed17
-        nop
+unacc16 ldy #0
+unacc17 nop
         nop
         nop
         nop
         nop
         iny
         cpy #11
-        bne unaccessed17
+        bne unacc17
 
         nop
         inx
         cpx delay_var2
-        bne unaccessed16
+        bne unacc16
 
         rts
 
@@ -3759,9 +3633,7 @@ fade_out_palette_loop
         sta temp1
         ; copy color brightness (0-3) to X
         and #%00110000
-        rept 4
-            lsr
-        endr
+        lsr4
         tax
         ; take color hue (0-15)
         lda temp1
@@ -3840,8 +3712,7 @@ update_sixteen_sprites_loop_inner
 
         ; $a7 + $9c -> sprite tile
         lda $9c
-        clc
-        adc $a7
+        add $a7
         ldy $a8
         sta sprite_page+sprite_tile,y
 
@@ -3853,8 +3724,7 @@ update_sixteen_sprites_loop_inner
 
         ; $a6 + loopcnt -> sprite Y
         lda loopcnt
-        clc
-        adc $a6
+        add $a6
         ldy $a8
         sta sprite_page+sprite_y,y
 
@@ -3865,24 +3735,20 @@ update_sixteen_sprites_loop_inner
 
         ; $9a += 4
         lda $9a
-        clc
-        adc #4
+        add #4
         sta $9a
 
         ; $9c += 1
         inc $9c
 
         ; Y + 4 -> $a8
-        rept 4
-            iny
-        endr
+        iny4
         sty $a8
 
         ; X += 8
         ; loop while less than 64
         txa
-        clc
-        adc #8
+        add #8
         tax
         cpx #64
         bne update_sixteen_sprites_loop_inner
@@ -3890,8 +3756,7 @@ update_sixteen_sprites_loop_inner
         ; loopcnt += 8
         ; loop while less than 16
         lda loopcnt
-        clc
-        adc #8
+        add #8
         sta loopcnt
         lda loopcnt
         cmp #16
@@ -3943,8 +3808,7 @@ update_six_sprites_loop_inner
 
         ; $a7 + $9c -> sprite tile
         lda $9c
-        clc
-        adc $a7
+        add $a7
         ldy $a8
         sta sprite_page+sprite_tile,y
 
@@ -3956,8 +3820,7 @@ update_six_sprites_loop_inner
 
         ; $a6 + loopcnt -> sprite Y
         lda loopcnt
-        clc
-        adc $a6
+        add $a6
         ldy $a8
         sta sprite_page+sprite_y,y
 
@@ -3968,24 +3831,20 @@ update_six_sprites_loop_inner
 
         ; $9a += 4
         lda $9a
-        clc
-        adc #4
+        add #4
         sta $9a
 
         ; $9c += 1
         inc $9c
 
         ; Y + 4 -> $a8
-        rept 4
-            iny
-        endr
+        iny4
         sty $a8
 
         ; X += 8
         ; loop while less than 24
         txa
-        clc
-        adc #8
+        add #8
         tax
         cpx #24
         bne update_six_sprites_loop_inner
@@ -3993,8 +3852,7 @@ update_six_sprites_loop_inner
         ; loopcnt += 8
         ; loop while less than 16
         lda loopcnt
-        clc
-        adc #8
+        add #8
         sta loopcnt
         lda loopcnt
         cmp #16
@@ -4046,8 +3904,7 @@ update_eight_sprites_loop_inner
 
         ; $a7 + $9c -> sprite tile
         lda $9c
-        clc
-        adc $a7
+        add $a7
         ldy $a8
         sta sprite_page+sprite_tile,y
 
@@ -4059,8 +3916,7 @@ update_eight_sprites_loop_inner
 
         ; $a6 + loopcnt -> sprite Y
         lda loopcnt
-        clc
-        adc $a6
+        add $a6
         ldy $a8
         sta sprite_page+sprite_y,y
 
@@ -4071,24 +3927,20 @@ update_eight_sprites_loop_inner
 
         ; $9a += 4
         lda $9a
-        clc
-        adc #4
+        add #4
         sta $9a
 
         ; $9c += 1
         inc $9c
 
         ; Y + 4 -> $a8
-        rept 4
-            iny
-        endr
+        iny4
         sty $a8
 
         ; X += 8
         ; loop while less than 32
         txa
-        clc
-        adc #8
+        add #8
         tax
         cpx #32
         bne update_eight_sprites_loop_inner
@@ -4096,8 +3948,7 @@ update_eight_sprites_loop_inner
         ; loopcnt += 8
         ; loop while less than 16
         lda loopcnt
-        clc
-        adc #8
+        add #8
         sta loopcnt
         lda loopcnt
         cmp #16
@@ -4122,14 +3973,12 @@ sub15_loop
         bne +
 
         lda $9b
-        clc
-        adc #14
+        add #14
         sta $9b
         jmp sub15_1
 
 +       lda #$e1
-        clc
-        adc $9b
+        add $9b
         sta sprite_page+sprite_y,x
         sta $0154,y
         lda $9b
@@ -4141,18 +3990,17 @@ sub15_loop
         lda #$00
         sta sprite_page+sprite_attr,x
         lda $9a
-        clc
-        adc #40
+        add #40
         sta sprite_page+sprite_x,x
 
 sub15_1
-        rept 4
-            inx
-        endr
+        inx
+        inx
+        inx
+        inx
         iny
         lda $9a
-        clc
-        adc #8
+        add #8
         sta $9a
         cpy #22
         bne sub15_loop
@@ -4199,8 +4047,7 @@ sub16   stx $91
         tay
         ldx table17,y
         txa
-        clc
-        adc #16
+        add #16
         tax
         stx ppu_data
         inx
@@ -4313,8 +4160,7 @@ nmisub1_01
         sta ppu_scroll
         ldx $96
         lda table19,x
-        clc
-        adc $96
+        add $96
         sta ppu_scroll
 
         lda $96
@@ -4462,93 +4308,76 @@ nmisub1_11
         lda $96
         cmp #$a0
         bcc +
-        jmp unaccessed18
+        jmp unacc18
 +       ldx $93
 
         lda table19,x
-        clc
-        adc #88
+        add #88
         sta sprite_page+0*4+sprite_y
 
         lda table20,x
-        clc
-        adc #110
+        add #110
         sta sprite_page+0*4+sprite_x
 
         lda table19,x
-        clc
-        adc #88
+        add #88
         sta sprite_page+1*4+sprite_y
 
         lda table20,x
-        clc
-        adc #118
+        add #118
         sta sprite_page+1*4+sprite_x
 
         lda table19,x
-        clc
-        adc #96
+        add #96
         sta sprite_page+2*4+sprite_y
 
         lda table20,x
-        clc
-        adc #110
+        add #110
         sta sprite_page+2*4+sprite_x
 
         lda table19,x
-        clc
-        adc #96
+        add #96
         sta sprite_page+3*4+sprite_y
 
         lda table20,x
-        clc
-        adc #118
+        add #118
         sta sprite_page+3*4+sprite_x
 
         lda table20,x
-        clc
-        adc #88
+        add #88
         sta sprite_page+4*4+sprite_y
 
         lda table19,x
-        clc
-        adc #110
+        add #110
         sta sprite_page+4*4+sprite_x
 
         lda table20,x
-        clc
-        adc #88
+        add #88
         sta sprite_page+5*4+sprite_y
 
         lda table19,x
-        clc
-        adc #118
+        add #118
         sta sprite_page+5*4+sprite_x
 
         lda table20,x
-        clc
-        adc #96
+        add #96
         sta sprite_page+6*4+sprite_y
 
         lda table19,x
-        clc
-        adc #110
+        add #110
         sta sprite_page+6*4+sprite_x
 
         lda table20,x
-        clc
-        adc #96
+        add #96
         sta sprite_page+7*4+sprite_y
 
         lda table19,x
-        clc
-        adc #117
+        add #117
         sta sprite_page+7*4+sprite_x
 
         jmp sub19
 
-unaccessed18
-        dec sprite_page+0*4+sprite_y
+unacc18 dec sprite_page+0*4+sprite_y
         dec sprite_page+0*4+sprite_x
 
         dec sprite_page+1*4+sprite_y
@@ -4657,8 +4486,7 @@ nmisub3
         sta ppu_scroll
         ldx $014e
         lda table19,x
-        clc
-        adc $014e
+        add $014e
         sta ppu_scroll
 
         lda $014e
@@ -4687,16 +4515,14 @@ nmisub3_loop1
         tay
 
         lda table24,x
-        clc
-        adc $012f
+        add $012f
         sta sprite_page+23*4+sprite_y,y
         lda table25,x
         sta sprite_page+23*4+sprite_tile,y
         lda table26,x
         sta sprite_page+23*4+sprite_attr,y
         lda table27,x
-        clc
-        adc $012e
+        add $012e
         sta sprite_page+23*4+sprite_x,y
 
         cpx #0
@@ -4765,9 +4591,7 @@ nmisub3_loop2
         sbc $9c
         sta $0154,x
 +       inx
-        rept 4
-            iny
-        endr
+        iny4
         cpx #22
         bne nmisub3_loop2
 
@@ -4829,8 +4653,7 @@ nmisub5
         inc $89
         ldx $8a
         lda table22,x
-        clc
-        adc #$96
+        add #$96
         sta $8b
         dec $8a
         ldx $8a
@@ -4934,8 +4757,7 @@ nmisub7_loop1
         lda table19,y
         sta $0600,x
         lda $89
-        clc
-        adc ram1
+        add ram1
         sta $89
         inx
         cpx #64
@@ -4969,8 +4791,7 @@ nmisub7_loop2
         bne -
 
         lda $9a
-        clc
-        adc #32
+        add #32
         sta $9a
         lda $9a
         cmp #$00
@@ -4992,8 +4813,7 @@ nmisub7_1
         lda table19,y
         sta $0600,x
         lda $89
-        clc
-        adc ram1
+        add ram1
         sta $89
         inx
         cpx #128
@@ -5025,8 +4845,7 @@ nmisub7_loop3
         bne -
 
         lda $9a
-        clc
-        adc #32
+        add #32
         sta $9a
         lda $9a
         cmp #$00
@@ -5044,8 +4863,7 @@ nmisub7_2
 -       ldx #$04
         jsr delay
         lda $89
-        clc
-        adc $8b
+        add $8b
         tax
         lda table19,x
         sta ppu_scroll
@@ -5164,8 +4982,7 @@ nmisub9_loop1
         bne -
 
         lda $9a
-        clc
-        adc #32
+        add #32
         sta $9a
         lda $9a
         cmp #$00
@@ -5201,8 +5018,7 @@ nmisub9_loop2
         bne -
 
         lda $9a
-        clc
-        adc #32
+        add #32
         sta $9a
         lda $9a
         cmp #$00
@@ -5315,8 +5131,7 @@ nmisub11_loop
         dec $89
 
         lda $89
-        clc
-        adc $8a
+        add $8a
         tax
         lda table20,x
         clc
@@ -5370,8 +5185,7 @@ nmisub12_loop2
 
         ldx #0
 -       txa
-        clc
-        adc $9e
+        add $9e
         sta ppu_data
         inx
         cpx #8
@@ -5382,8 +5196,7 @@ nmisub12_loop2
         bne nmisub12_loop2
 
         lda $9e
-        clc
-        adc #8
+        add #8
         sta $9e
         lda $9e
         cmp #$40
@@ -5404,8 +5217,7 @@ nmisub12_loop4
 
         ldx #0
 -       txa
-        clc
-        adc $9e
+        add $9e
         sta ppu_data
         inx
         cpx #8
@@ -5416,8 +5228,7 @@ nmisub12_loop4
         bne nmisub12_loop4
 
         lda $9e
-        clc
-        adc #8
+        add #8
         sta $9e
         cmp #$28
         bne nmisub12_loop3
@@ -5908,8 +5719,7 @@ nmisub15_loop1
 
         ; #$f0 + $8c -> sprite tile
         lda #$f0
-        clc
-        adc $8c
+        add $8c
         sta sprite_page+sprite_tile,y
 
         ; $014a -> sprite attributes
@@ -5927,12 +5737,10 @@ nmisub15_loop1
 
         ; [woman_sprite_x + $89 + $8a] + 194 -> sprite X position
         lda $89
-        clc
-        adc $8a
+        add $8a
         tax
         lda woman_sprite_x,x
-        clc
-        adc #194
+        add #194
         sta sprite_page+sprite_x,y
 
         ; restore X
@@ -5942,12 +5750,9 @@ nmisub15_loop1
         ; Y   += 4
         ; X   += 8
         ; $8d += 1
-        rept 4
-            iny
-        endr
+        iny4
         txa
-        clc
-        adc #8
+        add #8
         tax
         inc $8d
 
@@ -5990,8 +5795,7 @@ nmisub15_loop2
 
         ; #$f0 + $8c -> sprite tile
         lda #$f0
-        clc
-        adc $8c
+        add $8c
         sta sprite_page+sprite_tile,y
 
         ; $014b -> sprite attributes
@@ -6008,12 +5812,10 @@ nmisub15_loop2
 
         ; [woman_sprite_x + $89 + $8b] + 194 -> sprite X position
         lda $89
-        clc
-        adc $8b
+        add $8b
         tax
         lda woman_sprite_x,x
-        clc
-        adc #194
+        add #194
         sta sprite_page+sprite_x,y
 
         ; restore X
@@ -6023,12 +5825,9 @@ nmisub15_loop2
         ; Y   += 4
         ; X   += 8
         ; $8c += 1
-        rept 4
-            iny
-        endr
+        iny4
         txa
-        clc
-        adc #8
+        add #8
         tax
         inc $8c
 
@@ -6110,36 +5909,33 @@ nmisub15_exit
 
         ldx #$50
         ldy #0
-unaccessed19
-        stx ppu_data
+unacc19 stx ppu_data
         inx
         iny
         cpy #12
-        bne unaccessed19
+        bne unacc19
 
         reset_ppu_addr
         set_ppu_addr vram_name_table0+9*32+10
 
         ldy #0
         ldx #$5c
-unaccessed20
-        stx ppu_data
+unacc20 stx ppu_data
         inx
         iny
         cpy #12
-        bne unaccessed20
+        bne unacc20
 
         reset_ppu_addr
         set_ppu_addr vram_name_table0+10*32+10
 
         ldy #0
         ldx #$68
-unaccessed21
-        stx ppu_data
+unacc21 stx ppu_data
         inx
         iny
         cpy #12
-        bne unaccessed21
+        bne unacc21
 
         reset_ppu_addr
 
@@ -6167,7 +5963,7 @@ unaccessed21
 
         lda $0130
         cmp #$01
-        beq unaccessed22
+        beq unacc22
 
         set_ppu_addr vram_palette+4*4
         write_ppu_data $0f
@@ -6183,8 +5979,7 @@ unaccessed21
         write_ppu_data $00
         reset_ppu_addr
 
-unaccessed22
-        lda #$01
+unacc22 lda #$01
         sta $0130
 
         lda #%00011110
@@ -6196,7 +5991,7 @@ unaccessed22
         lda $8a
         cmp #8
         beq +
-        jmp unaccessed24
+        jmp unacc24
 +       lda #$00
         sta $8a
         inc $8f
@@ -6212,10 +6007,8 @@ unaccessed22
 ++      set_ppu_addr vram_name_table0+27*32+1
 
         ldx #0
-unaccessed23
-        txa
-        clc
-        adc $8f
+unacc23 txa
+        add $8f
         tay
         lda table11,y
         clc
@@ -6223,12 +6016,11 @@ unaccessed23
         sta ppu_data
         inx
         cpx #31
-        bne unaccessed23
+        bne unacc23
 
         reset_ppu_addr
 
-unaccessed24
-        chr_bankswitch 2
+unacc24 chr_bankswitch 2
         inc $89
         ldx $89
         lda table20,x
@@ -6292,15 +6084,13 @@ unaccessed24
         sta sprite_page+2*4+sprite_x
 
         ldx data2
-unaccessed25
-        txa
+unacc25 txa
         asl
         asl
         tay
 
         lda table28,x
-        clc
-        adc #$9b
+        add #$9b
         sta sprite_page+23*4+sprite_y,y
 
         txa
@@ -6312,22 +6102,20 @@ unaccessed25
 
         tax
         lda table29,x
-        clc
-        adc $9a
+        add $9a
         sta sprite_page+23*4+sprite_tile,y
 
         lda #%00000010
         sta sprite_page+23*4+sprite_attr,y
 
         lda table30,x
-        clc
-        adc $0139
+        add $0139
         sta sprite_page+23*4+sprite_x,y
 
         cpx #0
         beq +
         dex
-        jmp unaccessed25
+        jmp unacc25
 
 +       inc $013a
         lda $013a
@@ -6385,8 +6173,7 @@ nmisub16_loop1
         reset_ppu_addr
 
         lda $9a
-        clc
-        adc #32
+        add #32
         sta $9a
         lda $9a
         cmp #$1a
@@ -6412,8 +6199,7 @@ nmisub16_loop2
         reset_ppu_addr
 
         lda $9a
-        clc
-        adc #32
+        add #32
         sta $9a
         lda $9a
         cmp #$68
@@ -6575,13 +6361,11 @@ nmisub17_loop2
         tay
 
         lda table34,x
-        clc
-        adc $0111
+        add $0111
         sta sprite_page+1*4+sprite_y,y
 
         lda table37,x
-        clc
-        adc $0110
+        add $0110
         sta sprite_page+1*4+sprite_x,y
 
         cpx #0
@@ -6608,8 +6392,7 @@ nmisub17_loop2
         lda #$ff
         sta $0112,x
         lda table19,y
-        clc
-        adc #$5a
+        add #$5a
         sta $0116,x
         lda table22,y
         sta $011a,x
@@ -6764,8 +6547,7 @@ greets_heading_loop
         lda #>($2000+3*32+9)
         sta ppu_addr
         lda $9a
-        clc
-        adc #<($2000+3*32+9)
+        add #<($2000+3*32+9)
         sta ppu_addr
 
         ; copy the row (16 tiles)
@@ -6781,8 +6563,7 @@ greets_heading_loop
         ; move output offset to next row: $9a += 32
         ; loop while less than 3*32
         lda $9a
-        clc
-        adc #32
+        add #32
         sta $9a
         cmp #3*32
         bne greets_heading_loop
@@ -6856,8 +6637,7 @@ nmisub19
         sta ppu_scroll
         ldx $0153
         lda table19,x
-        clc
-        adc $0153
+        add $0153
         sta ppu_scroll
 
         lda $0153
@@ -6948,8 +6728,7 @@ nmisub21_loop1
         lda #>(vram_name_table0+8*32+4)
         sta ppu_addr
         lda #<(vram_name_table0+8*32+4)
-        clc
-        adc $013b
+        add $013b
         sta ppu_addr
 
         ldx #0
@@ -6960,8 +6739,7 @@ nmisub21_loop1
         bne -
 
         lda $013b
-        clc
-        adc #32
+        add #32
         sta $013b
         cpy #$c0
         bne nmisub21_loop1
@@ -6970,8 +6748,7 @@ nmisub21_loop2
         lda #>(vram_name_table0+16*32+4)
         sta ppu_addr
         lda #<(vram_name_table0+16*32+4)
-        clc
-        adc $013b
+        add $013b
         sta ppu_addr
 
         ldx #0
@@ -6982,8 +6759,7 @@ nmisub21_loop2
         bne -
 
         lda $013b
-        clc
-        adc #32
+        add #32
         sta $013b
         cpy #$00
         bne nmisub21_loop2
@@ -6997,8 +6773,7 @@ nmisub21_loop3
         lda #>(vram_name_table0+8*32+20)
         sta ppu_addr
         lda #<(vram_name_table0+8*32+20)
-        clc
-        adc $013b
+        add $013b
         sta ppu_addr
 
         ldx #0
@@ -7009,8 +6784,7 @@ nmisub21_loop3
         bne -
 
         lda $013b
-        clc
-        adc #32
+        add #32
         sta $013b
         cpy #$c0
         bne nmisub21_loop3
@@ -7019,8 +6793,7 @@ nmisub21_loop4
         lda #>(vram_name_table0+16*32+20)
         sta ppu_addr
         lda #<(vram_name_table0+16*32+20)
-        clc
-        adc $013b
+        add $013b
         sta ppu_addr
 
         ldx #0
@@ -7031,8 +6804,7 @@ nmisub21_loop4
         bne -
 
         lda $013b
-        clc
-        adc #32
+        add #32
         sta $013b
         cpy #0
         bne nmisub21_loop4
@@ -7109,27 +6881,23 @@ nmisub21_4
         sta ppu_mask
 
 ++      lda $89
-        clc
-        adc $8b
+        add $8b
         adc $8a
         clc
         sbc #$14
         tax
         lda table19,x
-        clc
-        adc $8b
+        add $8b
         sta ppu_scroll
         lda $89
-        clc
-        adc $8b
+        add $8b
         tax
         lda table20,x
         sta ppu_scroll
 
         ldx $8a
         lda table20,x
-        clc
-        adc #60
+        add #60
         sta $9b
         inc $89
         iny
@@ -7160,8 +6928,7 @@ write_row
 ; -------------------------------------------------------------------------------------------------
 ; Unaccessed block ($f4f9)
 
-unaccessed26
-        ldy #0
+unacc26 ldy #0
 -       stx ppu_data
         iny
         cpy #32
@@ -7315,8 +7082,7 @@ nmisub23_loop1
         tay
 
         lda table49,x
-        clc
-        adc $9a
+        add $9a
         sta sprite_page+48*4+sprite_y,y
         lda sprite_page+48*4+sprite_x,y
         clc
@@ -7334,8 +7100,7 @@ nmisub23_loop2
         tay
 
         lda table49,x
-        clc
-        adc $9b
+        add $9b
         sta sprite_page+48*4+sprite_y,y
         lda sprite_page+48*4+sprite_x,y
         clc
@@ -7372,8 +7137,7 @@ nmisub23_1
 
         ldx #0
 -       txa
-        clc
-        adc $8f
+        add $8f
         tay
         lda table11,y
         clc

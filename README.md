@@ -11,8 +11,6 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 * [The parts of the demo](#the-parts-of-the-demo)
 * [Code/data log](#codedata-log)
 * [Unused graphics](#unused-graphics)
-* [CPU RAM map](#cpu-ram-map)
-* [Misc notes](#misc-notes)
 * [References](#references)
 * [Software used](#software-used)
 
@@ -518,31 +516,6 @@ Big asteroids (fireballs?) in the first half of CHR bank 2. Here, colored the sa
 
 ![](unused/eyes.png)
 The eyes of a ninja in the second half of CHR bank 2. Colored by me.
-
-## CPU RAM map
-
-* `000`-`004`: ??
-* `005`-`085`: unaccessed (except for the initial cleanup)
-* `086`-`0ac`: ??
-* `0ad`-`0c7`: unaccessed (except for the initial cleanup)
-* `0c8`-`0ef`: ??
-* `0f0`-`0fe`: unaccessed (except for the initial cleanup)
-* `0ff`-`1ab`: ??
-* `1ac`-`1eb`: unaccessed (except for the initial cleanup)
-* `1ec`-`1ff`: probably stack
-* `200`-`2ff`: unaccessed (except for the initial cleanup)
-* `300`-`3ff`: ??
-* `400`-`4ff`: unaccessed (except for the initial cleanup)
-* `500`-`5ff`: used for OAM DMA
-* `600`-`67f`: ??
-* `680`-`7bf`: unaccessed (except for the initial cleanup)
-* `7c0`-`7df`: a copy of current palette?
-* `7e0`-`7ff`: unaccessed (except for the initial cleanup)
-
-## Misc notes
-
-* The program does not execute code from outside of PRG ROM (from `0000`-`7fff`).
-* The program does not access CPU addresses `0800`-`1fff`.
 
 ## References
 

@@ -8,6 +8,7 @@ Notes:
 * I have not been involved with wAMMA or in the making of this demo.
 
 ## How to get the original files
+
 1. Download the original *Quantum Disco Brothers* file from e.g. [pouet.net](https://www.pouet.net/prod.php?which=26485).
 1. If the file is compressed, extract it to get an iNES ROM file (`quantum_disco_brothers_by_wAMMA.nes`).
 1. The `.nes` file should have the MD5 hash `2c932e9e8ae7859517905e2539565a89`.
@@ -16,6 +17,7 @@ Use e.g. *ines_split.py* from my [NES utilities](http://github.com/qalle2/nes-ut
 Command: `python3 ines_split.py -p prg.bin -c chr.bin quantum_disco_brothers_by_wAMMA.nes`
 
 ## How to assemble
+
 * Install the asm6f assembler:
   * [GitHub page](https://github.com/freem/asm6f)
   * [64-bit Windows binary](http://qallee.net/misc/asm6f-win64.zip) (compiled by me)
@@ -28,6 +30,7 @@ Command: `python3 ines_split.py -p prg.bin -c chr.bin quantum_disco_brothers_by_
     * verify that the iNES file is identical to the original iNES file: `diff -q quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Linux)
 
 ## The type of the iNES ROM file (from the header)
+
 * mapper: CNROM (iNES mapper number 3)
 * PRG ROM: 32 KiB (1 &times; 32 KiB)
 * CHR ROM: 32 KiB (4 &times; 8 KiB)
@@ -36,6 +39,7 @@ Command: `python3 ines_split.py -p prg.bin -c chr.bin quantum_disco_brothers_by_
 * no save RAM
 
 ## The parts of the demo
+
 * Screenshots from FCEUX in PAL mode.
 * Frame numbers: FCEUX's Frame Display in PAL mode.
 * The internal part numbers are at RAM address `0x0001`.
@@ -81,12 +85,21 @@ Command: `python3 ines_split.py -p prg.bin -c chr.bin quantum_disco_brothers_by_
 
 The demo should probably end at this point, as on [this YouTube video](https://www.youtube.com/watch?v=hhoa_K75BKI). However, on FCEUX, it starts to glitch from frame ~17603 on. I omitted the glitchy part from the Code/Data Logger file.
 
-## FCEUX Code/Data Log - PRG ROM
-I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:
+## FCEUX Code/Data Log
 
-`python cdl_summary.py --prg-size 32 --part p --origin 32 --bank-size 32 quantum.cdl`
+I created a code/data log file (`.cdl`) of the ROM using the Code/Data Logger in FCEUX.
+The file is in `quantum.cdl.gz` (gz compressed).
 
-CPU address range, block length, description:
+I also converted the CDL file into a human-readable format using my [cdl-summary](http://github.com/qalle2/cdl-summary):
+* `python3 cdl_summary.py --prg-size 32 --part p --bank-size 32 quantum.cdl > cdl-summary-raw-prg.csv`
+* `python3 cdl_summary.py --prg-size 32 --part c --bank-size 8 quantum.cdl > cdl-summary-raw-chr.csv`
+
+(TODO: do the manually edited data below still match the CSV files above?)
+
+### PRG ROM
+
+Below is the manually-edited PRG CDL data. Columns: CPU address range, block length, description.
+
 ```
 $8000-$8033 (  52): unaccessed
 $8034-$8156 ( 291): code
@@ -461,10 +474,7 @@ $fffa-$fffd (   4): data (NMI&amp;reset vectors)
 $fffe-$ffff (   2): unaccessed (IRQ vector)
 ```
 
-## FCEUX Code/Data Log - CHR ROM
-I used my [cdl-summary](http://github.com/qalle2/cdl-summary) with the following arguments:
-
-`python cdl_summary.py --prg-size 32 --part c --origin 0 --bank-size 8 quantum.cdl`
+### CHR ROM
 
 No CHR data was read programmatically via `$2007`.
 
@@ -479,6 +489,7 @@ Tiles rendered (completely or partially):
 * bank 3 - second half: `$00-$d9`, `$df-$e4`, `$ef-$ff`
 
 ## Unused graphics
+
 The actual colors are unknown.
 
 ![](unused/cat.png)
@@ -497,6 +508,7 @@ Big asteroids (fireballs?) in the first half of CHR bank 2. Here, colored the sa
 The eyes of a ninja in the second half of CHR bank 2. Colored by me.
 
 ## CPU RAM map
+
 * `000`-`004`: ??
 * `005`-`085`: unaccessed (except for the initial cleanup)
 * `086`-`0ac`: ??
@@ -516,10 +528,12 @@ The eyes of a ninja in the second half of CHR bank 2. Colored by me.
 * `7e0`-`7ff`: unaccessed (except for the initial cleanup)
 
 ## Misc notes
+
 * The program does not execute code from outside of PRG ROM (from `0000`-`7fff`).
 * The program does not access CPU addresses `0800`-`1fff`.
 
 ## References
+
 * [NESDev Wiki](http://wiki.nesdev.com):
   * [APU registers](http://wiki.nesdev.com/w/index.php/APU_registers)
   * [CNROM](http://wiki.nesdev.com/w/index.php/CNROM)
@@ -528,6 +542,7 @@ The eyes of a ninja in the second half of CHR bank 2. Colored by me.
 * [a 6502 instruction reference](http://www.obelisk.me.uk/6502/reference.html)
 
 ## Software used
+
 * FCEUX (Code/Data Logger etc.)
 * HxD (hex editor)
 * my [cdl-summary](http://github.com/qalle2/cdl-summary)

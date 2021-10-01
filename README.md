@@ -104,399 +104,399 @@ I also converted the CDL file into a human-readable format using my [cdl-summary
 * `python3 cdl_summary.py --prg-size 32 --part p --bank-size 32 quantum.cdl > cdl-summary-raw-prg.csv`
 * `python3 cdl_summary.py --prg-size 32 --part c --bank-size 8 quantum.cdl > cdl-summary-raw-chr.csv`
 
-(TODO: do the manually edited data below still match the CSV files above?)
-
 ### PRG ROM
 
-Below is the manually-edited PRG CDL data. Columns: CPU address range, block length, description.
+Below is the manually-edited PRG CDL data. Columns: CPU start address in hexadecimal, length in hexadecimal, description.
 
 ```
-$8000-$8033 (  52): unaccessed
-$8034-$8156 ( 291): code
-$8157-$8158 (   2): unaccessed
-$8159-$815c (   4): code
-$815d-$815e (   2): unaccessed
-$815f-$81ca ( 108): code
-$81cb-$81cc (   2): unaccessed
-$81cd-$823a ( 110): code
-$823b-$8247 (  13): unaccessed
-$8248-$8269 (  34): code
-$826a-$8276 (  13): unaccessed
-$8277-$8286 (  16): code
-$8287-$8288 (   2): unaccessed
-$8289-$828e (   6): code
-$828f-$82d0 (  66): unaccessed
-$82d1-$838d ( 189): code
-$838e-$83b2 (  37): unaccessed
-$83b3-$8413 (  97): code
-$8414-$8416 (   3): unaccessed
-$8417-$8432 (  28): code
-$8433-$8435 (   3): unaccessed
-$8436-$8477 (  66): code
-$8478-$847a (   3): unaccessed
-$847b-$8494 (  26): code
-$8495       (   1): unaccessed
-$8496-$84f7 (  98): code
-$84f8-$850c (  21): unaccessed
-$850d-$854d (  65): code
-$854e-$855a (  13): unaccessed
-$855b-$855d (   3): code
-$855e-$85b0 (  83): unaccessed
-$85b1-$862c ( 124): code
-$862d-$8651 (  37): unaccessed
-$8652-$8680 (  47): code
-$8681-$86a1 (  33): unaccessed
-$86a2-$8797 ( 246): code
-$8798-$8799 (   2): unaccessed
-$879a-$8905 ( 364): code
-$8906-$8920 (  27): unaccessed
-$8921-$8924 (   4): code
-$8925-$892f (  11): unaccessed
-$8930-$8932 (   3): code
-$8933       (   1): unaccessed
-$8934-$8938 (   5): code
-$8939-$893a (   2): unaccessed
-$893b-$8949 (  15): code
+8000 (  34): unaccessed
+8034 ( 123): code
+8157 (   2): unaccessed
+8159 (   4): code
+815d (   2): unaccessed
+815f (  6c): code
+81cb (   2): unaccessed
+81cd (  6e): code
+823b (   d): unaccessed
+8248 (  22): code
+826a (   d): unaccessed
+8277 (  10): code
+8287 (   2): unaccessed
+8289 (   6): code
+828f (  42): unaccessed
+82d1 (  bd): code
+838e (  25): unaccessed
+83b3 (  61): code
+8414 (   3): unaccessed
+8417 (  1c): code
+8433 (   3): unaccessed
+8436 (  42): code
+8478 (   3): unaccessed
+847b (  1a): code
+8495 (   1): unaccessed
+8496 (  62): code
+84f8 (  15): unaccessed
+850d (  41): code
+854e (   d): unaccessed
+855b (   3): code
+855e (  53): unaccessed
+85b1 (  7c): code
+862d (  25): unaccessed
+8652 (  2f): code
+8681 (  21): unaccessed
+86a2 (  f6): code
+8798 (   2): unaccessed
+879a ( 16c): code
+8906 (  1b): unaccessed
+8921 (   4): code
+8925 (   b): unaccessed
+8930 (   3): code
+8933 (   1): unaccessed
+8934 (   5): code
+8939 (   2): unaccessed
+893b (   f): code
 
-$894a-$895a (  17): unaccessed
-$895b-$896a (  16): data
-$896b       (   1): unaccessed
-$896c-$8973 (   8): data
-$8974       (   1): unaccessed
-$8975-$897b (   7): data
-$897c       (   1): unaccessed
-$897d-$8985 (   9): data
-$8986       (   1): unaccessed
-$8987       (   1): data
-$8988-$8996 (  15): unaccessed
-$8997       (   1): data
-$8998-$89a6 (  15): unaccessed
-$89a7       (   1): data
-$89a8-$89b6 (  15): unaccessed
-$89b7       (   1): data
-$89b8-$89c6 (  15): unaccessed
-$89c7       (   1): data
-$89c8-$89d6 (  15): unaccessed
-$89d7       (   1): data
-$89d8-$89e6 (  15): unaccessed
-$89e7       (   1): data
-$89e8-$89f6 (  15): unaccessed
-$89f7       (   1): data
-$89f8-$8a06 (  15): unaccessed
-$8a07       (   1): data
-$8a08-$8a16 (  15): unaccessed
-$8a17       (   1): data
-$8a18       (   1): unaccessed
-$8a19       (   1): data
-$8a1a-$8a26 (  13): unaccessed
-$8a27       (   1): data
-$8a28-$8a36 (  15): unaccessed
-$8a37       (   1): data
-$8a38-$8a46 (  15): unaccessed
-$8a47       (   1): data
-$8a48-$8a56 (  15): unaccessed
-$8a57       (   1): data
-$8a58-$8a65 (  14): unaccessed
-$8a66-$8a67 (   2): data
-$8a68-$8a76 (  15): unaccessed
-$8a77       (   1): data
-$8a78-$8a88 (  17): unaccessed
-$8a89       (   1): data
-$8a8a-$8a8b (   2): unaccessed
-$8a8c-$8a8d (   2): data
-$8a8e-$8a8f (   2): unaccessed
-$8a90-$8a92 (   3): data
-$8a93       (   1): unaccessed
-$8a94-$8a97 (   4): data
-$8a98       (   1): unaccessed
-$8a99-$8aa5 (  13): data
-$8aa6       (   1): unaccessed
-$8aa7-$8aa8 (   2): data
-$8aa9       (   1): unaccessed
-$8aaa       (   1): data
-$8aab       (   1): unaccessed
-$8aac-$8ab6 (  11): data
-$8ab7       (   1): unaccessed
-$8ab8-$8abd (   6): data
-$8abe       (   1): unaccessed
-$8abf-$8ac2 (   4): data
-$8ac3       (   1): unaccessed
-$8ac4       (   1): data
-$8ac5-$8ac6 (   2): unaccessed
-$8ac7       (   1): data
-$8ac8-$8ae8 (  33): unaccessed
-$8ae9       (   1): data
-$8aea-$8aeb (   2): unaccessed
-$8aec-$8aed (   2): data
-$8aee-$8aef (   2): unaccessed
-$8af0-$8af2 (   3): data
-$8af3       (   1): unaccessed
-$8af4-$8af7 (   4): data
-$8af8       (   1): unaccessed
-$8af9-$8b05 (  13): data
-$8b06       (   1): unaccessed
-$8b07-$8b08 (   2): data
-$8b09       (   1): unaccessed
-$8b0a       (   1): data
-$8b0b       (   1): unaccessed
-$8b0c-$8b16 (  11): data
-$8b17       (   1): unaccessed
-$8b18-$8b1d (   6): data
-$8b1e       (   1): unaccessed
-$8b1f-$8b22 (   4): data
-$8b23       (   1): unaccessed
-$8b24       (   1): data
-$8b25-$8b26 (   2): unaccessed
-$8b27       (   1): data
-$8b28-$8b45 (  30): unaccessed
-$8b46-$8b47 (   2): data
-$8b48-$8b6a (  35): unaccessed
-$8b6b-$8b6c (   2): data (indirectly accessed)
-$8b6d-$8b6e (   2): unaccessed
-$8b6f-$8b74 (   6): data (indirectly accessed)
-$8b75-$8b77 (   3): unaccessed
-$8b78-$8baf (  56): data (indirectly accessed)
-$8bb0-$8bb7 (   8): unaccessed
-$8bb8-$8be7 (  48): data (indirectly accessed)
-$8be8-$8bf7 (  16): unaccessed
-$8bf8-$8bfa (   3): data (indirectly accessed)
-$8bfb       (   1): unaccessed
-$8bfc-$8bfe (   3): data (indirectly accessed)
-$8bff       (   1): unaccessed
-$8c00-$8c02 (   3): data (indirectly accessed)
-$8c03       (   1): unaccessed
-$8c04-$8c06 (   3): data (indirectly accessed)
-$8c07       (   1): unaccessed
-$8c08-$8c0a (   3): data (indirectly accessed)
-$8c0b       (   1): unaccessed
-$8c0c-$8c0e (   3): data (indirectly accessed)
-$8c0f       (   1): unaccessed
-$8c10-$8c12 (   3): data (indirectly accessed)
-$8c13       (   1): unaccessed
-$8c14-$8c16 (   3): data (indirectly accessed)
-$8c17       (   1): unaccessed
-$8c18-$8c1a (   3): data (indirectly accessed)
-$8c1b       (   1): unaccessed
-$8c1c-$8c1e (   3): data (indirectly accessed)
-$8c1f       (   1): unaccessed
-$8c20-$8c22 (   3): data (indirectly accessed)
-$8c23       (   1): unaccessed
-$8c24-$8c26 (   3): data (indirectly accessed)
-$8c27       (   1): unaccessed
-$8c28-$8c2a (   3): data (indirectly accessed)
-$8c2b       (   1): unaccessed
-$8c2c-$8c2e (   3): data (indirectly accessed)
-$8c2f       (   1): unaccessed
-$8c30-$8c32 (   3): data (indirectly accessed)
-$8c33       (   1): unaccessed
-$8c34-$8c36 (   3): data (indirectly accessed)
-$8c37       (   1): unaccessed
-$8c38-$8c3a (   3): data (indirectly accessed)
-$8c3b       (   1): unaccessed
-$8c3c-$8c3e (   3): data (indirectly accessed)
-$8c3f       (   1): unaccessed
-$8c40-$8c42 (   3): data (indirectly accessed)
-$8c43       (   1): unaccessed
-$8c44-$8c46 (   3): data (indirectly accessed)
-$8c47       (   1): unaccessed
-$8c48-$8c4a (   3): data (indirectly accessed)
-$8c4b       (   1): unaccessed
-$8c4c-$8c4e (   3): data (indirectly accessed)
-$8c4f       (   1): unaccessed
-$8c50-$8c52 (   3): data (indirectly accessed)
-$8c53       (   1): unaccessed
-$8c54-$8c56 (   3): data (indirectly accessed)
-$8c57       (   1): unaccessed
-$8c58-$8c5a (   3): data (indirectly accessed)
-$8c5b       (   1): unaccessed
-$8c5c-$8c5e (   3): data (indirectly accessed)
-$8c5f       (   1): unaccessed
-$8c60-$8c62 (   3): data (indirectly accessed)
-$8c63       (   1): unaccessed
-$8c64-$8c66 (   3): data (indirectly accessed)
-$8c67       (   1): unaccessed
-$8c68-$8c6a (   3): data (indirectly accessed)
-$8c6b       (   1): unaccessed
-$8c6c-$8c6e (   3): data (indirectly accessed)
-$8c6f       (   1): unaccessed
-$8c70-$8c72 (   3): data (indirectly accessed)
-$8c73       (   1): unaccessed
-$8c74-$8c76 (   3): data (indirectly accessed)
-$8c77       (   1): unaccessed
-$8c78-$8c7a (   3): data (indirectly accessed)
-$8c7b       (   1): unaccessed
-$8c7c-$8c7e (   3): data (indirectly accessed)
-$8c7f       (   1): unaccessed
-$8c80-$8c82 (   3): data (indirectly accessed)
-$8c83       (   1): unaccessed
-$8c84-$8c86 (   3): data (indirectly accessed)
-$8c87       (   1): unaccessed
-$8c88-$8c8a (   3): data (indirectly accessed)
-$8c8b       (   1): unaccessed
-$8c8c-$8c8e (   3): data (indirectly accessed)
-$8c8f       (   1): unaccessed
-$8c90-$8c92 (   3): data (indirectly accessed)
-$8c93       (   1): unaccessed
-$8c94-$8c96 (   3): data (indirectly accessed)
-$8c97       (   1): unaccessed
-$8c98-$8c9a (   3): data (indirectly accessed)
-$8c9b       (   1): unaccessed
-$8c9c-$8c9e (   3): data (indirectly accessed)
-$8c9f       (   1): unaccessed
-$8ca0-$8ca2 (   3): data (indirectly accessed)
-$8ca3       (   1): unaccessed
-$8ca4-$8ca6 (   3): data (indirectly accessed)
-$8ca7       (   1): unaccessed
-$8ca8-$8caa (   3): data (indirectly accessed)
-$8cab       (   1): unaccessed
-$8cac-$8cae (   3): data (indirectly accessed)
-$8caf       (   1): unaccessed
-$8cb0-$8cb2 (   3): data (indirectly accessed)
-$8cb3       (   1): unaccessed
-$8cb4-$8cb6 (   3): data (indirectly accessed)
-$8cb7       (   1): unaccessed
-$8cb8-$8cba (   3): data (indirectly accessed)
-$8cbb       (   1): unaccessed
-$8cbc-$8cbe (   3): data (indirectly accessed)
-$8cbf       (   1): unaccessed
-$8cc0-$8cc2 (   3): data (indirectly accessed)
-$8cc3       (   1): unaccessed
-$8cc4-$8cc6 (   3): data (indirectly accessed)
-$8cc7       (   1): unaccessed
-$8cc8-$8cca (   3): data (indirectly accessed)
-$8ccb       (   1): unaccessed
-$8ccc-$8cce (   3): data (indirectly accessed)
-$8ccf       (   1): unaccessed
-$8cd0-$8cd2 (   3): data (indirectly accessed)
-$8cd3       (   1): unaccessed
-$8cd4-$8cd6 (   3): data (indirectly accessed)
-$8cd7       (   1): unaccessed
-$8cd8-$8cda (   3): data (indirectly accessed)
-$8cdb       (   1): unaccessed
-$8cdc-$8cde (   3): data (indirectly accessed)
-$8cdf       (   1): unaccessed
-$8ce0-$8ce2 (   3): data (indirectly accessed)
-$8ce3-$8ce7 (   5): unaccessed
-$8ce8-$8ce9 (   2): data (indirectly accessed)
-$8cea-$8ceb (   2): unaccessed
-$8cec-$8d23 (  56): data (indirectly accessed)
-$8d24-$8d2b (   8): unaccessed
-$8d2c-$8d33 (   8): data (indirectly accessed)
-$8d34-$8d35 (   2): unaccessed
-$8d36-$8d71 (  60): data (indirectly accessed)
-$8d72-$8d73 (   2): unaccessed
-$8d74-$8dbf (  76): data (indirectly accessed)
-$8dc0-$8e12 (  83): unaccessed
-$8e13-$a08c (4730): data (indirectly accessed)
-$a08d-$bfff (8051): unaccessed
+894a (  11): unaccessed
+895b (  10): data
+896b (   1): unaccessed
+896c (   8): data
+8974 (   1): unaccessed
+8975 (   7): data
+897c (   1): unaccessed
+897d (   9): data
+8986 (   1): unaccessed
+8987 (   1): data
+8988 (   f): unaccessed
+8997 (   1): data
+8998 (   f): unaccessed
+89a7 (   1): data
+89a8 (   f): unaccessed
+89b7 (   1): data
+89b8 (   f): unaccessed
+89c7 (   1): data
+89c8 (   f): unaccessed
+89d7 (   1): data
+89d8 (   f): unaccessed
+89e7 (   1): data
+89e8 (   f): unaccessed
+89f7 (   1): data
+89f8 (   f): unaccessed
+8a07 (   1): data
+8a08 (   f): unaccessed
+8a17 (   1): data
+8a18 (   1): unaccessed
+8a19 (   1): data
+8a1a (   d): unaccessed
+8a27 (   1): data
+8a28 (   f): unaccessed
+8a37 (   1): data
+8a38 (   f): unaccessed
+8a47 (   1): data
+8a48 (   f): unaccessed
+8a57 (   1): data
+8a58 (   e): unaccessed
+8a66 (   2): data
+8a68 (   f): unaccessed
+8a77 (   1): data
+8a78 (  11): unaccessed
+8a89 (   1): data
+8a8a (   2): unaccessed
+8a8c (   2): data
+8a8e (   2): unaccessed
+8a90 (   3): data
+8a93 (   1): unaccessed
+8a94 (   4): data
+8a98 (   1): unaccessed
+8a99 (   d): data
+8aa6 (   1): unaccessed
+8aa7 (   2): data
+8aa9 (   1): unaccessed
+8aaa (   1): data
+8aab (   1): unaccessed
+8aac (   b): data
+8ab7 (   1): unaccessed
+8ab8 (   6): data
+8abe (   1): unaccessed
+8abf (   4): data
+8ac3 (   1): unaccessed
+8ac4 (   1): data
+8ac5 (   2): unaccessed
+8ac7 (   1): data
+8ac8 (  21): unaccessed
+8ae9 (   1): data
+8aea (   2): unaccessed
+8aec (   2): data
+8aee (   2): unaccessed
+8af0 (   3): data
+8af3 (   1): unaccessed
+8af4 (   4): data
+8af8 (   1): unaccessed
+8af9 (   d): data
+8b06 (   1): unaccessed
+8b07 (   2): data
+8b09 (   1): unaccessed
+8b0a (   1): data
+8b0b (   1): unaccessed
+8b0c (   b): data
+8b17 (   1): unaccessed
+8b18 (   6): data
+8b1e (   1): unaccessed
+8b1f (   4): data
+8b23 (   1): unaccessed
+8b24 (   1): data
+8b25 (   2): unaccessed
+8b27 (   1): data
+8b28 (  1e): unaccessed
+8b46 (   2): data
+8b48 (  23): unaccessed
+8b6b (   2): data (indirectly accessed)
+8b6d (   2): unaccessed
+8b6f (   6): data (indirectly accessed)
+8b75 (   3): unaccessed
+8b78 (  38): data (indirectly accessed)
+8bb0 (   8): unaccessed
+8bb8 (  30): data (indirectly accessed)
+8be8 (  10): unaccessed
+8bf8 (   3): data (indirectly accessed)
+8bfb (   1): unaccessed
+8bfc (   3): data (indirectly accessed)
+8bff (   1): unaccessed
+8c00 (   3): data (indirectly accessed)
+8c03 (   1): unaccessed
+8c04 (   3): data (indirectly accessed)
+8c07 (   1): unaccessed
+8c08 (   3): data (indirectly accessed)
+8c0b (   1): unaccessed
+8c0c (   3): data (indirectly accessed)
+8c0f (   1): unaccessed
+8c10 (   3): data (indirectly accessed)
+8c13 (   1): unaccessed
+8c14 (   3): data (indirectly accessed)
+8c17 (   1): unaccessed
+8c18 (   3): data (indirectly accessed)
+8c1b (   1): unaccessed
+8c1c (   3): data (indirectly accessed)
+8c1f (   1): unaccessed
+8c20 (   3): data (indirectly accessed)
+8c23 (   1): unaccessed
+8c24 (   3): data (indirectly accessed)
+8c27 (   1): unaccessed
+8c28 (   3): data (indirectly accessed)
+8c2b (   1): unaccessed
+8c2c (   3): data (indirectly accessed)
+8c2f (   1): unaccessed
+8c30 (   3): data (indirectly accessed)
+8c33 (   1): unaccessed
+8c34 (   3): data (indirectly accessed)
+8c37 (   1): unaccessed
+8c38 (   3): data (indirectly accessed)
+8c3b (   1): unaccessed
+8c3c (   3): data (indirectly accessed)
+8c3f (   1): unaccessed
+8c40 (   3): data (indirectly accessed)
+8c43 (   1): unaccessed
+8c44 (   3): data (indirectly accessed)
+8c47 (   1): unaccessed
+8c48 (   3): data (indirectly accessed)
+8c4b (   1): unaccessed
+8c4c (   3): data (indirectly accessed)
+8c4f (   1): unaccessed
+8c50 (   3): data (indirectly accessed)
+8c53 (   1): unaccessed
+8c54 (   3): data (indirectly accessed)
+8c57 (   1): unaccessed
+8c58 (   3): data (indirectly accessed)
+8c5b (   1): unaccessed
+8c5c (   3): data (indirectly accessed)
+8c5f (   1): unaccessed
+8c60 (   3): data (indirectly accessed)
+8c63 (   1): unaccessed
+8c64 (   3): data (indirectly accessed)
+8c67 (   1): unaccessed
+8c68 (   3): data (indirectly accessed)
+8c6b (   1): unaccessed
+8c6c (   3): data (indirectly accessed)
+8c6f (   1): unaccessed
+8c70 (   3): data (indirectly accessed)
+8c73 (   1): unaccessed
+8c74 (   3): data (indirectly accessed)
+8c77 (   1): unaccessed
+8c78 (   3): data (indirectly accessed)
+8c7b (   1): unaccessed
+8c7c (   3): data (indirectly accessed)
+8c7f (   1): unaccessed
+8c80 (   3): data (indirectly accessed)
+8c83 (   1): unaccessed
+8c84 (   3): data (indirectly accessed)
+8c87 (   1): unaccessed
+8c88 (   3): data (indirectly accessed)
+8c8b (   1): unaccessed
+8c8c (   3): data (indirectly accessed)
+8c8f (   1): unaccessed
+8c90 (   3): data (indirectly accessed)
+8c93 (   1): unaccessed
+8c94 (   3): data (indirectly accessed)
+8c97 (   1): unaccessed
+8c98 (   3): data (indirectly accessed)
+8c9b (   1): unaccessed
+8c9c (   3): data (indirectly accessed)
+8c9f (   1): unaccessed
+8ca0 (   3): data (indirectly accessed)
+8ca3 (   1): unaccessed
+8ca4 (   3): data (indirectly accessed)
+8ca7 (   1): unaccessed
+8ca8 (   3): data (indirectly accessed)
+8cab (   1): unaccessed
+8cac (   3): data (indirectly accessed)
+8caf (   1): unaccessed
+8cb0 (   3): data (indirectly accessed)
+8cb3 (   1): unaccessed
+8cb4 (   3): data (indirectly accessed)
+8cb7 (   1): unaccessed
+8cb8 (   3): data (indirectly accessed)
+8cbb (   1): unaccessed
+8cbc (   3): data (indirectly accessed)
+8cbf (   1): unaccessed
+8cc0 (   3): data (indirectly accessed)
+8cc3 (   1): unaccessed
+8cc4 (   3): data (indirectly accessed)
+8cc7 (   1): unaccessed
+8cc8 (   3): data (indirectly accessed)
+8ccb (   1): unaccessed
+8ccc (   3): data (indirectly accessed)
+8ccf (   1): unaccessed
+8cd0 (   3): data (indirectly accessed)
+8cd3 (   1): unaccessed
+8cd4 (   3): data (indirectly accessed)
+8cd7 (   1): unaccessed
+8cd8 (   3): data (indirectly accessed)
+8cdb (   1): unaccessed
+8cdc (   3): data (indirectly accessed)
+8cdf (   1): unaccessed
+8ce0 (   3): data (indirectly accessed)
+8ce3 (   5): unaccessed
+8ce8 (   2): data (indirectly accessed)
+8cea (   2): unaccessed
+8cec (  38): data (indirectly accessed)
+8d24 (   8): unaccessed
+8d2c (   8): data (indirectly accessed)
+8d34 (   2): unaccessed
+8d36 (  3c): data (indirectly accessed)
+8d72 (   2): unaccessed
+8d74 (  4c): data (indirectly accessed)
+8dc0 (  53): unaccessed
+8e13 (127a): data (indirectly accessed)
+a08d (1f73): unaccessed
 
-$c000-$c0a7 ( 168): code
+c000 (  a8): code
 
-$c0a8-$c0b5 (  14): data
-$c0b6-$c0b7 (   2): unaccessed
-$c0b8-$c127 ( 112): data (indirectly accessed)
-$c128-$c137 (  16): unaccessed
-$c138-$c24d ( 278): data
-$c24e-$c253 (   6): unaccessed
-$c254-$c273 (  32): data
-$c274-$c27f (  12): unaccessed
-$c280-$d220 (4001): data (PCM audio)
-$d221-$d224 (   4): unaccessed
-$d225-$d50d ( 745): data
-$d50e-$d50f (   2): unaccessed
-$d510-$d514 (   5): data
-$d515       (   1): unaccessed
-$d516-$d519 (   4): data
-$d51a       (   1): unaccessed
-$d51b       (   1): data
-$d51c-$d51e (   3): unaccessed
-$d51f       (   1): data
-$d520-$d521 (   2): unaccessed
-$d522-$d523 (   2): data
-$d524-$d52f (  12): unaccessed
-$d530-$da3c (1293): data
-$da3d-$da84 (  72): unaccessed
-$da85-$dae9 ( 101): data
-$daea-$db1a (  49): unaccessed
-$db1b-$db27 (  13): data
-$db28-$db29 (   2): unaccessed
-$db2a-$dba1 ( 120): data
-$dba2-$dbb0 (  15): unaccessed
-$dbb1-$dbb4 (   4): data
-$dbb5-$dbce (  26): unaccessed
-$dbcf-$dc1b (  77): data
-$dc1c-$dc20 (   5): unaccessed
-$dc21-$dc2b (  11): data
-$dc2c-$dc30 (   5): unaccessed
-$dc31-$dc3b (  11): data
-$dc3c-$dc40 (   5): unaccessed
-$dc41-$dc4b (  11): data
-$dc4c-$dc51 (   6): unaccessed
-$dc52-$dc91 (  64): data
-$dc92-$dc95 (   4): unaccessed
+c0a8 (   e): data
+c0b6 (   2): unaccessed
+c0b8 (  70): data (indirectly accessed)
+c128 (  10): unaccessed
+c138 ( 116): data
+c24e (   6): unaccessed
+c254 (  20): data
+c274 (   c): unaccessed
+c280 ( fa1): data (PCM audio)
+d221 (   4): unaccessed
+d225 ( 2e9): data
+d50e (   2): unaccessed
+d510 (   5): data
+d515 (   1): unaccessed
+d516 (   4): data
+d51a (   1): unaccessed
+d51b (   1): data
+d51c (   3): unaccessed
+d51f (   1): data
+d520 (   2): unaccessed
+d522 (   2): data
+d524 (   c): unaccessed
+d530 ( 50d): data
+da3d (  48): unaccessed
+da85 (  65): data
+daea (  31): unaccessed
+db1b (   d): data
+db28 (   2): unaccessed
+db2a (  78): data
+dba2 (   f): unaccessed
+dbb1 (   4): data
+dbb5 (  1a): unaccessed
+dbcf (  4d): data
+dc1c (   5): unaccessed
+dc21 (   b): data
+dc2c (   5): unaccessed
+dc31 (   b): data
+dc3c (   5): unaccessed
+dc41 (   b): data
+dc4c (   6): unaccessed
+dc52 (  40): data
+dc92 (   4): unaccessed
 
-$dc96-$dca9 (  20): code
-$dcaa-$dcce (  37): unaccessed
-$dccf-$dd21 (  83): code
-$dd22-$dd4e (  45): unaccessed
-$dd4f-$df9f ( 593): code
-$dfa0       (   1): code, data
-$dfa1-$e012 ( 114): code
-$e013-$e015 (   3): unaccessed
-$e016-$e0d2 ( 189): code
-$e0d3-$e1a4 ( 210): unaccessed
-$e1a5-$e25c ( 184): code
-$e25d       (   1): code, data
-$e25e-$e471 ( 532): code
-$e472       (   1): code, data
-$e473-$e5d6 ( 356): code
-$e5d7       (   1): code, data
-$e5d8-$ea7e (1191): code
-$ea7f       (   1): code, data
-$ea80-$ec46 ( 455): code
-$ec47       (   1): code, data
-$ec48-$ec98 (  81): code
-$ec99-$eefa ( 610): unaccessed
-$eefb-$f08f ( 405): code
-$f090       (   1): code, data
-$f091-$f110 ( 128): code
-$f111-$f115 (   5): unaccessed
-$f116-$f28b ( 374): code
-$f28c       (   1): code, data
-$f28d-$f44a ( 446): code
-$f44b       (   1): code, data
-$f44c-$f4f8 ( 173): code
-$f4f9-$f503 (  11): unaccessed
-$f504-$f67f ( 380): code
-$f680       (   1): code, data
-$f681-$f7cf ( 335): code
-$f7d0-$f7fc (  45): unaccessed
-$f7fd-$f97f ( 387): code
-$f980-$f982 (   3): unaccessed
-$f983-$f9b2 (  48): code
-$f9b3-$f9b6 (   4): unaccessed
-$f9b7-$fb34 ( 382): code
-$fb35-$fb3c (   8): unaccessed
-$fb3d-$fc25 ( 233): code
-$fc26-$fff9 ( 980): unaccessed
+dc96 (  14): code
+dcaa (  25): unaccessed
+dccf (  53): code
+dd22 (  2d): unaccessed
+dd4f ( 251): code
+dfa0 (   1): code, data
+dfa1 (  72): code
+e013 (   3): unaccessed
+e016 (  bd): code
+e0d3 (  d2): unaccessed
+e1a5 (  b8): code
+e25d (   1): code, data
+e25e ( 214): code
+e472 (   1): code, data
+e473 ( 164): code
+e5d7 (   1): code, data
+e5d8 ( 4a7): code
+ea7f (   1): code, data
+ea80 ( 1c7): code
+ec47 (   1): code, data
+ec48 (  51): code
+ec99 ( 262): unaccessed
+eefb ( 195): code
+f090 (   1): code, data
+f091 (  80): code
+f111 (   5): unaccessed
+f116 ( 176): code
+f28c (   1): code, data
+f28d ( 1be): code
+f44b (   1): code, data
+f44c (  ad): code
+f4f9 (   b): unaccessed
+f504 ( 17c): code
+f680 (   1): code, data
+f681 ( 14f): code
+f7d0 (  2d): unaccessed
+f7fd ( 183): code
+f980 (   3): unaccessed
+f983 (  30): code
+f9b3 (   4): unaccessed
+f9b7 ( 17e): code
+fb35 (   8): unaccessed
+fb3d (  e9): code
+fc26 ( 3d4): unaccessed
 
-$fffa-$fffd (   4): data (NMI&amp;reset vectors)
-$fffe-$ffff (   2): unaccessed (IRQ vector)
+fffa (   4): data (NMI and reset vectors)
+fffe (   2): unaccessed (IRQ vector)
 ```
 
 ### CHR ROM
 
 No CHR data was read programmatically via `$2007`.
 
-Tiles rendered (completely or partially):
-* bank 0 - first half: `$00`, `$0a-$19`, `$1b-$20`, `$22`, `$24-$25`, `$2a-$2f`, `$37-$3f`, `$48-$4f`, `$58-$69`, `$6e-$79`, `$7e-$87`, `$8a-$97`, `$9a-$a1`, `$a4-$a5`, `$ac-$b1`, `$b4-$b5`, `$bc-$bf`, `$c2-$c6`, `$c9-$cf`, `$d2-$e5`, `$ea-$ff`
-* bank 0 - second half: `$00-$ff`
-* bank 1 - first half: `$00-$17`, `$19-$1a`, `$1c-$2f`, `$31-$84`, `$c4-$d1`, `$d3-$d4`, `$d6-$da`, `$dc`, `$de-$e4`, `$e6`, `$e8-$e9`, `$eb`, `$ed`, `$ef-$f0`, `$f2-$ff`
-* bank 1 - second half: `$00-$b3`, `$c0-$cf`, `$e0-$f7`
-* bank 2 - first half: `$00`, `$09-$0f`, `$19-$1e`, `$29-$2f`, `$3e-$43`, `$50-$53`, `$60-$ff`
-* bank 2 - second half: `$00-$4e`, `$50`, `$7a-$7e`, `$80-$ff`
-* bank 3 - first half: `$00-$ff`
-* bank 3 - second half: `$00-$d9`, `$df-$e4`, `$ef-$ff`
+Tiles rendered (completely or partially; in hexadecimal):
+* bank 0 - first half: `00, 0a-19, 1b-20, 22, 24-25, 2a-2f, 37-3f, 48-4f, 58-69, 6e-79, 7e-87, 8a-97, 9a-a1, a4-a5, ac-b1, b4-b5, bc-bf, c2-c6, c9-cf, d2-e5, ea-ff`
+* bank 0 - second half: `00-ff`
+* bank 1 - first half: `00-17, 19-1a, 1c-2f, 31-84, c4-d1, d3-d4, d6-da, dc, de-e4, e6, e8-e9, eb, ed, ef-f0, f2-ff`
+* bank 1 - second half: `00-b3, c0-cf, e0-f7`
+* bank 2 - first half: `00, 09-0f, 19-1e, 29-2f, 3e-43, 50-53, 60-ff`
+* bank 2 - second half: `00-4e, 50, 7a-7e, 80-ff`
+* bank 3 - first half: `00-ff`
+* bank 3 - second half: `00-d9, df-e4, ef-ff`
+
+(TODO: does this info still match the CSV file above?)
 
 ## Unused graphics
 

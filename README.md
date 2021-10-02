@@ -11,7 +11,6 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 * [The parts of the demo](#the-parts-of-the-demo)
 * [Code/data log](#codedata-log)
 * [CHR ROM banks](#chr-rom-banks)
-* [Unused graphics](#unused-graphics)
 * [References](#references)
 * [Software used](#software-used)
 
@@ -482,60 +481,62 @@ fffe (   2): unaccessed (IRQ vector)
 
 ### CHR ROM
 
-No CHR data was read programmatically via `$2007`.
-
-Tiles rendered (completely or partially; in hexadecimal):
-* bank 0 - first half: `00, 0a-19, 1b-20, 22, 24-25, 2a-2f, 37-3f, 48-4f, 58-69, 6e-79, 7e-87, 8a-97, 9a-a1, a4-a5, ac-b1, b4-b5, bc-bf, c2-c6, c9-cf, d2-e5, ea-ff`
-* bank 0 - second half: `00-ff`
-* bank 1 - first half: `00-17, 19-1a, 1c-2f, 31-84, c4-d1, d3-d4, d6-da, dc, de-e4, e6, e8-e9, eb, ed, ef-f0, f2-ff`
-* bank 1 - second half: `00-b3, c0-cf, e0-f7`
-* bank 2 - first half: `00, 09-0f, 19-1e, 29-2f, 3e-43, 50-53, 60-ff`
-* bank 2 - second half: `00-4e, 50, 7a-7e, 80-ff`
-* bank 3 - first half: `00-ff`
-* bank 3 - second half: `00-d9, df-e4, ef-ff`
-
-(TODO: does this info still match the CSV file above?)
+No CHR data was read programmatically via `$2007`. See also the chapter "CHR ROM banks" below.
 
 ## CHR ROM banks
+
+See also the chapter "Code/data log" above.
 
 ### Bank 0
 
 ![](chr0.png)
 Used by the 1st, 2nd and 6th part of the demo.
 
+Tiles rendered (completely or partially; in hexadecimal):
+* first half: `00, 0a-19, 1b-20, 22, 24-25, 2a-2f, 37-3f, 48-4f, 58-69, 6e-79, 7e-87, 8a-97, 9a-a1, a4-a5, ac-b1, b4-b5, bc-bf, c2-c6, c9-cf, d2-e5, ea-ff`
+* second half: `00-ff`
+
+![](unused/cat.png)
+An unused cat in the first half. Colored by me.
+
 ### Bank 1
 
 ![](chr1.png)
 Used by the 3rd, 4th, 9th and 10th part of the demo.
+
+Tiles rendered (completely or partially; in hexadecimal):
+* first half: `00-17, 19-1a, 1c-2f, 31-84, c4-d1, d3-d4, d6-da, dc, de-e4, e6, e8-e9, eb, ed, ef-f0, f2-ff`
+* second half: `00-b3, c0-cf, e0-f7`
 
 ### Bank 2
 
 ![](chr2.png)
 Used by the 7th, 8th, 11th, 12th and 13th part of the demo.
 
+Tiles rendered (completely or partially; in hexadecimal):
+* first half: `00, 09-0f, 19-1e, 29-2f, 3e-43, 50-53, 60-ff`
+* second half: `00-4e, 50, 7a-7e, 80-ff`
+
+![](unused/ninja.png)
+Three unused ninja animation frames in the first half. Colored by me.
+
+![](unused/moon.png)
+An unused small crescent moon in the first half. Here, colored the same as the big crescent moon used in the 8th part of the demo.
+
+![](unused/asteroids.png)
+Unused big asteroids (fireballs?) in the first half. Here, colored the same as the small asteroids/fireballs used in the 8th part of the demo.
+
+![](unused/eyes.png)
+Unused eyes of a ninja in the second half. Colored by me.
+
 ### Bank 3
 
 ![](chr3.png)
 Used by the 5th part of the demo.
 
-## Unused graphics
-
-The actual colors are unknown.
-
-![](unused/cat.png)
-A cat in the first half of CHR bank 0. Colored by me.
-
-![](unused/ninja.png)
-Three ninja animation frames in the first half of CHR bank 2. Colored by me.
-
-![](unused/moon.png)
-A small crescent moon in the first half of CHR bank 2. Here, colored the same as the big crescent moon used in the 8th part of the demo.
-
-![](unused/asteroids.png)
-Big asteroids (fireballs?) in the first half of CHR bank 2. Here, colored the same as the small asteroids/fireballs used in the 8th part of the demo.
-
-![](unused/eyes.png)
-The eyes of a ninja in the second half of CHR bank 2. Colored by me.
+Tiles rendered (completely or partially; in hexadecimal):
+* first half: `00-ff`
+* second half: `00-d9, df-e4, ef-ff`
 
 ## References
 

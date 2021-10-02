@@ -498,14 +498,25 @@ Tiles rendered (completely or partially; in hexadecimal):
 
 ## CHR ROM banks
 
+### Bank 0
+
 ![](chr0.png)
-Bank 0; used by the 1st, 2nd and 6th part of the demo.
+Used by the 1st, 2nd and 6th part of the demo.
+
+### Bank 1
+
 ![](chr1.png)
-Bank 1; used by the 3rd, 4th, 9th and 10th part of the demo.
+Used by the 3rd, 4th, 9th and 10th part of the demo.
+
+### Bank 2
+
 ![](chr2.png)
-Bank 2; used by the 7th, 8th, 11th, 12th and 13th part of the demo.
+Used by the 7th, 8th, 11th, 12th and 13th part of the demo.
+
+### Bank 3
+
 ![](chr3.png)
-Bank 3; used by the 5th part of the demo.
+Used by the 5th part of the demo.
 
 ## Unused graphics
 

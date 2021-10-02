@@ -6604,6 +6604,8 @@ irq     rti  ; $fc26
 
 ; --- CHR ROM -------------------------------------------------------------------------------------
 
-        base $0000
-        incbin "chr.bin"  ; not included (see the readme file)
-        pad $8000, $ff
+        ; see readme file
+        incbin "chr0.bin"
+        incbin "chr1.bin"
+        incbin "chr2.bin"
+        incbin "chr3.bin"

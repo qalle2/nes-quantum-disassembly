@@ -10,13 +10,13 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 * [iNES ROM header info](#ines-rom-header-info)
 * [The parts of the demo](#the-parts-of-the-demo)
 * [Code/data log](#codedata-log)
+* [CHR ROM banks](#chr-rom-banks)
 * [Unused graphics](#unused-graphics)
 * [References](#references)
 * [Software used](#software-used)
 
 ## Notes
 
-* The CHR ROM (graphics data) is not included.
 * This disassembly is at an early stage.
 * I have not been involved with wAMMA or in the making of this demo.
 
@@ -24,13 +24,11 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 
 1. Download the original *Quantum Disco Brothers* file from e.g. [pouet.net](https://www.pouet.net/prod.php?which=26485).
 1. If the file is compressed, extract it to get an iNES ROM file (`quantum_disco_brothers_by_wAMMA.nes`, MD5 hash `2c932e9e8ae7859517905e2539565a89`).
-1. Extract the CHR ROM data to `chr.bin` (MD5 hash `8b2f42589e682cad6be6125ab5faee94`):
-  * Either use *ines_split.py* from my [NES utilities](http://github.com/qalle2/nes-util)&hellip;
-  * &hellip;or open the `.nes` file in a hex editor and copy the last 32,768 (0x8000) bytes to `chr.bin`
+1. Generate the CHR ROM data from `chr*.png` with *nes_chr_encode.py* from my [NES utilities](http://github.com/qalle2/nes-util); see `assemble.sh` for details.
 
 ## How to assemble
 
-1. Assemble: `asm6 quantum.asm "quantum-reassembled_(e).nes"` (the `(e)` in the filename tells FCEUX to start the ROM in PAL mode)
+1. `asm6 quantum.asm "quantum-reassembled_(e).nes"` (the `(e)` in the filename tells FCEUX to start the ROM in PAL mode)
 1. Verify that the `.nes` file is identical to the original:
   * `diff -q quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Linux)
   * `fc /b quantum_disco_brothers_by_wAMMA.nes "quantum-reassembled_(e).nes"` (on Windows)
@@ -497,6 +495,17 @@ Tiles rendered (completely or partially; in hexadecimal):
 * bank 3 - second half: `00-d9, df-e4, ef-ff`
 
 (TODO: does this info still match the CSV file above?)
+
+## CHR ROM banks
+
+![](chr0.png)
+Bank 0; used by the 1st, 2nd and 6th part of the demo.
+![](chr1.png)
+Bank 1; used by the 3rd, 4th, 9th and 10th part of the demo.
+![](chr2.png)
+Bank 2; used by the 7th, 8th, 11th, 12th and 13th part of the demo.
+![](chr3.png)
+Bank 3; used by the 5th part of the demo.
 
 ## Unused graphics
 

@@ -520,6 +520,9 @@ Tiles rendered (completely or partially; in hexadecimal):
 ![](unused/ninja.png)
 Three unused ninja animation frames in the first half. Colored by me.
 
+![](unused/ninja-anim.gif)
+Same as above but animated at 5 fps in order 1, 2, 3, 2.
+
 ![](unused/moon.png)
 An unused small crescent moon in the first half. Here, colored the same as the big crescent moon used in the 8th part of the demo.
 

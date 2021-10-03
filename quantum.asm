@@ -16,7 +16,7 @@
 ;
 ; nmi:
 ;   nmi_wecome
-;       animate_wecome
+;       anim_wecome
 ;           print_big_text_line
 ;           sub19
 ;               move_stars_up
@@ -28,50 +28,50 @@
 ;   (TODO: the rest are missing 3+ levels below nmi)
 ;   nmi_horzbars1
 ;       init_horzbars1
-;       animate_horzbars1
+;       anim_horzbars1
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_title
 ;       init_title
-;       animate_title
+;       anim_title
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_credits
 ;       init_credits
-;       animate_credits
+;       anim_credits
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_woman
 ;       init_woman
-;       animate_woman
+;       anim_woman
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_friday
 ;       init_friday
-;       animate_friday
+;       anim_friday
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_bowser
 ;       init_bowser
-;       animate_bowser
+;       anim_bowser
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_cola
 ;       init_cola
-;       animate_cola
+;       anim_cola
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_horzbars2
 ;       init_horzbars2
-;       animate_horzbars2
+;       anim_horzbars2
 ;   nmi_checkered
 ;       init_checkered
-;       animate_checkered
+;       anim_checkered
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_gradients
 ;       init_gradients
-;       animate_gradients
+;       anim_gradients
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_greets
 ;       init_greets
-;       animate_greets
+;       anim_greets
 ;       jmpsnd3 (see nmi_wecome)
 ;   nmi_gameover
 ;       init_gameover
-;       animate_gameover
+;       anim_gameover
 
 ; --- Constants -----------------------------------------------------------------------------------
 
@@ -113,7 +113,7 @@ zp1          equ $89  ; ?
 zp2          equ $8a  ; ?
 zp3          equ $8b  ; ?
 zp4          equ $8c  ; used in many nmisub's
-zp5          equ $8d  ; does curve stuff in animate_horzbars2, counts 0-15 in animate_woman
+zp5          equ $8d  ; does curve stuff in anim_horzbars2, counts 0-15 in anim_woman
 vram_fill_byte equ $8e
 text_offset equ $8f
 offset      equ $90  ; in print_big_text_line only
@@ -304,6 +304,7 @@ endm
         ; Reads indirect_data1 via ptr4
         ; Called by: sub13
         ; Only called once (at frame 3 with indirect_data1 as argument).
+        ; Calls: nothing
 
 sub1    sta ptr4+0  ; $8034
         stx ptr4+1
@@ -462,7 +463,8 @@ clear_loop
 
 ; -------------------------------------------------------------------------------------------------
 
-        ; Called by: sound4
+        ; Called by: sound4 (from one place only)
+        ; Calls: nothing
 
 sound1  cmp #0
         bpl +    ; always taken
@@ -470,6 +472,7 @@ sound1  cmp #0
 +       cmp #63
         bcc +    ; always taken
         lda #63  ; unaccessed ($815d)
+        ;
 +       lsr
         lsr
         ora $0394,x
@@ -480,6 +483,7 @@ sound1  cmp #0
 ; -------------------------------------------------------------------------------------------------
 
         ; Called by: sound5, sound6, sound7, sound8
+        ; Calls: nothing
 
 sound2  cpx #3
         beq ++
@@ -513,6 +517,7 @@ sound2  cpx #3
 ; -------------------------------------------------------------------------------------------------
 
         ; Called by: sound10, jmpsnd3
+        ; Calls: sound4, sound6, sound9b
 
 sound3  lda zp33
         beq sound3a
@@ -581,7 +586,8 @@ sound3a inc $039c
 
 ; -------------------------------------------------------------------------------------------------
 
-        ; Called by: sound3
+        ; Called by: sound3 (from one place only)
+        ; Calls: sound1
 
 sound4  lda $035a,x
         cmp #$0a
@@ -633,7 +639,7 @@ sound4  lda $035a,x
         bcc +        ; always taken
         lda #$3f     ; unaccessed ($8287)
 +       sta $0300,x
-        jmp sound1
+        jmp sound1  ; ends with RTS
 
 ; --- Unaccessed block ----------------------------------------------------------------------------
 
@@ -673,6 +679,7 @@ unacc1  pha             ; $828f
 ; -------------------------------------------------------------------------------------------------
 
         ; sound5b called by: sound6
+        ; Calls: sound2
 
 sound5a bmi +
         dey
@@ -748,7 +755,8 @@ sound5b pha
 
 ; -------------------------------------------------------------------------------------------------
 
-        ; Called by: sound3
+        ; Called by: sound3 (from one place only)
+        ; Calls: sound2, sound7
 
 sound6  jsr sound7
         jmp +++
@@ -883,6 +891,7 @@ sound6b lda $0350,x
 ; -------------------------------------------------------------------------------------------------
 
         ; Called by: sound6, sound8
+        ; Calls: sound2, sound8a
 
 sound7  lda $035a,x
         cmp #$08
@@ -973,6 +982,7 @@ unacc2  sub #1    ; $84f8
 ; -------------------------------------------------------------------------------------------------
 
         ; Called by: sound7, sound10
+        ; Calls: sound2
 
 sound8  ldy $035a,x
         beq sound8a
@@ -1070,6 +1080,7 @@ unacc4  lda $035f,x  ; $855e
 
         ; Reads indirect_data1 via ptr6
         ; Called by: sound3, sound10
+        ; Calls: sound10, sound10a, sound10g
 
 sound9a lda $031c,x
         sta zp_arr3,x
@@ -1258,6 +1269,7 @@ sound9k lda #$00
 
         ; Reads indirect_data1 via ptr2, ptr3, ptr5
         ; Called by: sound9
+        ; Calls: sound8, sound9k
 
 sound10 copy #$40, zp31
 
@@ -1554,6 +1566,7 @@ sound10g
 
         ; Just jump to sound3
         ; Called by: init_checkered, init_horzbars1, init_woman, many nmi_part's
+        ; Calls: sound3
 
 jmpsnd3 bit useless
         bmi +        ; always taken
@@ -1571,6 +1584,7 @@ unacc7  rts  ; unaccessed ($8933)
 ; -------------------------------------------------------------------------------------------------
 
         ; Called by: init
+        ; Calls: sub1
 
 sub13   ldy #$ff
         dex
@@ -2019,6 +2033,8 @@ indirect_data1
         pad $c000, $00
 
 init    ; Called by: reset vector
+        ; Calls: wait_vbl, hide_sprites, init_palette_copy, update_palette, fill_nt_and_clear_at,
+        ;        sub18, fill_attribute_tables, sub13
 
         sei
         cld
@@ -2100,14 +2116,14 @@ wecome_text_pointers  ; $c0a8
         dw wecome_text + 7*16  ; unaccessed ($c0b6)
 
 wecome_text
-        ; ASCII, except "l_^[" = " !-8", respectively
-        db "lllGREETINGS_lll"  ; "   GREETINGS!   "
-        db "llWElCOMElFROMll"  ; "  WE COME FROM  "
-        db "lANl[^BITlWORLDl"  ; " AN 8-BIT WORLD "
-        db "llBRINGINGlTHEll"  ; "  BRINGING THE  "
-        db "llllGIFTlOFlllll"  ; "    GIFT OF     "
-        db "lGALACTIClDISCOl"  ; " GALACTIC DISCO "
-        db "GETlUPlANDlDANCE"  ; "GET UP AND DANCE"
+        ; note: "l_^[" = " !-8"
+        db "lllGREETINGS_lll"
+        db "llWElCOMElFROMll"
+        db "lANl[^BITlWORLDl"
+        db "llBRINGINGlTHEll"
+        db "llllGIFTlOFlllll"
+        db "lGALACTIClDISCOl"
+        db "GETlUPlANDlDANCE"
         db "MUSHROOMlMANIACS"  ; "MUSHROOM MANIACS" (unaccessed, $c128)
 
 sprite_tiles  ; 22 bytes
@@ -2116,24 +2132,16 @@ sprite_tiles  ; 22 bytes
         hex f5 3e f8 f9 f7 f3
 
 friday_text
-        ; 256 bytes; read by animate_friday
-        ; text; $37 is subtracted from each value
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b                      ; "              "
-        hex 4954 5b 4953 5b 465249444159 5b 4154 5b 4e494e45 5b  ; "IT IS FRIDAY AT NINE "
-        hex 504d 5b 414e44 5b 5745 5b 5354494c4c 5b 415245 5b    ; "PM AND WE STILL ARE "
-        hex 545259494e47 5b 544f 5b 53594e43 5b 54484953 5b      ; "TRYING TO SYNC THIS "
-        hex 4d4f544845524655434b4552 5b5b5b                      ; "MOTHERFUCKER   "
-        hex 4752454554494e4753 5b 544f 5b 4e494e54454e444f 5b    ; "GREETINGS TO NINTENDO "
-        hex 544543484e4f4c4f47494553 5b 464f52 5b 544845 5b      ; "TECHNOLOGIES FOR THE "
-        hex 4c4f56454c59 5b 4841524457415245 5b5b5b              ; "LOVELY HARDWARE   "
-        hex 4845434b 5b5b5b                                      ; "HECK   "
-        hex 5745 5b 53484f554c44 5b 4245 5b 414c5245414459 5b    ; "WE SHOULD BE ALREADY "
-        hex 4452554e4b 5b5b5b                                    ; "DRUNK   "
-        hex 4a555354 5b 4c494b45 5b 4f5552 5b                    ; "JUST LIKE OUR "
-        hex 4d5553494349414e 5b5b5b                              ; "MUSICIAN   "
-        hex 544552564549534554 5b 5049535341504f5353454c4c45 5b  ; "TERVEISET PISSAPOSSELLE "
-        hex 656162636466 5b5b5b5b5b5b5b5b5b5b5b5b5b5b            ; "(jjjj)              "
-        ; ("jjjj" above = "ninja" in Japanese)
+        ; 256 bytes; read by anim_friday; note:
+        ; "ef" = "()", "abcd" = "ninja" in Japanese
+        db "[[[[[[[[[[[[[[IT[IS[FRIDAY[AT[NI"
+        db "NE[PM[AND[WE[STILL[ARE[TRYING[TO"
+        db "[SYNC[THIS[MOTHERFUCKER[[[GREETI"
+        db "NGS[TO[NINTENDO[TECHNOLOGIES[FOR"
+        db "[THE[LOVELY[HARDWARE[[[HECK[[[WE"
+        db "[SHOULD[BE[ALREADY[DRUNK[[[JUST["
+        db "LIKE[OUR[MUSICIAN[[[TERVEISET[PI"
+        db "SSAPOSSELLE[eabcdf[[[[[[[[[[[[[["
 
         hex 5b 5b 5b 5b 0d 0a  ; unaccessed ($c24e)
 
@@ -2283,60 +2291,33 @@ palette_table
         ; unaccessed ($d221)
         hex 6d 65 55 55
 
-gameover_text
-        ; Name Table data for the "GAME OVER - CONTINUE?" screen with a simple
-        ; encryption ($11 is subtracted from each value). 96 (32*3) bytes.
-
-        ; "           GAME OVER            "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b47 414d455b 4f564552 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "                                "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "           CONTINUE?            "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b43 4f4e5449 4e55458b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-
-greets_text
-        ; Name Table data for the "GREETS TO ALL NINTENDAWGS" screen with a simple
-        ; encryption ($11 is subtracted from each value). 640 (32*20) bytes.
-        ; "           NAE(M)OK             "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b4e 41455e4d 5f4f4b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "         BYTER(A)PERS           "
-        hex 5b5b5b5b 5b5b5b5b 5b425954 45525e41 5f504552 535b5b5b 5b5b5b5b 5b5b5b5b
-        ; "       JUMALAU(T)A              "
-        hex 5b5b5b5b 5b5b5b4a 554d414c 41555e54 5f415b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "           SHI(T)FACED CLOWNS   "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b53 48495e54 5f464143 45445b43 4c4f574e 535b5b5b
-        ; "              ( )               "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5e5b 5f5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "       DEKADEN(C)E              "
-        hex 5b5b5b5b 5b5b5b44 454b4144 454e5e43 5f455b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "       ANANASM(U)RSKA           "
-        hex 5b5b5b5b 5b5b5b41 4e414e41 534d5e55 5f52534b 415b5b5b 5b5b5b5b 5b5b5b5b
-        ; "             T(R)ACTION         "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b545e52 5f414354 494f4e5b 5b5b5b5b 5b5b5b5b
-        ; "             D(R)AGON MAGIC     "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b445e52 5f41474f 4e5b4d41 4749435b 5b5b5b5b
-        ; "           ASP(E)KT             "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b41 53505e45 5f4b545b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "              (N)ALLEPERHE      "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5e4e 5f414c4c 45504552 48455b5b 5b5b5b5b
-        ; "            FI(T)               "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 46495e54 5f5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "                                "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "               +                "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5d 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "                                "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "  PWP/FAIRLIGHT/MFX/MOONHAZARD  "
-        hex 5b5b5057 505c4641 49524c49 4748545c 4d46585c 4d4f4f4e 48415a41 52445b5b
-        ; "    ISO/RNO/DAMONES/HEDELMAE    "
-        hex 5b5b5b5b 49534f5c 524e4f5c 44414d4f 4e45535c 48454445 4c4d4145 5b5b5b5b
-        ; "                                "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; "             WAMMA              "
-        hex 5b5b5b5b 5b5b5b5b 5b5b5b5b 5b57414d 4d415b5b 5b5b5b5b 5b5b5b5b 5b5b5b5b
-        ; " QUALITY PRODUCTIONS SINCE 1930 "
-        hex 5b515541 4c495459 5b50524f 44554354 494f4e53 5b53494e 43455b8c 8d8e8f5b
+        ; text; note:
+        ; "[]^_" = " +()", $5c = "/", $8b = "?", $8c-$8f = "1930"
+gameover_text  ; 32*3 bytes
+        db "[[[[[[[[[[[GAME[OVER[[[[[[[[[[[["
+        db "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[["
+        db "[[[[[[[[[[[CONTINUE", $8b, "[[[[[[[[[[[["
+greets_text  ; 32*20 bytes
+        db "[[[[[[[[[[[NAE^M_OK[[[[[[[[[[[[["
+        db "[[[[[[[[[BYTER^A_PERS[[[[[[[[[[["
+        db "[[[[[[[JUMALAU^T_A[[[[[[[[[[[[[["
+        db "[[[[[[[[[[[SHI^T_FACED[CLOWNS[[["
+        db "[[[[[[[[[[[[[[^[_[[[[[[[[[[[[[[["
+        db "[[[[[[[DEKADEN^C_E[[[[[[[[[[[[[["
+        db "[[[[[[[ANANASM^U_RSKA[[[[[[[[[[["
+        db "[[[[[[[[[[[[[T^R_ACTION[[[[[[[[["
+        db "[[[[[[[[[[[[[D^R_AGON[MAGIC[[[[["
+        db "[[[[[[[[[[[ASP^E_KT[[[[[[[[[[[[["
+        db "[[[[[[[[[[[[[[^N_ALLEPERHE[[[[[["
+        db "[[[[[[[[[[[[FI^T_[[[[[[[[[[[[[[["
+        db "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[["
+        db "[[[[[[[[[[[[[[[][[[[[[[[[[[[[[[["
+        db "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[["
+        db "[[PWP", $5c, "FAIRLIGHT", $5c, "MFX", $5c, "MOONHAZARD[["
+        db "[[[[ISO", $5c, "RNO", $5c, "DAMONES", $5c, "HEDELMAE[[[["
+        db "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[["
+        db "[[[[[[[[[[[[[WAMMA[[[[[[[[[[[[[["
+        db "[QUALITY[PRODUCTIONS[SINCE[", $8c, $8d, $8e, $8f, "["
 
         ; tile numbers of top left tiles of big letters, starting from the big "A"
         ; (in the "we come from..." part)
@@ -2617,6 +2598,7 @@ unacc_table4
 
         ; Wait for VBlank ($dc96)
         ; Called by: init
+        ; Calls: nothing
 wait_vbl
 -       bit ppu_status
         bpl -
@@ -2626,8 +2608,9 @@ wait_vbl
 
 hide_sprites
         ; Hide all sprites by setting their Y positions outside the screen.
-        ; Called by: init, init_horzbars1, init_credits, animate_credits, init_woman, animate_woman
-        ; init_bowser, init_cola, init_friday
+        ; Called by: init, init_horzbars1, init_credits, anim_credits, init_woman, anim_woman
+        ;            init_bowser, init_cola, init_friday
+        ; Calls: nothing
 
         ldx #0
 -       lda #245
@@ -2666,7 +2649,8 @@ init_palette_copy
         ; Copy the palette_table array to the palette_copy array.
         ; Args: none
         ; Called by: init, hide_sprites, init_checkered, init_gradients, init_horzbars1,
-        ; init_credits, animate_woman, init_gameover, animate_greets
+        ;            init_credits, anim_woman, init_gameover, anim_greets
+        ; Calls: nothing
 
         ldx #0
 -       lda palette_table,x
@@ -2679,12 +2663,13 @@ init_palette_copy
 ; -------------------------------------------------------------------------------------------------
 
 clear_palette_copy
-        ; Fill the palette_copy array with black.
+        ; Fill palette_copy array with black.
         ; Args: none
         ; Called by: init_greets
+        ; Calls: nothing
 
         ldx #0
--       lda #$0f
+-       lda #$0f  ; black
         sta palette_copy,x
         inx
         cpx #32
@@ -2696,9 +2681,10 @@ clear_palette_copy
 update_palette
         ; Copy the palette_copy array to the PPU.
         ; Args: none
-        ; Called by: init, hide_sprites, animate_title, init_checkered, init_gradients,
-        ; init_horzbars1, init_credits, animate_credits, animate_woman, init_gameover, init_greets,
-        ; animate_greets
+        ; Called by: init, hide_sprites, anim_title, init_checkered, init_gradients,
+        ;            init_horzbars1, init_credits, anim_credits, anim_woman, init_gameover,
+        ;            init_greets, anim_greets
+        ; Calls: nothing
 
         set_ppu_addr vram_palette + 0*4
 
@@ -2714,10 +2700,10 @@ update_palette
 
 ; -------------------------------------------------------------------------------------------------
 
-delay
-        ; Delay for raster effects.
+delay   ; Delay for raster effects.
         ; Add #$55 (85) to delay_var1 X times.
-        ; Called by: animate_checkered, animate_horzbars1, animate_woman, animate_cola
+        ; Called by: anim_checkered, anim_horzbars1, anim_woman, anim_cola
+        ; Calls: nothing
 
         stx delay_var2
         copy #0, delay_cnt  ; loop counter
@@ -2777,8 +2763,8 @@ delay_loop
 
 fade_out_palette
         ; Change each color in the palette_copy array (32 bytes).
-        ; Used to fade out the "wAMMA - QUANTUM DISCO BROTHERS" logo.
-        ; Called by: animate_title, animate_credits, animate_greets
+        ; Called by: anim_title, anim_credits, anim_greets
+        ; Calls: nothing
 
         ; How the colors are changed:
         ;     $0x -> $0f (black)
@@ -2812,6 +2798,8 @@ fade_out_palette_loop
 
 change_background_color
         ; Change background color: #$3f (black) if zp38 < 8, otherwise zp38.
+        ; TODO: called by which subs?
+        ; Calls: nothing
 
         set_ppu_addr vram_palette + 0*4
 
@@ -2828,7 +2816,8 @@ change_background_color
 
 update_sixteen_sprites
         ; Update 16 (8*2) sprites.
-        ; Called by: animate_credits
+        ; Called by: anim_credits
+        ; Calls: nothing
 
         ; Input: X, Y, zp12, zp24
 
@@ -2916,7 +2905,8 @@ update_sixteen_sprites_loop_inner
 
 update_six_sprites
         ; Update 6 (3*2) sprites.
-        ; Called by: animate_credits
+        ; Called by: anim_credits
+        ; Calls: nothing
 
         ; Input: X, Y, zp12, zp24
 
@@ -3002,7 +2992,8 @@ update_six_sprites_loop_inner
 
 update_eight_sprites
         ; Update 8 (4*2) sprites.
-        ; Called by: animate_credits
+        ; Called by: anim_credits
+        ; Calls: nothing
 
         ; Input: X, Y, zp12, zp24
 
@@ -3085,9 +3076,10 @@ update_eight_sprites_loop_inner
 
 ; -------------------------------------------------------------------------------------------------
 
-        ; Called by: animate_title
+sub15   ; Called by: anim_title
+        ; Calls: nothing
 
-sub15   ldx #0
+        ldx #0
         ldy #0
         stx zp12
         stx zp13
@@ -3143,7 +3135,8 @@ print_big_text_line
         ; Write a line of big text (64 tiles) to PPU in the "we come from..." part.
         ; Args: X = PPU addr hi, Y = PPU addr lo,
         ; big_text_ptr = text line start address in wecome_text
-        ; Called by: animate_wecome
+        ; Called by: anim_wecome
+        ; Calls: nothing
 
         ; set PPU address
         stx ppu_addr_hi
@@ -3204,7 +3197,8 @@ print_big_text_line
 move_stars_up
         ; Move stars (sprites 45-55) up in the first two parts of the demo, i.e.,
         ; subtract constants from the Y positions of sprites 45-55.
-        ; Called by: animate_wecome, animate_title
+        ; Called by: anim_wecome, anim_title
+        ; Calls: nothing
 
         copy #$00, zp12
         ldx star_count  ; = 10
@@ -3229,7 +3223,9 @@ move_stars_up
 ; -------------------------------------------------------------------------------------------------
 
         ; Initialize star sprites for first two parts of demo?
+        ; TODO: rename this sub
         ; Called by: init
+        ; Calls: nothing
 
         ; 10 -> X
 sub18   ldx star_count
@@ -3269,8 +3265,10 @@ macro print_big_text_line_macro _srcline, _dstline
         jsr print_big_text_line
 endm
 
-animate_wecome
+anim_wecome
+        ; Animate "GREETINGS! WE COME FROM..." part.
         ; Called by: nmi_wecome
+        ; Calls: print_big_text_line, sub19
 
         chr_bankswitch 0
         lda counter2
@@ -3415,16 +3413,19 @@ endm
 
 ; -------------------------------------------------------------------------------------------------
 
-        ; Called by: animate_wecome
-
-sub19   jsr move_stars_up
+sub19   ; Called by: anim_wecome
+        ; Calls: move_stars_up
+        ;
+        jsr move_stars_up
         copy #>sprite_page, oam_dma  ; do sprite DMA
         rts
 
 ; -------------------------------------------------------------------------------------------------
 
 init_title
+        ; Set up title part (wAMMA logo).
         ; Called by: nmi_title
+        ; Calls: fill_name_tables
 
         ; clear Name Tables
         ldx #$00
@@ -3475,8 +3476,10 @@ init_title
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_title
+anim_title
+        ; Animate title part (wAMMA logo).
         ; Called by: nmi_title
+        ; Calls: sub15, fade_out_palette, update_palette, move_stars_up
 
         chr_bankswitch 0
         copy #>sprite_page, oam_dma  ; do sprite DMA
@@ -3509,11 +3512,11 @@ animate_title
         jsr sub15
 +       lda zp28
         cmp #$01
-        bne animate_title_1
+        bne anim_title_1
         ;
         lda zp27
         cmp #$96
-        bne animate_title_1
+        bne anim_title_1
         ;
         ldx data1
 
@@ -3556,13 +3559,13 @@ animate_title
         copy #$30, ppu_data  ; white
         reset_ppu_addr
 
-animate_title_1
+anim_title_1
         lda zp28
         cmp #$02
-        bne animate_title_2
+        bne anim_title_2
         lda zp27
         cmp #$32
-        bcc animate_title_2
+        bcc anim_title_2
 
         ldx #0
         ldy #0
@@ -3601,7 +3604,7 @@ animate_title_1
         cpx #22
         bne -
 
-animate_title_2
+anim_title_2
         lda zp28
         cmp #$02
         bne +
@@ -3624,7 +3627,9 @@ animate_title_2
 ; -------------------------------------------------------------------------------------------------
 
 init_horzbars2
+        ; Set up full-screen horizontal color bars.
         ; Called by: nmi_horzbars2
+        ; Calls: fill_nt_and_clear_at
 
         lda #$00
         ldx #0
@@ -3645,8 +3650,10 @@ init_horzbars2
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_horzbars2
+anim_horzbars2
+        ; Animate full-screen horizontal color bars.
         ; Called by: nmi_horzbars2
+        ; Calls: nothing
 
         inc zp1
         ldx zp2
@@ -3701,7 +3708,10 @@ animate_horzbars2
 ; -------------------------------------------------------------------------------------------------
 
 init_checkered
+        ; Set up checkered wavy animation.
         ; Called by: nmi_checkered
+        ; Calls: fill_name_tables, fill_attribute_tables, jmpsnd3, init_palette_copy,
+        ;        update_palette
 
         ; clear Name Tables
         ldx #$00
@@ -3728,14 +3738,16 @@ init_checkered
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_checkered
+anim_checkered
+        ; Animate checkered wavy animation.
         ; Called by: nmi_checkered
+        ; Calls: delay
 
         chr_bankswitch 1
         lda $0148
         cmp #$00
         beq +
-        jmp animate_checkered_1
+        jmp anim_checkered_1
 +       dec zp2
 
         ldx #0
@@ -3783,9 +3795,9 @@ animate_checkered
         bne --
 
         copy #$01, $0148
-        jmp animate_checkered_2
+        jmp anim_checkered_2
 
-animate_checkered_1
+anim_checkered_1
         dec zp2
         ldx #64
         copy #$00, zp1
@@ -3832,7 +3844,7 @@ animate_checkered_1
 
         copy #$00, $0148
 
-animate_checkered_2
+anim_checkered_2
         reset_ppu_addr
 
         copy #$00, zp1
@@ -3871,7 +3883,10 @@ animate_checkered_2
 ; -------------------------------------------------------------------------------------------------
 
 init_gradients
+        ; Set up red&purple gradients.
         ; Called by: nmi_gradients
+        ; Calls: fill_name_tables, init_palette_copy, update_palette, fill_attribute_tables,
+        ;        fill_attribute_tables_top
 
         ; clear Name Tables
         ldx #$00
@@ -3899,8 +3914,10 @@ init_gradients
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_gradients
+anim_gradients
+        ; Animate red&purple gradients.
         ; Called by: nmi_gradients
+        ; Calls: change_background_color
 
         jsr change_background_color
         chr_bankswitch 1
@@ -3923,7 +3940,7 @@ animate_gradients
         lda $0148
         cmp #$00
         beq +
-        jmp animate_gradients_1
+        jmp anim_gradients_1
 
 +       ldx #0
         ldy #0
@@ -3955,9 +3972,9 @@ animate_gradients
         bne --
 
         copy #$01, $0148
-        jmp animate_gradients_2
+        jmp anim_gradients_2
 
-animate_gradients_1
+anim_gradients_1
         ldx #$7f
         copy #$20, zp12
 
@@ -3987,7 +4004,7 @@ animate_gradients_1
 
         copy #$00, $0148
 
-animate_gradients_2
+anim_gradients_2
         reset_ppu_addr
 
         ldx zp3
@@ -4015,7 +4032,9 @@ animate_gradients_2
 ; -------------------------------------------------------------------------------------------------
 
 init_horzbars1
+        ; Set up non-full-screen horizontal color bars.
         ; Called by: nmi_horzbars1
+        ; Calls: fill_nt_and_clear_at, jmpsnd3, init_palette_copy, update_palette, hide_sprites
 
         ldx #$ff
         jsr fill_nt_and_clear_at
@@ -4037,8 +4056,10 @@ init_horzbars1
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_horzbars1
+anim_horzbars1
+        ; Animate non-full-screen horizontal color bars.
         ; Called by: nmi_horzbars1
+        ; Calls: delay
 
         dec zp4
         inc zp3
@@ -4103,7 +4124,9 @@ animate_horzbars1
 ; -------------------------------------------------------------------------------------------------
 
 init_credits
+        ; Set up credits part.
         ; Called by: nmi_credits
+        ; Calls: fill_name_tables, init_palette_copy, update_palette, hide_sprites
 
         ; fill Name Tables with #$ff
         ldx #$ff
@@ -4236,43 +4259,46 @@ init_credits_2
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_credits
+anim_credits
+        ; Animate credits part.
         ; Called by: nmi_credits
+        ; Calls: fade_out_palette, update_palette, hide_sprites, update_sixteen_sprites,
+        ;        update_eight_sprites, update_six_sprites
 
         copy #>sprite_page, oam_dma  ; do sprite DMA
 
         lda zp19
         cmp #$08
-        bne animate_credits1
+        bne anim_credits1
         ;
         lda zp18
         cmp #$8c
-        bcc animate_credits1
+        bcc anim_credits1
         ;
         inc zp20
         lda zp20
         cmp #$04
-        bne animate_credits1
+        bne anim_credits1
 
         jsr fade_out_palette
         jsr update_palette  ; palette_copy -> PPU
         copy #$00, zp20
 
-animate_credits1
+anim_credits1
         copy #id_credits, demo_part
 
         set_ppu_addr vram_palette + 0*4
 
         lda zp19
         cmp #8
-        beq animate_credits4
+        beq anim_credits4
         ;
         lda $014d
         cmp #0
-        beq animate_credits3
+        beq anim_credits3
         ;
         cmp #1
-        beq animate_credits2
+        beq anim_credits2
         ;
         cmp #2
         beq +
@@ -4282,19 +4308,19 @@ animate_credits1
         copy #$14, ppu_data  ; medium-dark purple
         copy #$04, ppu_data  ; dark purple
 
-animate_credits2
+anim_credits2
         copy #$38, ppu_data  ; light yellow
         copy #$28, ppu_data  ; medium-light yellow
         copy #$18, ppu_data  ; medium-dark yellow
         copy #$08, ppu_data  ; dark yellow
 
-animate_credits3
+anim_credits3
         copy #$32, ppu_data  ; light blue
         copy #$22, ppu_data  ; medium-light blue
         copy #$12, ppu_data  ; medium-dark blue
         copy #$02, ppu_data  ; dark blue
 
-animate_credits4
+anim_credits4
         inc zp1
         copy zp1, ppu_scroll
         ldx zp1
@@ -4326,26 +4352,26 @@ animate_credits4
         cmp #8
         beq jump_table2 + 8*3
         cmp #9
-        beq animate_credits5
+        beq anim_credits5
 
 jump_table2
-        jmp animate_credits_end1
-        jmp animate_credits6
-        jmp animate_credits7
-        jmp animate_credits8
-        jmp animate_credits9
-        jmp animate_credits10
-        jmp animate_credits11
-        jmp animate_credits12
-        jmp animate_credits13
+        jmp anim_credits_end1
+        jmp anim_credits6
+        jmp anim_credits7
+        jmp anim_credits8
+        jmp anim_credits9
+        jmp anim_credits10
+        jmp anim_credits11
+        jmp anim_credits12
+        jmp anim_credits13
 
-animate_credits5
+anim_credits5
         copy #id_checkered, demo_part  ; next part
         copy #0, flag1
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits6
+anim_credits6
         jsr hide_sprites
 
         ; draw 8*2 sprites: tiles #$90-#$9f starting from (92, 106), subpalette 3
@@ -4354,9 +4380,9 @@ animate_credits6
         copy #$90, zp12
         jsr update_sixteen_sprites
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits7
+anim_credits7
         jsr hide_sprites
 
         ; draw 8*2 sprites: tiles #$60-#$6f starting from (117, 115), subpalette 3
@@ -4371,9 +4397,9 @@ animate_credits7
         copy #$ac, zp12
         jsr update_eight_sprites
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits8
+anim_credits8
         jsr hide_sprites
 
         ; draw 8*2 sprites: tiles #$80-#$8f starting from (117, 115), subpalette 3
@@ -4388,9 +4414,9 @@ animate_credits8
         copy #$ac, zp12
         jsr update_eight_sprites
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits9
+anim_credits9
         jsr hide_sprites
         copy #$01, $014d
 
@@ -4406,9 +4432,9 @@ animate_credits9
         copy #$a0, zp12
         jsr update_six_sprites
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits10
+anim_credits10
         jsr hide_sprites
 
         ; draw 8*2 sprites: tiles #$40-#$4f starting from (117, 115), subpalette 3
@@ -4423,9 +4449,9 @@ animate_credits10
         copy #$a0, zp12
         jsr update_six_sprites
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits11
+anim_credits11
         jsr hide_sprites
 
         ; draw 8*2 sprites: tiles #$e0-#$ef starting from (117, 115), subpalette 3
@@ -4440,9 +4466,9 @@ animate_credits11
         copy #$a0, zp12
         jsr update_six_sprites
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits12
+anim_credits12
         copy #$00, $014d
         jsr hide_sprites
 
@@ -4458,9 +4484,9 @@ animate_credits12
         copy #$a0, zp12
         jsr update_six_sprites
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits13
+anim_credits13
         jsr hide_sprites
 
         ; draw 8*2 sprites: tiles #$70-#$7f starting from (117, 115), subpalette 3
@@ -4475,11 +4501,11 @@ animate_credits13
         copy #$a6, zp12
         jsr update_six_sprites
 
-        jmp animate_credits_end2
+        jmp anim_credits_end2
 
-animate_credits_end1
+anim_credits_end1
         jsr hide_sprites
-animate_credits_end2
+anim_credits_end2
         chr_bankswitch 1
         copy #%10011000, ppu_ctrl
         copy #%00011110, ppu_mask
@@ -4488,7 +4514,9 @@ animate_credits_end2
 ; -------------------------------------------------------------------------------------------------
 
 init_woman
+        ; Set up woman part.
         ; Called by: nmi_woman
+        ; Calls: fill_name_tables, fill_attribute_tables, hide_sprites, jmpsnd3
 
         ; fill Name Tables with #$7f
         ldx #$7f
@@ -4598,8 +4626,10 @@ init_woman
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_woman
+anim_woman
+        ; Animate woman part.
         ; Called by: nmi_woman
+        ; Calls: delay
 
         copy #>sprite_page, oam_dma  ; do sprite DMA
 
@@ -4988,7 +5018,9 @@ animate_woman
 ; -------------------------------------------------------------------------------------------------
 
 init_bowser
+        ; Set up Bowser's spaceship part.
         ; Called by: nmi_bowser
+        ; Calls: hide_sprites, fill_attribute_tables
 
         jsr hide_sprites
         ldy #$aa
@@ -5134,8 +5166,10 @@ init_bowser
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_bowser
+anim_bowser
+        ; Animate Bowser's spaceship part.
         ; Called by: nmi_bowser
+        ; Calls: nothing
 
         copy #>sprite_page, oam_dma  ; do sprite DMA
 
@@ -5154,18 +5188,18 @@ animate_bowser
 -       dec $0104,x
         lda $0104,x
         cmp #$00
-        bne animate_bowser_2
+        bne anim_bowser_2
         lda $0108,x
         cmp table8,x
         beq +
         inc $0108,x
-        jmp animate_bowser_1
+        jmp anim_bowser_1
 +       lda table7,x
         sta $0108,x
-animate_bowser_1
+anim_bowser_1
         lda table6,x
         sta $0104,x
-animate_bowser_2
+anim_bowser_2
         dex
         cpx #255
         bne -
@@ -5198,7 +5232,7 @@ animate_bowser_2
 +       lda $0100
         ldx $0101
         cmp table9,x
-        bne animate_bowser_3
+        bne anim_bowser_3
 
         inc $0101
         lda $0101
@@ -5219,24 +5253,24 @@ animate_bowser_2
         sta $011a,x
         inc $0102
         cpx data5
-        bne animate_bowser_3
+        bne anim_bowser_3
         copy #$00, $0102
 
-animate_bowser_3
+anim_bowser_3
         ldx data5
         ; loop
 -       lda $0116,x
         cmp #$f0
-        beq animate_bowser_4
+        beq anim_bowser_4
         lda $0112,x
         clc
         sbc $011a,x
         bcc +
         sta $0112,x
-        jmp animate_bowser_4
+        jmp anim_bowser_4
 +       lda #$f0
         sta $0116,x
-animate_bowser_4
+anim_bowser_4
         dex
         cpx #255
         bne -
@@ -5286,8 +5320,9 @@ animate_bowser_4
 ; -------------------------------------------------------------------------------------------------
 
 init_gameover
-        ; Set up the "GAME OVER - CONTINUE?" screen.
+        ; Set up "game over" part.
         ; Called by: nmi_gameover
+        ; Calls: fill_name_tables, fill_attribute_tables, init_palette_copy, update_palette
 
         ; clear name&attribute tables
         ldx #$4a  ; space
@@ -5318,8 +5353,10 @@ init_gameover
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_gameover
+anim_gameover
+        ; Animate "game over" part.
         ; Called by: nmi_gameover
+        ; Calls: nothing
 
         set_ppu_scroll 0, 0
         copy #%10010000, ppu_ctrl
@@ -5329,8 +5366,9 @@ animate_gameover
 ; -------------------------------------------------------------------------------------------------
 
 init_greets
-        ; Set up the "GREETS TO ALL NINTENDAWGS" screen.
+        ; Set up "GREETS" part.
         ; Called by: nmi_greets
+        ; Calls: fill_name_tables, fill_attribute_tables, clear_palette_copy, update_palette
 
         ; clear name&attribute tables
         ldx #$4a  ; space
@@ -5410,8 +5448,10 @@ init_greets
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_greets
+anim_greets
+        ; Animate "GREETS" part.
         ; Called by: nmi_greets
+        ; Calls: init_palette_copy, update_palette, fade_out_palette
 
         chr_bankswitch 2
 
@@ -5468,7 +5508,9 @@ animate_greets
 ; -------------------------------------------------------------------------------------------------
 
 init_cola
+        ; Set up wavy Coca Cola cans.
         ; Called by: nmi_cola
+        ; Calls: fill_name_tables, hide_sprites, fill_attribute_tables
 
         ; fill name tables with #$80, clear attribute tables, hide sprites
         ldx #$80
@@ -5505,13 +5547,15 @@ init_cola
 
 ; -------------------------------------------------------------------------------------------------
 
-animate_cola
+anim_cola
+        ; Animate wavy Coca Cola cans.
         ; Called by: nmi_cola
+        ; Calls: delay
 
         lda $013c
         cmp #$02
         beq +
-        jmp animate_cola_1
+        jmp anim_cola_1
 +       ldy #$80
 
         ; loop
@@ -5595,11 +5639,11 @@ animate_cola
 
         reset_ppu_addr
 
-animate_cola_1
+anim_cola_1
         lda $013c
         cmp #$a0
         bcc +
-        jmp animate_cola_2
+        jmp anim_cola_2
 
 +       copy #0, ppu_scroll
         lda $013d
@@ -5607,26 +5651,26 @@ animate_cola_1
         sbc $013c
         sta ppu_scroll
 
-animate_cola_2
+anim_cola_2
         lda ram1
         chr_bankswitch 2
         copy #$00, zp1
         lda $013e
         cmp #$01
-        beq animate_cola_3
+        beq anim_cola_3
         inc $013c
         lda $013c
         cmp #$c8
         beq +
-        jmp animate_cola_3
+        jmp anim_cola_3
 +       copy #$01, $013e
 
-animate_cola_3
+anim_cola_3
         ldx #$00
         ldy #$00
         lda $013e
         cmp #$00
-        beq animate_cola_5
+        beq anim_cola_5
         inc zp3
         inc zp2
 
@@ -5675,7 +5719,7 @@ animate_cola_3
         cpy #$91
         bne -
 
-animate_cola_5
+anim_cola_5
         copy #%10010000, ppu_ctrl
         copy #%00001110, ppu_mask
         rts
@@ -5685,6 +5729,7 @@ animate_cola_5
 write_row
         ; Write X to VRAM 32 times.
         ; Called by: init_friday
+        ; Calls: nothing
 
         ldy #0
 -       stx ppu_data
@@ -5711,7 +5756,9 @@ macro write_row_macro _byte
 endm
 
 init_friday
+        ; Set up "IT IS FRIDAY..." part.
         ; Called by: nmi_friday
+        ; Calls: fill_nt_and_clear_at, hide_sprites, write_row
 
         ldx #$25
         jsr fill_nt_and_clear_at
@@ -5808,8 +5855,10 @@ macro edit_sprite_macro _index, _y, _x
         copy #_x,        sprite_page + _index*4 + 3
 endm
 
-animate_friday
+anim_friday
+        ; Animate "IT IS FRIDAY..." part.
         ; Called by: nmi_friday
+        ; Calls: nothing
 
         inc $0100
         ldx $0100
@@ -5862,19 +5911,19 @@ animate_friday
         lda zp2
         cmp #$08
         beq +
-        jmp animate_friday_2
+        jmp anim_friday_2
         ;
 +       copy #$00, zp2
         inc text_offset
         lda text_offset
         cmp #235
         beq +
-        jmp animate_friday_1
+        jmp anim_friday_1
         ;
 +       copy #0, flag1
         copy #id_cola, demo_part  ; next part
 
-animate_friday_1
+anim_friday_1
         ; copy 31 bytes from friday_text + text_offset to name table 0 Y pos 19, X pos 1
 
         copy #>(name_table0 + 19*32 + 1), ppu_addr
@@ -5894,7 +5943,7 @@ animate_friday_1
 
         reset_ppu_addr
 
-animate_friday_2
+anim_friday_2
         inc zp1
         ldx zp1
         copy zp2, ppu_scroll
@@ -5920,7 +5969,8 @@ animate_friday_2
 fill_attribute_tables
         ; Fill Attribute Tables 0 and 2 with Y.
         ; Called by: init, init_checkered, init_gradients, init_woman, init_bowser
-        ; init_gameover, init_greets, init_cola
+        ;            init_gameover, init_greets, init_cola
+        ; Calls: nothing
 
         set_ppu_addr attr_table0
 
@@ -5942,8 +5992,9 @@ fill_attribute_tables
 ; -------------------------------------------------------------------------------------------------
 
 fill_attribute_tables_top
-        ; Fill top parts (first 32 bytes) of Attribute Tables 0 and 2 with Y.
+        ; Fill top halves (first 32 bytes) of Attribute Tables 0 and 2 with Y.
         ; Called by: init_gradients
+        ; Calls: nothing
 
         set_ppu_addr attr_table0
 
@@ -5986,7 +6037,8 @@ fill_attribute_tables_top
 fill_name_tables
         ; Fill Name Tables 0 and 2 with byte X and set flag1.
         ; Called by: init_title, init_checkered, init_gradients, init_credits, init_woman
-        ; init_gameover, init_greets, init_cola
+        ;            init_gameover, init_greets, init_cola
+        ; Calls: nothing
 
         stx vram_fill_byte
         ldy #0
@@ -6067,6 +6119,7 @@ fill_nt_and_clear_at
         ; Fill Name Tables 0, 1 and 2 with byte X.
         ; Clear Attribute Tables 0 and 1.
         ; Called by: init, init_horzbars2, init_horzbars1, init_friday
+        ; Calls: nothing
 
         stx vram_fill_byte
         ldy #$00
@@ -6099,6 +6152,7 @@ fill_nt_and_clear_at
 
 nmi     ; Non-maskable interrupt routine
         ; Called by: NMI vector
+        ; Calls: many things (see jump table)
 
         lda ppu_status  ; clear VBlank flag
 
@@ -6150,7 +6204,8 @@ jump_table3
 
 nmi_wecome
         ; "Greetings! We come from..."
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: anim_wecome, jmpsnd3
 
         ; set flag1
         lda flag1
@@ -6159,7 +6214,7 @@ nmi_wecome
         jmp ++
         ;
 +       copy #1, flag1
-++      jsr animate_wecome
+++      jsr anim_wecome
         jsr jmpsnd3
         inc unused1
         inc unused1
@@ -6178,7 +6233,8 @@ nmi_wecome
 
 nmi_horzbars1
         ; non-full-screen horizontal color bars (after the red&purple gradients)
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_horzbars1, anim_horzbars1, jmpsnd3
 
         ; if flag1 clear, run init_horzbars1 (sets the flag)
         lda flag1
@@ -6187,7 +6243,7 @@ nmi_horzbars1
         jmp ++
 +       jsr init_horzbars1
         ;
-++      jsr animate_horzbars1
+++      jsr anim_horzbars1
         jsr jmpsnd3
         inc zp10
         lda zp10
@@ -6209,7 +6265,8 @@ nmi_horzbars1
 
 nmi_title
         ; "wAMMA - Quantum Disco Brothers"
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_title, anim_title, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6217,7 +6274,7 @@ nmi_title
         jmp ++
         ;
 +       jsr init_title
-++      jsr animate_title
+++      jsr anim_title
         jsr jmpsnd3
         inc zp27
         lda zp27
@@ -6239,7 +6296,8 @@ nmi_title
 
 nmi_credits
         ; credits
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_credits, anim_credits, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6247,7 +6305,7 @@ nmi_credits
         jmp ++
         ;
 +       jsr init_credits
-++      jsr animate_credits
+++      jsr anim_credits
         jsr jmpsnd3
         jmp nmi_exit  ; RTI
 
@@ -6255,7 +6313,8 @@ nmi_credits
 
 nmi_woman
         ; the woman
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_woman, anim_woman, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6263,7 +6322,7 @@ nmi_woman
         jmp ++
         ;
 +       jsr init_woman
-++      jsr animate_woman
+++      jsr anim_woman
         jsr jmpsnd3
         inc zp25
         lda zp25
@@ -6285,7 +6344,8 @@ nmi_woman
 
 nmi_friday
         ; "It is Friday..."
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_friday, anim_friday, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6293,7 +6353,7 @@ nmi_friday
         jmp ++
         ;
 +       jsr init_friday
-++      jsr animate_friday
+++      jsr anim_friday
         jsr jmpsnd3
         jmp nmi_exit  ; RTI
 
@@ -6301,7 +6361,8 @@ nmi_friday
 
 nmi_bowser
         ; Bowser's spaceship
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_bowser, anim_bowser, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6309,7 +6370,7 @@ nmi_bowser
         jmp ++
         ;
 +       jsr init_bowser
-++      jsr animate_bowser
+++      jsr anim_bowser
         jsr jmpsnd3
         inc $0135
         lda $0135
@@ -6331,7 +6392,8 @@ nmi_bowser
 
 nmi_cola
         ; Coca Cola cans
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_cola, anim_cola, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6339,7 +6401,7 @@ nmi_cola
         jmp ++
         ;
 +       jsr init_cola
-++      jsr animate_cola
+++      jsr anim_cola
         jsr jmpsnd3
         inc $013f
         lda $013f
@@ -6362,7 +6424,8 @@ nmi_cola
 
 nmi_horzbars2
         ; full-screen horizontal color bars (after "game over - continue?")
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_horzbars2, anim_horzbars2, $fb3d (TODO: add label)
 
         lda flag1
         cmp #0
@@ -6370,7 +6433,7 @@ nmi_horzbars2
         jmp ++
         ;
 +       jsr init_horzbars2
-++      jsr animate_horzbars2
+++      jsr anim_horzbars2
         inc $0141
         lda $0141
         cmp #$ff
@@ -6390,7 +6453,8 @@ nmi_horzbars2
 
 nmi_checkered
         ; checkered wavy animation
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_checkered, anim_checkered, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6398,7 +6462,7 @@ nmi_checkered
         jmp ++
         ;
 +       jsr init_checkered
-++      jsr animate_checkered
+++      jsr anim_checkered
         jsr jmpsnd3
         inc $0143
         lda $0143
@@ -6421,7 +6485,8 @@ nmi_checkered
 
 nmi_gradients
         ; red&purple gradient
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_gradients, anim_gradients, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6429,7 +6494,7 @@ nmi_gradients
         jmp ++
         ;
 +       jsr init_gradients
-++      jsr animate_gradients
+++      jsr anim_gradients
         jsr jmpsnd3
         inc $0145
         lda $0145
@@ -6451,7 +6516,8 @@ nmi_gradients
 
 nmi_greets
         ; greets
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_greets, anim_greets, jmpsnd3
 
         lda flag1
         cmp #0
@@ -6459,7 +6525,7 @@ nmi_greets
         jmp ++
         ;
 +       jsr init_greets
-++      jsr animate_greets
+++      jsr anim_greets
         jsr jmpsnd3
         inc $014f
         lda $014f
@@ -6482,7 +6548,8 @@ nmi_greets
 
 nmi_gameover
         ; "GAME OVER - CONTINUE?"
-        ; called by: nmi
+        ; Called by: nmi
+        ; Calls: init_gameover, anim_gameover
 
         lda flag1
         cmp #0
@@ -6490,7 +6557,7 @@ nmi_gameover
         jmp ++
         ;
 +       jsr init_gameover
-++      jsr animate_gameover
+++      jsr anim_gameover
         inc $0151
         lda $0151
         cmp #$ff
@@ -6511,7 +6578,6 @@ nmi_gameover
 ; -------------------------------------------------------------------------------------------------
 
 nmi_exit
-        ; called by: nmi, nmi_*
         rti
 
 ; --- IRQ routine (unaccessed) --------------------------------------------------------------------

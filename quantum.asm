@@ -1,7 +1,7 @@
 ; NES Quantum Disco Brothers disassembly. Assembles with asm6.
 ; TODO: data on unaccessed parts is out of date
 
-; High-level call graph:
+; Call graph:
 ;
 ; init:
 ;   sub13
@@ -10,7 +10,7 @@
 ;   hide_sprites
 ;   init_palette_copy
 ;   update_palette
-;   init_star_sprites
+;   init_stars
 ;   fill_attribute_tables
 ;   fill_nt_and_clear_at
 ;
@@ -18,8 +18,8 @@
 ;   nmi_wecome
 ;       anim_wecome
 ;           print_big_text_line
-;           sub19
-;               move_stars_up
+;           move_stars_and_update_sprites
+;               move_stars
 ;       jump_snd_eng
 ;           sound_engine
 ;               sound4
@@ -108,6 +108,22 @@ dmc_length    equ $4013
 oam_dma       equ $4014
 apu_ctrl      equ $4015
 apu_counter   equ $4017
+
+; important bits:
+; ppu_ctrl: NCHBSIAa
+;   N = execute NMI on VBlank
+;   C = short-circuit the PPU; thankfully always 0 (off)
+;   H = sprite height; always 0 (1 tile)
+;   B/S = background/sprite pattern table
+;   Aa = name table; always 00 (NT 0) or 10 (NT 2)
+; ppu_mask: CCCSBsbg
+;   CCC = color emphasis; 111 (darken all colors) in at least some of the Coca Cola part,
+;         000 (normal) at other times
+;   S/B = show sprites/background
+;   s/b = show sprites/background in leftmost column
+;   g = grayscale mode; always 0 (off)
+; apu_ctrl:
+;   write: 000DNTsS (DMC/noise/triangle/square2/square1 enable)
 
 ; zero page
 ; note: "unaccessed" = unaccessed except for the initial cleanup
@@ -307,27 +323,20 @@ endm
 
         jmp jump_snd_eng
         jmp sub13
-
         sei
         cld
         ldx #$ff
         txs
-
         copy #%01000000, ppu_ctrl
         copy #%10011110, ppu_mask
-
         lda ppu_status
         lda ppu_status
-
         copy #%00000000, ppu_mask
-
         lda #<indirect_data1
         ldx #>indirect_data1
         jsr sub1
-
         copy #%00011110, ppu_mask
         copy #%10000000, ppu_ctrl
-
 -       jmp -
 
 ; -------------------------------------------------------------------------------------------------
@@ -632,7 +641,7 @@ sound4  lda $035a,x
         and #%11110000
         beq +           ; always taken
 
-        ; unaccessed ($823b)
+        ; unaccessed block ($823b)
         lsr4
         adc $0300,x
         sta $0300,x
@@ -653,9 +662,9 @@ sound4  lda $035a,x
         sta $0300,x
 +       ldy $035a,x
         cpy #$07
-        bne ++   ; always taken
+        bne ++       ; always taken
 
-        ; unaccessed ($826a)
+        ; unaccessed block ($826a)
         lda $035f,x
         beq +
         sta $0340,x
@@ -663,7 +672,7 @@ sound4  lda $035a,x
         bne unacc1
 
 ++      lda $0344,x
-        bne unacc1  ; never taken
+        bne unacc1   ; never taken
         lda $0300,x
         bpl +
         lda #$00
@@ -673,9 +682,9 @@ sound4  lda $035a,x
 +       sta $0300,x
         jmp sound1   ; ends with RTS
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($828f) --------------------------------------------------------------------
 
-unacc1  pha             ; $828f
+unacc1  pha
         and #%00001111
         ldy $033c,x
         jsr sound5a
@@ -691,7 +700,6 @@ unacc1  pha             ; $828f
         bpl ++
         sta $033c,x
         rts
-
 +       clc
         adc $0300,x
         jsr sound1
@@ -703,7 +711,6 @@ unacc1  pha             ; $828f
         bpl ++
         sta $033c,x
         rts
-
 ++      sub #$40
         sta $033c,x
         rts
@@ -881,9 +888,9 @@ sound6b lda $0350,x
         lda $0308,x
         sbc ptr2+1
         bmi +
-        bpl ++   ; always taken
+        bpl ++         ; always taken
         ;
-        jmp sound6a  ; unaccessed ($8414)
+        jmp sound6a    ; unaccessed ($8414)
 +       lda zp_arr1,x
         clc
         adc $0318,x
@@ -896,8 +903,8 @@ sound6b lda $0350,x
         sbc ptr2+0
         lda $0308,x
         sbc ptr2+1
-        bpl +      ; always taken
-        jmp sound6a  ; unaccessed ($8433)
+        bpl +          ; always taken
+        jmp sound6a    ; unaccessed ($8433)
         ;
 ++      lda zp_arr1,x
         sec
@@ -949,7 +956,7 @@ sound7a lda $039c,x
         cmp #2
         beq +++
         cmp #3
-        beq ++++  ; always taken
+        beq ++++     ; always taken
         rts          ; unaccessed ($8495)
 
 +       ldy zp_arr4,x
@@ -999,9 +1006,9 @@ sound7b sta $0300,x
 sound7c sta zp33
         jmp sound8a
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($84f8) --------------------------------------------------------------------
 
-unacc2  sub #1    ; $84f8
+unacc2  sub #1
         sta zp34
         lda zp35
         add #1
@@ -1054,8 +1061,8 @@ sound8a lda $035f,x
 
 +       rts
 
-        ; unaccessed block
-unacc3  jsr unacc4   ; $854e
+        ; unaccessed block ($854e)
+unacc3  jsr unacc4
         lda $0308,x
         sta zp29
         lda zp_arr1,x
@@ -1063,29 +1070,26 @@ unacc3  jsr unacc4   ; $854e
 
 sound8b jmp sound7a
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($855e) --------------------------------------------------------------------
 
-unacc4  lda $035f,x  ; $855e
+unacc4  lda $035f,x
         beq +
         sta $0398,x
 +       sec
         lda zp32
         beq +
-
 -       cmp #1
         beq ++
         cmp #2
         beq +++
         sbc #3
         bne -
-
 +       ldy zp_arr4,x
         lda notes_lo-1,y
         sta zp_arr1,x
         lda notes_hi-1,y
         sta $0308,x
         rts
-
 ++      lda $0398,x
         lsr4
         clc
@@ -1096,7 +1100,6 @@ unacc4  lda $035f,x  ; $855e
         lda notes_hi-1,y
         sta $0308,x
         rts
-
 +++     lda $0398,x
         and #%00001111
         clc
@@ -1178,8 +1181,8 @@ sound9c lda $0355,x
         sta $0320,x
         jmp sound9d
 
-        ; unaccessed block
-unacc5  iny             ; $862d
+        ; unaccessed block ($862d)
+unacc5  iny
         and #%01111111
         sta zp29
         lda $0394,x
@@ -1222,8 +1225,8 @@ sound9d iny
         sta $032c,x
         jmp sound9e
 
-        ; unaccessed block
-unacc6  eor #%11111111  ; $8681
+        ; unaccessed block ($8681)
+unacc6  eor #%11111111
         add #1
         sta $0328,x
         tya
@@ -1377,7 +1380,7 @@ sound10 copy #$40, zp31
         bne ++
         sta zp29
         lda (ptr2),y
-        bne +         ; never taken
+        bne +          ; never taken
         jmp sound9k
 +       lda zp29       ; unaccessed ($8798)
 ++      add ptr4+0
@@ -1572,13 +1575,12 @@ sound10g
         inc zp34
         rts
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($8906) --------------------------------------------------------------------
 
-        ldxy #0, #16  ; $8906
+        ldxy #0, #16
 -       dexbne -
         dey
         bne -
-
         dec useless
         bpl +
         copy #$05, useless
@@ -1598,8 +1600,8 @@ jump_snd_eng
         bit useless
         bmi +        ; always taken
 
-        ; unaccessed
-        dec useless  ; $8925
+        ; unaccessed block ($8925)
+        dec useless
         bpl +
         copy #$05, useless
         jmp unacc7
@@ -2061,7 +2063,7 @@ indirect_data1
 
 init    ; Called by: reset vector
         ; Calls: wait_vbl, hide_sprites, init_palette_copy, update_palette, fill_nt_and_clear_at,
-        ;        init_star_sprites, fill_attribute_tables, sub13
+        ;        init_stars, fill_attribute_tables, sub13
 
         sei
         cld
@@ -2095,16 +2097,16 @@ init    ; Called by: reset vector
 
         copy #id_wecome, demo_part  ; the first part of the demo to run
 
-        copy #%00000000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%00000000, ppu_ctrl  ; disable NMI
+        copy #%00011110, ppu_mask  ; show background and sprites
 
         ldx #$ff
         jsr fill_nt_and_clear_at
-        jsr init_star_sprites
+        jsr init_stars
 
         lda #%00000000
-        sta ppu_ctrl
-        sta ppu_mask
+        sta ppu_ctrl  ; disable NMI
+        sta ppu_mask  ; hide background and sprites
 
         ldy #$00
         jsr fill_attribute_tables
@@ -2117,8 +2119,8 @@ init    ; Called by: reset vector
         jsr sub13
         jsr wait_vbl
 
-        copy #%10000000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%10000000, ppu_ctrl  ; enable NMI
+        copy #%00011110, ppu_mask  ; show background and sprites
 
         ; infinite loop; if at last part of the demo, do sound stuff
 -       lda demo_part
@@ -2541,20 +2543,23 @@ unacc_table3  ; unaccessed
         hex 00 08 10
         hex 00 08 10
 
-data3   hex 03
+bowser_some_count_minus_one
+        db 3
 table6  hex 04 06 06 06
-table7  hex 09 0e 0c 3e
+bowser_sprites_tile3
+        hex 09 0e 0c 3e
 table8  hex 0b 0f 0d 3f
 
         hex 04 02  ; unaccessed ($db28)
 
-data4   hex 10
+bowser_sprite_count_minus_one
+        db 16
 
 sprite_y_table2
         hex 00 fb fb fb fb 03 03 03 03 f6 f6 f6 ee ee ee e6 e6
-sprite_tile_table2
+bowser_sprites_tile2
         hex 46 1c 1b 1a 19 2c 2b 2a 29 2f 2e 2d 3e 1e 1d 0e 0c
-sprite_attr_table2
+bowser_sprites_attr
         hex 40 41 41 41 41 41 41 41 41 42 42 42 42 42 42 42 42
 sprite_x_table2
         hex 00 06 0e 16 1e 07 0f 17 1f 0c 14 1c 0c 14 1c 0c 14
@@ -2577,24 +2582,25 @@ sprite_tile_table3
         hex 03 00 00 07 07 42 43 52 53 03 03 03 03 00 07 00
         hex 07 01 00 00 41 51 03 03 00 07
 
-data7   db 15
-
-sprite_x_table4
+bowser_and_friday_sprite_count_minus_one
+        db 15
+bowser_sprites_x
         hex 13 50 54 6f 9e ab d0 ff 06 5a 5f c6 ca 13 19 25
-sprite_y_table4
+bowser_sprites_y
         hex 55 df 51 21 3d 9a 7d 88 cc 8f aa 43 8a 6e 90 76
-sprite_xsub_table
-        hex 03 05 05 07 06 04 06 05 02 05 04 08 03 02 07 06
-sprite_tile_table4
+bowser_sprites_xsub
+        db 3, 5, 5, 7, 6, 4, 6, 5, 2, 5, 4, 8, 3, 2, 7, 6
+bowser_sprites_tile
         hex 50 51 51 53 51 52 50 53 52 52 51 51 52 53 53 51
 
 ; Star sprites in the first two parts of the demo.
 ; The last 5 bytes of each 16-byte table are unaccessed.
-star_count
-        db 10  ; number of stars, minus one
+star_count_minus_one
+        db 10
 star_initial_x
         hex 13 50 54 6f 9e ab d0 ef 06 5a 5f d6 ca 13 19 25
 star_initial_y
+        ; same as bowser_sprites_y
         hex 55 df 51 21 3d 9a 7d 88 cc 8f aa 43 8a 6e 90 76
 star_y_speeds
         db 2, 3, 3, 5, 4, 2, 4, 3, 2, 2, 3, 4, 3, 2, 7, 6
@@ -2650,25 +2656,21 @@ hide_sprites
         bne -
         rts
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($dcaa) --------------------------------------------------------------------
 
-        lda #%00000000  ; $dcaa
+        lda #%00000000
         sta ppu_ctrl
         sta ppu_mask
         copy #%00000000, ppu_ctrl
-
-        ; clear sound registers
         lda #$00
         ldx #0
 -       sta apu_regs,x
         inx
         cpx #15
         bne -
-
         copy #$c0, apu_counter
-
-        jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette  ; palette_copy -> PPU
+        jsr init_palette_copy
+        jsr update_palette
         rts
 
 ; -------------------------------------------------------------------------------------------------
@@ -2748,11 +2750,10 @@ delay_loop
 
         rts
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($dd22) --------------------------------------------------------------------
 
-        stx delay_var2  ; $dd22
+        stx delay_var2
         ldx #0
-        ;
 -       add #85
         clc
         nop
@@ -2762,13 +2763,10 @@ delay_loop
         inx
         cpx delay_var2
         bne -
-
         rts
-
         stx delay_var2
         ldy #0
         ldx #0
-        ;
 --      ldy #0
 -       nop
         nop
@@ -2778,12 +2776,10 @@ delay_loop
         iny
         cpy #11
         bne -
-        ;
         nop
         inx
         cpx delay_var2
         bne --
-
         rts
 
 ; -------------------------------------------------------------------------------------------------
@@ -3207,13 +3203,13 @@ print_big_text_line
 
 ; -------------------------------------------------------------------------------------------------
 
-move_stars_up
+move_stars
         ; Move star sprites up.
         ; Called by: anim_wecome, anim_title
         ; Calls: nothing
 
         copy #$00, zp12
-        ldx star_count  ; 10
+        ldx star_count_minus_one  ; 10
 
         ; loop: subtract star_y_speeds,x + 1 from Y positions of sprites 45-55
         ;
@@ -3236,15 +3232,13 @@ move_stars_up
 
 ; -------------------------------------------------------------------------------------------------
 
-init_star_sprites
-        ; Initialize star sprites for the first two parts of the demo.
+init_stars
+        ; Set up star sprites for the first two parts of the demo.
         ; Called by: init
         ; Calls: nothing
 
-        ldx star_count  ; 10
-
-        ; loop - edit sprites
-        ; X*4 -> Y
+        ; set up sprites #45-#55
+        ldx star_count_minus_one  ; 10
 -       txa
         asl
         asl
@@ -3253,13 +3247,13 @@ init_star_sprites
         lda star_initial_y,x
         sta sprite_page + 45*4 + 0,y
         lda star_tiles,x
-        sta sprite_page + 45*4 + 1,y
+        sta sprite_page + 45*4 + 1,y  ; tile ($ae/$af/$be/$bf)
         lda #%00000011
-        sta sprite_page + 45*4 + 2,y
+        sta sprite_page + 45*4 + 2,y  ; subpalette 3
         lda star_initial_x,x
         sta sprite_page + 45*4 + 3,y
         lda star_y_speeds,x
-        sta $011e,x
+        sta $011e,x                   ; 2-7
         ;
         dex
         cpx #255
@@ -3280,11 +3274,11 @@ endm
 anim_wecome
         ; Animate "GREETINGS! WE COME FROM..." part.
         ; Called by: nmi_wecome
-        ; Calls: print_big_text_line, sub19
+        ; Calls: print_big_text_line, move_stars_and_update_sprites
 
         chr_bankswitch 0
-        lda counter2
 
+        lda counter2
         cmp #1
         beq jump_table1 + 1*3
         cmp #2
@@ -3321,8 +3315,8 @@ anim_wecome
 +       inc vscroll
         inc vscroll
 
-++      copy #%10000000, ppu_ctrl
-        copy #%00011110, ppu_mask
+++      copy #%10000000, ppu_ctrl  ; enable NMI
+        copy #%00011110, ppu_mask  ; show background and sprites
 
 jump_table1
         jmp bigtext_exit    ;  0
@@ -3375,9 +3369,9 @@ to_next_part
         copy #0, flag1
         jmp bigtext_exit
 bigtext_exit
-        jmp sub19
+        jmp move_stars_and_update_sprites
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($e0d3) --------------------------------------------------------------------
 
 macro set_sprite_pos _index, _ycurve, _yadd, _xcurve, _xadd
         lda _ycurve,x
@@ -3391,24 +3385,20 @@ endm
 macro move_four_sprites _i1, _i2, _i3, _i4
         dec sprite_page + _i1*4 + 0
         dec sprite_page + _i1*4 + 3
-
         dec sprite_page + _i2*4 + 0
         inc sprite_page + _i2*4 + 3
-
         inc sprite_page + _i3*4 + 0
         dec sprite_page + _i3*4 + 3
-
         inc sprite_page + _i4*4 + 0
         inc sprite_page + _i4*4 + 3
 endm
 
-        copy #$00, zp12  ; $e0d3
+        copy #$00, zp12
         lda vscroll
         cmp #$a0
         bcc +
         jmp ++
 +       ldx unused1
-
         set_sprite_pos 0, curve1, 88, curve2, 110
         set_sprite_pos 1, curve1, 88, curve2, 118
         set_sprite_pos 2, curve1, 96, curve2, 110
@@ -3417,19 +3407,17 @@ endm
         set_sprite_pos 5, curve2, 88, curve1, 118
         set_sprite_pos 6, curve2, 96, curve1, 110
         set_sprite_pos 7, curve2, 96, curve1, 117
-
-        jmp sub19
-
+        jmp move_stars_and_update_sprites
 ++      move_four_sprites 0, 1, 2, 3
         move_four_sprites 4, 5, 6, 7
 
 ; -------------------------------------------------------------------------------------------------
 
-sub19   ; Called by: anim_wecome
-        ; Calls: move_stars_up
+move_stars_and_update_sprites
+        ; Called by: anim_wecome
         ;
-        jsr move_stars_up
-        copy #>sprite_page, oam_dma  ; do sprite DMA
+        jsr move_stars
+        copy #>sprite_page, oam_dma
         rts
 
 ; -------------------------------------------------------------------------------------------------
@@ -3483,20 +3471,18 @@ init_title
         copy #1, flag1
         copy #$8e, $012e
         copy #$19, $012f
-        copy #%00011110, ppu_mask
+        copy #%00011110, ppu_mask  ; show background and sprites
         rts
-
-; -------------------------------------------------------------------------------------------------
 
 anim_title
         ; Animate title part (wAMMA logo).
         ; Called by: nmi_title
-        ; Calls: sub15, fade_out_palette, update_palette, move_stars_up
+        ; Calls: sub15, fade_out_palette, update_palette, move_stars
 
         chr_bankswitch 0
         copy #>sprite_page, oam_dma  ; do sprite DMA
 
-        copy #%10010000, ppu_ctrl
+        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
 
         ; update fourth color of first background subpalette
         set_ppu_addr vram_palette + 0*4 + 3
@@ -3630,7 +3616,7 @@ anim_title_2
         jsr update_palette  ; palette_copy -> PPU
         copy #$00, zp20
 
-+       jsr move_stars_up
++       jsr move_stars
         copy #id_title, demo_part
         rts
 
@@ -3658,8 +3644,6 @@ init_horzbars2
         copy #1, flag1
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_horzbars2
         ; Animate full-screen horizontal color bars.
         ; Called by: nmi_horzbars2
@@ -3675,7 +3659,7 @@ anim_horzbars2
         lda curve2,x
         sta zp5
 
-        copy #%10000100, ppu_ctrl
+        copy #%10000100, ppu_ctrl  ; enable NMI, autoincrement PPU address by 32
 
         copy #$00, zp1
         ldy #$9f
@@ -3708,14 +3692,13 @@ anim_horzbars2
         dey
         bne --
 
-        copy #%00000110, ppu_mask
-        copy #%10010000, ppu_ctrl
+        copy #%00000110, ppu_mask  ; hide background and sprites
+        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate checkered wavy animation -------------------------------------------------
 
 init_checkered
-        ; Set up checkered wavy animation.
         ; Called by: nmi_checkered
         ; Calls: fill_name_tables, fill_attribute_tables, jump_snd_eng, init_palette_copy,
         ;        update_palette
@@ -3725,8 +3708,8 @@ init_checkered
         jsr fill_name_tables
 
         lda #%00000000
-        sta ppu_ctrl
-        sta ppu_mask
+        sta ppu_ctrl  ; disable NMI
+        sta ppu_mask  ; hide background and sprites
 
         ldy #$14
         jsr fill_attribute_tables
@@ -3743,10 +3726,7 @@ init_checkered
         copy #5, ram1
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_checkered
-        ; Animate checkered wavy animation.
         ; Called by: nmi_checkered
         ; Calls: delay
 
@@ -3882,14 +3862,13 @@ anim_checkered_2
         copy #230, ppu_scroll
         dec zp3
 
-        copy #%00001110, ppu_mask
-        copy #%10000000, ppu_ctrl
+        copy #%00001110, ppu_mask  ; show background, hide sprites
+        copy #%10000000, ppu_ctrl  ; enable NMI
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate red and purple gradients -------------------------------------------------
 
 init_gradients
-        ; Set up red&purple gradients.
         ; Called by: nmi_gradients
         ; Calls: fill_name_tables, init_palette_copy, update_palette, fill_attribute_tables,
         ;        fill_attribute_tables_top
@@ -3902,8 +3881,8 @@ init_gradients
         jsr update_palette  ; palette_copy -> PPU
 
         lda #%00000000
-        sta ppu_ctrl
-        sta ppu_mask
+        sta ppu_ctrl  ; disable NMI
+        sta ppu_mask  ; hide background and sprites
 
         ldy #$ff
         jsr fill_attribute_tables
@@ -3918,10 +3897,7 @@ init_gradients
         copy #1, flag1
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_gradients
-        ; Animate red&purple gradients.
         ; Called by: nmi_gradients
         ; Calls: change_background_color
 
@@ -4030,14 +4006,13 @@ anim_gradients_2
 
         dec zp3
 
-        copy #%00001110, ppu_mask
-        copy #%10000000, ppu_ctrl
+        copy #%00001110, ppu_mask  ; show background, hide sprites
+        copy #%10000000, ppu_ctrl  ; enable NMI
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate non-full-screen horizontal color bars ------------------------------------
 
 init_horzbars1
-        ; Set up non-full-screen horizontal color bars.
         ; Called by: nmi_horzbars1
         ; Calls: fill_nt_and_clear_at, jump_snd_eng, init_palette_copy, update_palette,
         ;        hide_sprites
@@ -4056,14 +4031,11 @@ init_horzbars1
         sta zp3
         sta zp4
 
-        copy #%00000000, ppu_mask
-        copy #%10000000, ppu_ctrl
+        copy #%00000000, ppu_mask  ; hide background and sprites
+        copy #%10000000, ppu_ctrl  ; enable NMI
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_horzbars1
-        ; Animate non-full-screen horizontal color bars.
         ; Called by: nmi_horzbars1
         ; Calls: delay
 
@@ -4075,7 +4047,7 @@ anim_horzbars1
         copy #$00, zp3
         dec zp2
 
-+       copy #%10000100, ppu_ctrl
++       copy #%10000100, ppu_ctrl  ; enable NMI, autoincrement PPU address by 32
 
         ; update first color of first background subpalette
         set_ppu_addr_via_x vram_palette + 0*4
@@ -4125,10 +4097,9 @@ anim_horzbars1
         reset_ppu_addr
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate credits ------------------------------------------------------------------
 
 init_credits
-        ; Set up credits part.
         ; Called by: nmi_credits
         ; Calls: fill_name_tables, init_palette_copy, update_palette, hide_sprites
 
@@ -4263,14 +4234,11 @@ init_credits_2
         copy #1,   flag1
         copy #$00, zp1
 
-        copy #%00011000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%00011000, ppu_ctrl  ; disable NMI, use pattern table 1 for background and sprites
+        copy #%00011110, ppu_mask  ; show background and sprites
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_credits
-        ; Animate credits part.
         ; Called by: nmi_credits
         ; Calls: fade_out_palette, update_palette, hide_sprites, update_sixteen_sprites,
         ;        update_eight_sprites, update_six_sprites
@@ -4497,14 +4465,13 @@ cred_exit1
         jsr hide_sprites
 cred_exit2
         chr_bankswitch 1
-        copy #%10011000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%10011000, ppu_ctrl  ; enable NMI, use pattern table 1 for background and sprites
+        copy #%00011110, ppu_mask  ; show background and sprites
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate woman --------------------------------------------------------------------
 
 init_woman
-        ; Set up woman part.
         ; Called by: nmi_woman
         ; Calls: fill_name_tables, fill_attribute_tables, hide_sprites, jump_snd_eng
 
@@ -4517,8 +4484,8 @@ init_woman
         jsr hide_sprites
 
         lda #%00000000
-        sta ppu_ctrl
-        sta ppu_mask
+        sta ppu_ctrl  ; disable NMI
+        sta ppu_mask  ; hide background and sprites
 
         copy #$20, $014a
         copy #$21, $014b
@@ -4611,13 +4578,10 @@ init_woman
         copy #1,   flag1
         copy #$00, zp20
 
-        copy #%10000000, ppu_ctrl
+        copy #%10000000, ppu_ctrl  ; enable NMI
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_woman
-        ; Animate woman part.
         ; Called by: nmi_woman
         ; Calls: delay
 
@@ -4748,7 +4712,7 @@ anim_woman
 
         chr_bankswitch 3
 
-        copy #%10001000, ppu_ctrl
+        copy #%10001000, ppu_ctrl  ; enable NMI, use pattern table 1 for sprites
 
         ldx #$ff
         jsr delay
@@ -4761,8 +4725,8 @@ anim_woman
         nop
         nop
 
-        copy #%10011000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%10011000, ppu_ctrl  ; enable NMI, use pattern table 1 for background and sprites
+        copy #%00011110, ppu_mask  ; show background and sprites
 
         lda zp3
         cmp #$fa
@@ -4781,20 +4745,27 @@ anim_woman
         copy #$00, $0149
 ++      rts
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block (an unused part of the demo) -----------------------------------------------
 
-        ldx #$7a              ; $ec99
+        ; Shows big eyes of a ninja at the top, a ninja walking right at the middle and credits
+        ; scrolling at the bottom.
+        ; How to see this part (although glitched):
+        ; - replace "jsr init_title" with "jsr init_ninja"
+        ; - replace "jsr anim_title" with "jsr anim_ninja"
+
+init_ninja  ; $ec99
+        ldx #$7a
         jsr fill_name_tables
 
         ldy #$00
         jsr fill_attribute_tables
         jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette  ; palette_copy -> PPU
+        jsr update_palette     ; palette_copy -> PPU
         jsr hide_sprites
 
         lda #%00000000
-        sta ppu_ctrl
-        sta ppu_mask
+        sta ppu_ctrl  ; disable NMI
+        sta ppu_mask  ; hide background and sprites
 
         set_ppu_addr name_table0 + 8*32 + 10
 
@@ -4806,6 +4777,7 @@ anim_woman
         bne -
 
         reset_ppu_addr
+
         set_ppu_addr name_table0 + 9*32 + 10
 
         ldy #0
@@ -4817,6 +4789,7 @@ anim_woman
         bne -
 
         reset_ppu_addr
+
         set_ppu_addr name_table0 + 10*32 + 10
 
         ldy #0
@@ -4840,12 +4813,13 @@ anim_woman
         copy #$10, ppu_data
         reset_ppu_addr
 
-        copy #%10000000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%10000000, ppu_ctrl  ; enable NMI
+        copy #%00011110, ppu_mask  ; show background and sprites
 
         copy #$00, $0130
         rts
 
+anim_ninja  ; $ed4b
         lda $0130
         cmp #$01
         beq +
@@ -4865,8 +4839,8 @@ anim_woman
         reset_ppu_addr
 
 +       copy #$01, $0130
-        copy #%00011110, ppu_mask
-        copy #%00010000, ppu_ctrl
+        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00010000, ppu_ctrl  ; disable NMI, use pattern table 1 for background
 
         inclda zp2
         cmp #8
@@ -4905,8 +4879,8 @@ anim_woman
         sta ppu_scroll
         copy #0, ppu_scroll
 
-        copy #%00010000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%00010000, ppu_ctrl  ; disable NMI, use pattern table 1 for background
+        copy #%00011110, ppu_mask  ; show background and sprites
 
         copy #>sprite_page, oam_dma  ; do sprite DMA
 
@@ -4919,7 +4893,7 @@ anim_woman
         ldx #$d0
         jsr delay
 
-        copy #%00000000, ppu_ctrl
+        copy #%00000000, ppu_ctrl  ; disable NMI
 
         chr_bankswitch 0
 
@@ -4993,24 +4967,24 @@ anim_woman
         bne +
         copy #$00, $0137
 
-+       copy #%10001000, ppu_ctrl
-        copy #%00011000, ppu_mask
++       copy #%10001000, ppu_ctrl  ; enable NMI, use pattern table 1 for sprites
+        copy #%00011000, ppu_mask  ; show background and sprites (neither in the leftmost column)
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate Bowser's spaceship -------------------------------------------------------
 
 init_bowser
-        ; Set up Bowser's spaceship part.
         ; Called by: nmi_bowser
         ; Calls: hide_sprites, fill_attribute_tables
 
         jsr hide_sprites
+
         ldy #$aa
         jsr fill_attribute_tables
-        copy #$1a, zp12
-        ldx #$60
 
-        ; loop
+        ; write the crescent moon to name table 0 (lines 8-15, columns 26-28, tiles $60-$77)
+        copy #$1a, zp12  ; row start address low ($1a, $3a, ..., $fa)
+        ldx #$60         ; tile
 --      copy #$21, ppu_addr
         copy zp12, ppu_addr
         ;
@@ -5023,16 +4997,15 @@ init_bowser
         ;
         reset_ppu_addr
         lda zp12
-        add #32
+        add #$20
         sta zp12
         lda zp12
         cmp #$1a
         bne --
 
-        copy #$08, zp12
-        ldx #$80
-
-        ; loop
+        ; write blank tiles to name table 0 (lines 16-18, columns 8-10, tiles $80-$88)
+        copy #$08, zp12  ; row start address low ($08, $28, $48)
+        ldx #$80         ; tile
 --      copy #$22, ppu_addr
         copy zp12, ppu_addr
         ;
@@ -5045,7 +5018,7 @@ init_bowser
         ;
         reset_ppu_addr
         lda zp12
-        add #32
+        add #$20
         sta zp12
         lda zp12
         cmp #$68
@@ -5079,10 +5052,10 @@ init_bowser
         copy #$00, ppu_data  ; dark gray
         reset_ppu_addr
 
-        ldx data3
+        ldx bowser_some_count_minus_one
 -       lda table6,x
         sta $0104,x
-        lda table7,x
+        lda bowser_sprites_tile3,x
         sta $0108,x
         dex
         cpx #255
@@ -5097,22 +5070,22 @@ init_bowser
         cpx #$ff
         bne -
 
-        ldx data7
-        ; loop - edit sprites
+        ; set up sprites (#48-#63) and some RAM array
+        ldx bowser_and_friday_sprite_count_minus_one  ; 15
 -       txa
         asl
         asl
         tay
         ;
-        lda sprite_y_table4,x
+        lda bowser_sprites_y,x
         sta sprite_page + 48*4 + 0,y
-        lda sprite_tile_table4,x
+        lda bowser_sprites_tile,x
         sta sprite_page + 48*4 + 1,y
-        lda sprite_x_table4,x
+        lda bowser_sprites_x,x
         sta sprite_page + 48*4 + 3,y
-        ;
-        lda sprite_xsub_table,x
+        lda bowser_sprites_xsub,x
         sta $011e,x
+        ;
         dex
         cpx #255
         bne -
@@ -5120,16 +5093,16 @@ init_bowser
         copy #$7a, $0111
         copy #$0a, $0110
 
-        ldx data4
-        ; loop - edit sprites
+        ; loop - edit sprites (#1-#17)
+        ldx bowser_sprite_count_minus_one  ; 16
 -       txa
         asl
         asl
         tay
         ;
-        lda sprite_tile_table2,x
+        lda bowser_sprites_tile2,x
         sta sprite_page + 1*4 + 1,y
-        lda sprite_attr_table2,x
+        lda bowser_sprites_attr,x
         sta sprite_page + 1*4 + 2,y
         ;
         cpx #0
@@ -5142,14 +5115,11 @@ init_bowser
         sta $0101
         sta $0102
         copy #1, flag1
-        copy #%10000000, ppu_ctrl
-        copy #%00010010, ppu_mask
+        copy #%10000000, ppu_ctrl  ; enable NMI
+        copy #%00010010, ppu_mask  ; hide background, show sprites (not in the leftmost column)
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_bowser
-        ; Animate Bowser's spaceship part.
         ; Called by: nmi_bowser
         ; Calls: nothing
 
@@ -5164,25 +5134,23 @@ anim_bowser
         adc #15
         sta $0110
         chr_bankswitch 2
-        ldx data3
 
         ; loop
+        ldx bowser_some_count_minus_one
 -       dec $0104,x
         lda $0104,x
         cmp #$00
-        bne anim_bowser_2
+        bne +++
         lda $0108,x
         cmp table8,x
         beq +
         inc $0108,x
-        jmp anim_bowser_1
-+       lda table7,x
+        jmp ++
++       lda bowser_sprites_tile3,x
         sta $0108,x
-anim_bowser_1
-        lda table6,x
+++      lda table6,x
         sta $0104,x
-anim_bowser_2
-        dex
++++     dex
         cpx #255
         bne -
 
@@ -5192,8 +5160,8 @@ anim_bowser_2
         copy $010a, sprite_page + 17*4 + 1
         copy $010b, sprite_page + 13*4 + 1
 
-        ldx data4
         ; loop - edit sprite positions
+        ldx bowser_sprite_count_minus_one  ; 16
 -       txa
         asl
         asl
@@ -5220,8 +5188,7 @@ anim_bowser_2
         cpx data6
         bne +      ; always taken
 
-        ; unaccessed block ($f111)
-        copy #$00, $0101
+        copy #$00, $0101  ; unaccessed ($f111)
 
 +       ldxy $0102, $0100
         lda #$ff
@@ -5275,7 +5242,7 @@ anim_bowser_4
         cpx #255
         bne -
 
-        ldx data7
+        ldx bowser_and_friday_sprite_count_minus_one  ; 15
         ; loop
 -       txa
         asl
@@ -5284,23 +5251,22 @@ anim_bowser_4
         ;
         lda sprite_page + 48*4 + 3,y
         clc
-        sbc sprite_xsub_table,x
+        sbc bowser_sprites_xsub,x
         sta sprite_page + 48*4 + 3,y
         ;
         dex
         cpx #255
         bne -
 
-        copy #%10000000, ppu_ctrl
-        copy #%00011010, ppu_mask
+        copy #%10000000, ppu_ctrl  ; enable NMI
+        copy #%00011010, ppu_mask  ; show background and sprites (no sprites in leftmost column)
 
         set_ppu_scroll 0, 50
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and "animate" "game over" part -------------------------------------------------------
 
 init_gameover
-        ; Set up "game over" part.
         ; Called by: nmi_gameover
         ; Calls: fill_name_tables, fill_attribute_tables, init_palette_copy, update_palette
 
@@ -5327,26 +5293,22 @@ init_gameover
         cpx #96
         bne -
 
-        copy #%00000010, ppu_ctrl
-        copy #%00000000, ppu_mask
+        copy #%00000010, ppu_ctrl  ; disable NMI, use name table 2
+        copy #%00000000, ppu_mask  ; hide background and sprites
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_gameover
-        ; Animate "game over" part.
         ; Called by: nmi_gameover
         ; Calls: nothing
 
         set_ppu_scroll 0, 0
-        copy #%10010000, ppu_ctrl
-        copy #%00001110, ppu_mask
+        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
+        copy #%00001110, ppu_mask  ; show background, hide sprites
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate "GREETS" part ------------------------------------------------------------
 
 init_greets
-        ; Set up "GREETS" part.
         ; Called by: nmi_greets
         ; Calls: fill_name_tables, fill_attribute_tables, clear_palette_copy, update_palette
 
@@ -5359,8 +5321,8 @@ init_greets
         jsr clear_palette_copy  ; black -> palette_copy
         jsr update_palette      ; palette_copy -> PPU
 
-        copy #%00000010, ppu_ctrl  ; disable NMI
-        copy #%00000000, ppu_mask  ; hide sprites and background
+        copy #%00000010, ppu_ctrl  ; disable NMI, use name table 2
+        copy #%00000000, ppu_mask  ; hide background and sprites
 
         ; Write the heading "GREETS TO ALL NINTENDAWGS:" (16*3 tiles, tiles $00-$2f)
         ; to rows 3-5, columns 9-24 of Name Table 0.
@@ -5426,10 +5388,7 @@ init_greets
         copy #$e6, $0153
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_greets
-        ; Animate "GREETS" part.
         ; Called by: nmi_greets
         ; Calls: init_palette_copy, update_palette, fade_out_palette
 
@@ -5480,14 +5439,13 @@ anim_greets
         copy #0, zp20
 
 +       copy #id_greets, demo_part
-        copy #%10010000, ppu_ctrl
-        copy #%00001110, ppu_mask
+        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
+        copy #%00001110, ppu_mask  ; show background, hide sprites
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate Coca Cola cans -----------------------------------------------------------
 
 init_cola
-        ; Set up wavy Coca Cola cans.
         ; Called by: nmi_cola
         ; Calls: fill_name_tables, hide_sprites, fill_attribute_tables
 
@@ -5499,8 +5457,8 @@ init_cola
         jsr fill_attribute_tables
 
         lda #%00000000
-        sta ppu_ctrl
-        sta ppu_mask
+        sta ppu_ctrl  ; disable NMI
+        sta ppu_mask  ; hide background and sprites
 
         lda #$00
         sta zp1
@@ -5521,13 +5479,10 @@ init_cola
 
         copy #$00,       $014c
         copy #1,         flag1
-        copy #%10000000, ppu_ctrl
+        copy #%10000000, ppu_ctrl  ; enable NMI
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 anim_cola
-        ; Animate wavy Coca Cola cans.
         ; Called by: nmi_cola
         ; Calls: delay
 
@@ -5665,14 +5620,14 @@ anim_cola_3
         cmp zp12
         bcc +
         bcs ++
-+       copy #%00001110, ppu_mask
++       copy #%00001110, ppu_mask  ; show background, hide sprites
         jmp +++
 ++      lda zp1
         cmp zp13
         bcs +
-        copy #%11101110, ppu_mask
+        copy #%11101110, ppu_mask  ; darken all colors, show background, hide sprites
 +++     jmp ++
-+       copy #%00001110, ppu_mask
++       copy #%00001110, ppu_mask  ; show background, hide sprites
 ++      lda zp1
         add zp3
         adc zp2
@@ -5697,8 +5652,8 @@ anim_cola_3
         bne -
 
 anim_cola_5
-        copy #%10010000, ppu_ctrl
-        copy #%00001110, ppu_mask
+        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
+        copy #%00001110, ppu_mask  ; show background, hide sprites
         rts
 
 ; -------------------------------------------------------------------------------------------------
@@ -5713,19 +5668,18 @@ write_row
         iny
         cpy #32
         bne -
-
         rts
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($f4f9) --------------------------------------------------------------------
 
-        ldy #0        ; $f4f9
+        ldy #0
 -       stx ppu_data
         iny
         cpy #32
         bne -
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate the "IT IS FRIDAY..." part -----------------------------------------------
 
 macro write_row_macro _byte
         ldx _byte
@@ -5733,7 +5687,6 @@ macro write_row_macro _byte
 endm
 
 init_friday
-        ; Set up "IT IS FRIDAY..." part.
         ; Called by: nmi_friday
         ; Calls: fill_nt_and_clear_at, hide_sprites, write_row
 
@@ -5742,8 +5695,8 @@ init_friday
         jsr hide_sprites
 
         lda #%00000000
-        sta ppu_ctrl
-        sta ppu_mask
+        sta ppu_ctrl  ; disable NMI
+        sta ppu_mask  ; hide background and sprites
 
         ; write 24 rows of tiles to the start of Name Table 0
         set_ppu_addr name_table0
@@ -5790,7 +5743,7 @@ init_friday
         copy some_palette2 + 3, ppu_data
         reset_ppu_addr
 
-        ldx data7
+        ldx bowser_and_friday_sprite_count_minus_one  ; 15
         ; loop - edit sprites
 -       txa
         asl
@@ -5820,8 +5773,6 @@ init_friday
         copy #$00, text_offset
         rts
 
-; -------------------------------------------------------------------------------------------------
-
 macro edit_sprite_macro _index, _y, _x
         lda #_y
         clc
@@ -5833,7 +5784,6 @@ macro edit_sprite_macro _index, _y, _x
 endm
 
 anim_friday
-        ; Animate "IT IS FRIDAY..." part.
         ; Called by: nmi_friday
         ; Calls: nothing
 
@@ -5846,7 +5796,7 @@ anim_friday
 
         copy #>sprite_page, oam_dma  ; do sprite DMA
 
-        ldx data7
+        ldx bowser_and_friday_sprite_count_minus_one  ; 15
         ; loop - edit sprite positions
 -       txa
         asl
@@ -5935,8 +5885,8 @@ anim_friday_2
         edit_sprite_macro 4, 152, 0
         edit_sprite_macro 5, 156, 0
 
-        copy #%10000000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%10000000, ppu_ctrl  ; enable NMI
+        copy #%00011110, ppu_mask  ; show background and sprites
         rts
 
 ; -------------------------------------------------------------------------------------------------
@@ -5984,20 +5934,16 @@ fill_attribute_tables_top
         reset_ppu_addr
         rts
 
-; --- Unaccessed block ----------------------------------------------------------------------------
+; --- Unaccessed block ($f7d0) --------------------------------------------------------------------
 
-        set_ppu_addr attr_table0 + 4*8  ; $f7d0
-
+        set_ppu_addr attr_table0 + 4*8
         ldx #32
 -       sty ppu_data
         dexbne -
-
         set_ppu_addr attr_table2 + 4*8
-
         ldx #32
 -       sty ppu_data
         dexbne -
-
         reset_ppu_addr
         rts
 
@@ -6092,8 +6038,8 @@ fill_nt_and_clear_at
         copy #$3c, zp12
 
         lda #%00000000
-        sta ppu_ctrl
-        sta ppu_mask
+        sta ppu_ctrl  ; disable NMI
+        sta ppu_mask  ; hide background and sprites
 
         clear_at_macro attr_table0
         clear_at_macro attr_table1
@@ -6110,47 +6056,47 @@ fill_nt_and_clear_at
         sta ppu_scroll
         sta ppu_scroll
 
-        copy #%00000000, ppu_ctrl
-        copy #%00011110, ppu_mask
+        copy #%00000000, ppu_ctrl  ; disable NMI
+        copy #%00011110, ppu_mask  ; show background and sprites
         rts
 
 ; -------------------------------------------------------------------------------------------------
 
-nmi     ; Non-maskable interrupt routine
+nmi     ; Non-maskable interrupt routine. Run code for the part of the demo we're in.
         ; Called by: NMI vector
-        ; Calls: many things (see jump table)
+        ; Calls: (see jump table)
 
         lda ppu_status  ; clear VBlank flag
 
         lda demo_part
         cmp #0
-        beq jump_table3 + 1*3
+        beq nmi_jump_table + 1*3
         cmp #1
-        beq jump_table3 + 2*3
+        beq nmi_jump_table + 2*3
         cmp #2
-        beq jump_table3 + 3*3
+        beq nmi_jump_table + 3*3
         cmp #3
-        beq jump_table3 + 4*3
+        beq nmi_jump_table + 4*3
         cmp #4
-        beq jump_table3 + 5*3
+        beq nmi_jump_table + 5*3
         cmp #5
-        beq jump_table3 + 6*3
+        beq nmi_jump_table + 6*3
         cmp #6
-        beq jump_table3 + 7*3
+        beq nmi_jump_table + 7*3
         cmp #7
-        beq jump_table3 + 8*3
+        beq nmi_jump_table + 8*3
         cmp #9
-        beq jump_table3 + 9*3
+        beq nmi_jump_table + 9*3
         cmp #10
-        beq jump_table3 + 10*3
+        beq nmi_jump_table + 10*3
         cmp #11
-        beq jump_table3 + 11*3
+        beq nmi_jump_table + 11*3
         cmp #12
-        beq jump_table3 + 12*3
+        beq nmi_jump_table + 12*3
         cmp #13
-        beq jump_table3 + 13*3
+        beq nmi_jump_table + 13*3
 
-jump_table3
+nmi_jump_table
         jmp nmi_exit       ;  0 (unaccessed, $f980)
         jmp nmi_wecome     ;  1
         jmp nmi_horzbars1  ;  2
@@ -6166,10 +6112,8 @@ jump_table3
         jmp nmi_greets     ; 12
         jmp nmi_gameover   ; 13
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_wecome
-        ; "Greetings! We come from..."
+        ; Demo part: "Greetings! We come from..."
         ; Called by: nmi
         ; Calls: anim_wecome, jump_snd_eng
 
@@ -6178,8 +6122,8 @@ nmi_wecome
         cmp #0
         beq +
         jmp ++
-        ;
 +       copy #1, flag1
+
 ++      jsr anim_wecome
         jsr jump_snd_eng
         inc unused1
@@ -6189,15 +6133,13 @@ nmi_wecome
         cmp #230
         beq +
         jmp ++
-        ;
+
 +       inc counter2
         copy #0, counter1
 ++      jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_horzbars1
-        ; non-full-screen horizontal color bars (after the red&purple gradients)
+        ; Demo part: non-full-screen horizontal color bars (after the red and purple gradients).
         ; Called by: nmi
         ; Calls: init_horzbars1, anim_horzbars1, jump_snd_eng
 
@@ -6207,27 +6149,25 @@ nmi_horzbars1
         beq +
         jmp ++
 +       jsr init_horzbars1
-        ;
+
 ++      jsr anim_horzbars1
         jsr jump_snd_eng
         inclda zp10
         cmp #255
         beq +
         jmp ++
-        ;
+
 +       inclda zp11
         cmp #3
         beq +
         jmp ++
-        ;
+
 +       copy #id_woman, demo_part  ; next part
         copy #0, flag1
 ++      jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_title
-        ; "wAMMA - Quantum Disco Brothers"
+        ; Demo part: title screen ("wAMMA - Quantum Disco Brothers").
         ; Called by: nmi
         ; Calls: init_title, anim_title, jump_snd_eng
 
@@ -6235,28 +6175,26 @@ nmi_title
         cmp #0
         beq +
         jmp ++
-        ;
-+       jsr init_title
+
++       jsr init_title  ; $fa13
 ++      jsr anim_title
         jsr jump_snd_eng
         inclda zp27
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inclda zp28
         cmp #$03
         beq +
         jmp ++
-        ;
+
 +       copy #id_gradients, demo_part  ; next part
         copy #0, flag1
 ++      jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_credits
-        ; credits
+        ; Demo part: credits.
         ; Called by: nmi
         ; Calls: init_credits, anim_credits, jump_snd_eng
 
@@ -6264,16 +6202,14 @@ nmi_credits
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_credits
 ++      jsr anim_credits
         jsr jump_snd_eng
         jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_woman
-        ; the woman
+        ; Demo part: the woman.
         ; Called by: nmi
         ; Calls: init_woman, anim_woman, jump_snd_eng
 
@@ -6281,7 +6217,7 @@ nmi_woman
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_woman
 ++      jsr anim_woman
         jsr jump_snd_eng
@@ -6289,20 +6225,18 @@ nmi_woman
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inclda zp26
         cmp #$04
         beq +
         jmp ++
-        ;
+
 +       copy #id_friday, demo_part  ; next part
         copy #0, flag1
 ++      jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_friday
-        ; "It is Friday..."
+        ; Demo part: "It is Friday..."
         ; Called by: nmi
         ; Calls: init_friday, anim_friday, jump_snd_eng
 
@@ -6310,16 +6244,14 @@ nmi_friday
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_friday
 ++      jsr anim_friday
         jsr jump_snd_eng
         jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_bowser
-        ; Bowser's spaceship
+        ; Demo part: Bowser's spaceship.
         ; Called by: nmi
         ; Calls: init_bowser, anim_bowser, jump_snd_eng
 
@@ -6327,7 +6259,7 @@ nmi_bowser
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_bowser
 ++      jsr anim_bowser
         jsr jump_snd_eng
@@ -6335,20 +6267,18 @@ nmi_bowser
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inclda $0136
         cmp #$03
         beq +
         jmp ++
-        ;
+
 +       copy #id_credits, demo_part  ; next part
         copy #0, flag1
 ++      jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_cola
-        ; Coca Cola cans
+        ; Demo part: Coca Cola cans.
         ; Called by: nmi
         ; Calls: init_cola, anim_cola, jump_snd_eng
 
@@ -6356,7 +6286,7 @@ nmi_cola
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_cola
 ++      jsr anim_cola
         jsr jump_snd_eng
@@ -6364,7 +6294,7 @@ nmi_cola
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inc $0140
 ++      lda $0140
         cmp #$03
@@ -6376,10 +6306,8 @@ nmi_cola
         copy #0, flag1
 ++      jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_horzbars2
-        ; full-screen horizontal color bars (after "game over - continue?")
+        ; Demo part: full-screen horizontal color bars (after "game over - continue?").
         ; Called by: nmi
         ; Calls: init_horzbars2, anim_horzbars2
 
@@ -6387,27 +6315,25 @@ nmi_horzbars2
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_horzbars2
 ++      jsr anim_horzbars2
         inclda $0141
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inclda $0142
         cmp #$0e
         beq +
         jmp ++
-        ;
+
 +       copy #id_wecome, demo_part  ; back to first part
         copy #0, flag1
 ++      jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_checkered
-        ; checkered wavy animation
+        ; Demo part: checkered wavy animation.
         ; Called by: nmi
         ; Calls: init_checkered, anim_checkered, jump_snd_eng
 
@@ -6415,7 +6341,7 @@ nmi_checkered
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_checkered
 ++      jsr anim_checkered
         jsr jump_snd_eng
@@ -6423,7 +6349,7 @@ nmi_checkered
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inc $0144
 ++      lda $0144
         cmp #$02
@@ -6435,10 +6361,8 @@ nmi_checkered
         copy #0, flag1
 +       jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_gradients
-        ; red&purple gradient
+        ; Demo part: red and purple gradient.
         ; Called by: nmi
         ; Calls: init_gradients, anim_gradients, jump_snd_eng
 
@@ -6446,7 +6370,7 @@ nmi_gradients
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_gradients
 ++      jsr anim_gradients
         jsr jump_snd_eng
@@ -6454,20 +6378,18 @@ nmi_gradients
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inclda $0146
         cmp #$03
         beq +
         jmp ++
-        ;
+
 +       copy #id_horzbars1, demo_part  ; next part
         copy #0, flag1
 ++      jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_greets
-        ; greets
+        ; Demo part: "GREETS TO ALL NINTENDAWGS".
         ; Called by: nmi
         ; Calls: init_greets, anim_greets, jump_snd_eng
 
@@ -6475,7 +6397,7 @@ nmi_greets
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_greets
 ++      jsr anim_greets
         jsr jump_snd_eng
@@ -6483,7 +6405,7 @@ nmi_greets
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inc $0150
 ++      lda $0150
         cmp #$03
@@ -6495,10 +6417,8 @@ nmi_greets
         copy #0, flag1
 +       jmp nmi_exit  ; RTI
 
-; -------------------------------------------------------------------------------------------------
-
 nmi_gameover
-        ; "GAME OVER - CONTINUE?"
+        ; Demo part: "game over - continue?".
         ; Called by: nmi
         ; Calls: init_gameover, anim_gameover
 
@@ -6506,14 +6426,14 @@ nmi_gameover
         cmp #0
         beq +
         jmp ++
-        ;
+
 +       jsr init_gameover
 ++      jsr anim_gameover
         inclda $0151
         cmp #$ff
         beq +
         jmp ++
-        ;
+
 +       inc $0152
 ++      lda $0152
         cmp #$0a
@@ -6524,8 +6444,6 @@ nmi_gameover
         copy #id_horzbars2, demo_part  ; next part
         copy #0, flag1
 +       jmp nmi_exit  ; RTI
-
-; -------------------------------------------------------------------------------------------------
 
 nmi_exit
         rti
@@ -6538,7 +6456,6 @@ irq     rti  ; $fc26
 
         pad $fffa, $00
         dw nmi, init, irq
-        pad $10000, $ff
 
 ; --- CHR ROM -------------------------------------------------------------------------------------
 

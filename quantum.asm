@@ -5005,7 +5005,7 @@ init_bowser
 
         ; write blank tiles to name table 0 (lines 16-18, columns 8-10, tiles $80-$88)
         copy #$08, zp12  ; row start address low ($08, $28, $48)
-        ldx #$80         ; tile
+        ldx #$80         ; tile (replace with #$57 to make small crescent moon reappear)
 --      copy #$22, ppu_addr
         copy zp12, ppu_addr
         ;

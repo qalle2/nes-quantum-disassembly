@@ -10,6 +10,7 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 * [iNES ROM header info](#ines-rom-header-info)
 * [The parts of the demo](#the-parts-of-the-demo)
 * [An unused part of the demo](#an-unused-part-of-the-demo)
+* [A hidden crescent moon](#a-hidden-crescent-moon)
 * [Code/data log](#codedata-log)
 * [CHR ROM banks](#chr-rom-banks)
 * [References](#references)
@@ -50,43 +51,43 @@ Note: the Linux script `assemble.sh` is intended for my personal use. Do not run
 * Frame numbers: FCEUX's Frame Display in PAL mode.
 * The internal part numbers are at RAM address `0x0001`.
 
-![](shot/01.png)
+![](parts/01.png)
 1st part (internally part 0, starts at frame ~6): "GREETINGS! WE COME FROM..."; uses CHR bank 0
 
-![](shot/02.png)
+![](parts/02.png)
 2nd part (internally part 2, starts at frame 1156): "wAMMA - QUANTUM DISCO BROTHERS"; uses CHR bank 0
 
-![](shot/03.png)
+![](parts/03.png)
 3rd part (internally part 11, starts at frame 1923): red&purple gradients; uses CHR bank 1
 
-![](shot/04.png)
+![](parts/04.png)
 4th part (internally part 1, starts at frame 2690): horizontal color bars; uses CHR bank 1
 
-![](shot/05.png)
+![](parts/05.png)
 5th part (internally part 4, starts at frame 3458): a woman; uses CHR bank 3
 
-![](shot/06.png)
+![](parts/06.png)
 6th part (internally part 5, starts at frame 4481): "IT IS FRIDAY..."; uses CHR bank 0
 
-![](shot/07.png)
+![](parts/07.png)
 7th part (internally part 7, starts at frame 6362): Coca Cola cans; uses CHR bank 2
 
-![](shot/08.png)
+![](parts/08.png)
 8th part (internally part 6, starts at frame 7304): Bowser's spaceship; uses CHR bank 2
 
-![](shot/09.png)
+![](parts/09.png)
 9th part (internally part 3, starts at frame 8071): credits; uses CHR bank 1
 
-![](shot/10.png)
+![](parts/10.png)
 10th part (internally part 10, starts at frame 9692): a checkered wavy animation; uses CHR bank 1
 
-![](shot/11.png)
+![](parts/11.png)
 11th part (internally part 12, starts at frame 10380): "GREETS TO ALL NINTENDAWGS"; uses CHR bank 2
 
-![](shot/12.png)
+![](parts/12.png)
 12th part (internally part 13, starts at frame 11298): "GAME OVER - CONTINUE?"; uses CHR bank 2
 
-![](shot/13.png)
+![](parts/13.png)
 13th part (internally part 9, starts at frame 14018): more horizontal color bars; uses CHR bank 2
 
 The demo should probably end at this point, as on [this YouTube video](https://www.youtube.com/watch?v=hhoa_K75BKI).
@@ -98,11 +99,17 @@ I omitted the glitchy part from the code/data log file.
 There is an unused ninja-themed sequence in the demo.
 It was probably meant to be used in place of the 6th part of the demo which displays the same text.
 
-![](shot/hidden-ninja.png)
+![](parts/hidden-ninja.png)
 
 The relevant subroutines are `$ec99` and `$ed4b` (labels `init_ninja` and `anim_ninja` in my disassembly).
 To see the hidden sequence (although glitched) in place of the second part of the demo,
 replace `jsr init_title` and `jsr anim_title` with calls to those subroutines or use Game Genie codes `OPPYKX + KTPYSX + LGPYNX + STPNEX`.
+
+## A hidden crescent moon
+
+In the Bowser's spaceship part, you can make another smaller crescent moon appear with Game Genie code `YILVEY`:
+
+![](parts/08-hidden-moon.png)
 
 ## Code/data log
 
@@ -528,7 +535,7 @@ Three unused ninja animation frames in the first half. Colored by me. See "an un
 Same as above but animated by me at 5 fps in order 1, 2, 3, 2.
 
 ![](unused/moon.png)
-An unused small crescent moon in the first half. Here, colored the same as the big crescent moon used in the 8th part of the demo.
+An unused small crescent moon in the first half. See "a hidden crescent moon" above.
 
 ![](unused/asteroids.png)
 Unused big asteroids (fireballs?) in the first half. Here, colored the same as the small asteroids/fireballs used in the 8th part of the demo.

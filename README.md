@@ -9,6 +9,7 @@ An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quant
 * [How to assemble](#how-to-assemble)
 * [iNES ROM header info](#ines-rom-header-info)
 * [The parts of the demo](#the-parts-of-the-demo)
+* [An unused part of the demo](#an-unused-part-of-the-demo)
 * [Code/data log](#codedata-log)
 * [CHR ROM banks](#chr-rom-banks)
 * [References](#references)
@@ -91,6 +92,17 @@ Note: the Linux script `assemble.sh` is intended for my personal use. Do not run
 The demo should probably end at this point, as on [this YouTube video](https://www.youtube.com/watch?v=hhoa_K75BKI).
 However, on FCEUX, it starts to glitch from frame ~17603 on.
 I omitted the glitchy part from the code/data log file.
+
+## An unused part of the demo
+
+There is an unused ninja-themed sequence in the demo.
+It was probably meant to be used in place of the 6th part of the demo which displays the same text.
+
+![](shot/hidden-ninja.png)
+
+The relevant subroutines are `$ec99` and `$ed4b` (labels `init_ninja` and `anim_ninja` in my disassembly).
+To see the hidden sequence (although glitched) in place of the second part of the demo,
+replace `jsr init_title` and `jsr anim_title` with calls to those subroutines or use Game Genie codes `OPPYKX + KTPYSX + LGPYNX + STPNEX`.
 
 ## Code/data log
 
@@ -510,10 +522,10 @@ No interesting unused tiles.
 Used by the 7th, 8th, 11th, 12th and 13th part of the demo.
 
 ![](unused/ninja.png)
-Three unused ninja animation frames in the first half. Colored by me.
+Three unused ninja animation frames in the first half. Colored by me. See "an unused part of the demo" above.
 
 ![](unused/ninja-anim.gif)
-Same as above but animated at 5 fps in order 1, 2, 3, 2.
+Same as above but animated by me at 5 fps in order 1, 2, 3, 2.
 
 ![](unused/moon.png)
 An unused small crescent moon in the first half. Here, colored the same as the big crescent moon used in the 8th part of the demo.
@@ -522,7 +534,7 @@ An unused small crescent moon in the first half. Here, colored the same as the b
 Unused big asteroids (fireballs?) in the first half. Here, colored the same as the small asteroids/fireballs used in the 8th part of the demo.
 
 ![](unused/eyes.png)
-Unused eyes of a ninja in the second half. Colored by me.
+Unused eyes of a ninja in the second half. Colored by me. See "an unused part of the demo" above.
 
 ### Bank 3
 

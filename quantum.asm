@@ -101,10 +101,10 @@ pulse1_length equ $4003
 triangle_ctrl equ $4008
 noise_period  equ $400e
 noise_length  equ $400f
-dmc_ctrl      equ $4010
-dmc_load      equ $4011
-dmc_addr      equ $4012
-dmc_length    equ $4013
+dmc_ctrl      equ $4010  ; write bits: 7=IRQ, 6=loop, 3-0=frequency
+dmc_load      equ $4011  ; write bits: 6-0=load counter
+dmc_addr      equ $4012  ; write: sample address
+dmc_length    equ $4013  ; write: sample length
 oam_dma       equ $4014
 apu_ctrl      equ $4015
 apu_counter   equ $4017
@@ -164,7 +164,7 @@ zp20        equ $a3  ; ?
 zp21        equ $a5  ; ?
 zp22        equ $a6  ; ?
 zp23        equ $a7  ; ?
-zp24        equ $a8  ; ?
+sprite_page_offset equ $a8  ; in update_metasprite_8x2, update_metasprite_3x2, update_metasprite_4x2
 zp25        equ $a9  ; in nmi_woman only
 zp26        equ $aa  ; in nmi_woman only
 zp27        equ $ab  ; ?
@@ -457,13 +457,10 @@ sub1    sta ptr4+0  ; $8034
         adc $036c
         sta $036d
 
-        ; clear dc-df, e5-ec,
-        ; 300-303, 308-30b, 310-31b, 320-347, 34c-34f, 350-353,
-        ; 355-358, 35a-35d, 35f-362, 394-39f, 3a4-3a7
+        ; clear zp_arr1, zp_arr3, zp_arr4 and various arrays in the $0300-$03ff range
         lda #$00
         ldx #3
-clear_loop
-        sta $0300,x
+-       sta $0300,x
         sta zp_arr1,x
         sta $0308,x
         sta zp_arr4,x
@@ -490,11 +487,11 @@ clear_loop
         sta $035a,x
         sta $035f,x
         sta $039c,x
-        dexbpl clear_loop
+        dexbpl -
 
         sta zp34
         sta zp35
-        sta apu_ctrl_mirror
+        sta apu_ctrl_mirror  ; disable all sound channels
         sta apu_ctrl
         ldx zp33
         inx
@@ -590,7 +587,7 @@ sound_engine
         sub #1
         bpl +
         ;
-        lda apu_ctrl_and_masks,x
+        lda apu_ctrl_channel_disable_masks,x
         and apu_ctrl_mirror
         sta apu_ctrl_mirror
         ;
@@ -794,7 +791,7 @@ sound5b pha
 
 ; -------------------------------------------------------------------------------------------------
 
-        ; Called by: sound_engine (from one place only)
+        ; Called by: sound_engine
         ; Calls: sound2, sound5, sound7
 
 sound6  jsr sound7
@@ -1123,7 +1120,7 @@ sound9a lda $031c,x
         lda $03b4,x
         sta $0300,x
         ;
-        lda apu_ctrl_or_masks,x
+        lda apu_ctrl_channel_enable_masks,x
         ora apu_ctrl_mirror
         sta apu_ctrl_mirror
         ;
@@ -1240,7 +1237,7 @@ unacc6  eor #%11111111
         add #1
         sta $032c,x
 
-sound9e lda apu_ctrl_or_masks,x
+sound9e lda apu_ctrl_channel_enable_masks,x
         ora apu_ctrl_mirror
         sta apu_ctrl_mirror
 
@@ -1257,7 +1254,7 @@ sound9f ldy $0350,x
         lda $031c,x
         sta zp_arr3,x
 
-        lda apu_ctrl_or_masks,x
+        lda apu_ctrl_channel_enable_masks,x
         ora apu_ctrl_mirror
         sta apu_ctrl_mirror
 
@@ -1276,7 +1273,7 @@ sound9f ldy $0350,x
 
 sound9g sta $0308,x
         ;
-        lda apu_ctrl_or_masks,x
+        lda apu_ctrl_channel_enable_masks,x
         ora apu_ctrl_mirror
         sta apu_ctrl_mirror
 
@@ -1285,7 +1282,7 @@ sound9h dex
         jmp sound9c
 +       jmp sound10g
 
-sound9i lda apu_ctrl_and_masks,x
+sound9i lda apu_ctrl_channel_disable_masks,x
         and apu_ctrl_mirror
         sta apu_ctrl_mirror
         ;
@@ -1531,7 +1528,7 @@ sound10g
         dey
         bpl +
         ;
-        lda apu_ctrl_and_masks,x
+        lda apu_ctrl_channel_disable_masks,x
         and apu_ctrl_mirror
         sta apu_ctrl_mirror
         ;
@@ -1636,10 +1633,14 @@ sub13   ldy #$ff
 
 apu_reg_offsets
         db 0, 4, 8, 12  ; read by: sound1, sound2, sound10
-apu_ctrl_or_masks
-        db %00000001, %00000010, %00000100, %00001000  ; read by sound9
-apu_ctrl_and_masks
-        db %11111110, %11111101, %11111011, %11110111  ; read by sound_engine, sound9, sound10
+apu_ctrl_channel_enable_masks
+        ; OR bitmasks for enabling square 1 / square 2 / triangle / noise
+        ; read by sound9
+        db %00000001, %00000010, %00000100, %00001000
+apu_ctrl_channel_disable_masks
+        ; AND bitmasks for disabling square 1 / square 2 / triangle / noise
+        ; read by sound_engine, sound9, sound10
+        db %11111110, %11111101, %11111011, %11110111
 
 or_masks
         ; $8967 (some bytes unaccessed; read by sound5)
@@ -2184,8 +2185,7 @@ palette_table
         db $0f, $02, $22, $30  ; dark blue, light blue, white
 
         ; unaccessed ($c274)
-        db $a9, $aa, $aa, $aa, $aa, $aa, $aa, $aa
-        db $aa, $aa, $aa, $42
+        hex a9 aa aa aa aa aa aa aa aa aa aa 42
 
         ; read as PCM audio data ($c280, 4001 bytes)
         hex f8ff950300c0fff9eb179f00e8130068632b45feff7fbbd30800e835450436a4
@@ -2346,28 +2346,29 @@ greets_text  ; 32*20 bytes
         db "[[[[[[[[[[[[[WAMMA[[[[[[[[[[[[[["
         db "[QUALITY[PRODUCTIONS[SINCE[", $8c, $8d, $8e, $8f, "["
 
-        ; tile numbers of top left tiles of big letters, starting from the big "A"
-        ; (in the "we come from..." part)
+        ; Tile numbers of top left tiles of big letters, starting from the big "A".
+        ; Read by: print_big_text_line
 big_letter_tiles
-        hex 48 4a 4c 4e
-        hex 60 62 64 66 68 6a 6c 6e
-        hex 80 82 84 86 88 8a 8c 8e
-        hex a0 a2 a4 a6 a8 aa ac ae
+        hex 48 4a 4c 4e              ; "ABCD"
+        hex 60 62 64 66 68 6a 6c 6e  ; "EFGHI KL"
+        hex 80 82 84 86 88 8a 8c 8e  ; "MNOPQRST"
+        hex a0 a2 a4 a6 a8 aa ac ae  ; "UVW"
         hex c0 c2 c4 c6 c8 ca cc ce
         hex e0 e2 e4 e6 e8 ea ec ee
 
-color_or_table
-        db %00001111, %00000000, %00010000, %00100000
+color_or_table  ; read by: fade_to_black
+        hex 0f 00 10 20
 
-some_palette1
+        ; Read by: init_friday
+friday_bg_palette
         hex 3c 0f 3c 22
-
-some_palette2
+friday_spr_palette
         hex 3c 3c 3c 3c
 
         ; 256 bytes.
         ; If the formula (x + 60) % 256 is applied, looks like a smooth curve with values 0-121.
         ; Used as scroll values and sprite positions.
+        ; Read by: many anim_ subs
 curve1  hex 00 00 ff fe fd fc fc fb fa fa f9 f8 f8 f7 f7 f6
         hex f6 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f6 f6
         hex f7 f7 f8 f9 fa fb fc fd fe ff 00 01 03 04 05 07
@@ -2387,6 +2388,7 @@ curve1  hex 00 00 ff fe fd fc fc fb fa fa f9 f8 f8 f7 f7 f6
 
         ; A smooth curve with 256 values between 4-64.
         ; Used as scroll values and sprite positions.
+        ; Read by: many anim_ parts
 curve2  hex 22 24 25 26 27 28 2a 2b 2c 2d 2e 30 31 32 33 34
         hex 35 36 37 38 38 39 3a 3b 3c 3c 3d 3d 3e 3e 3f 3f
         hex 3f 40 40 40 40 40 40 40 40 40 40 40 40 3f 3f 3f
@@ -2404,9 +2406,9 @@ curve2  hex 22 24 25 26 27 28 2a 2b 2c 2d 2e 30 31 32 33 34
         hex 05 05 06 06 06 07 07 08 09 09 0a 0b 0c 0c 0d 0e
         hex 0f 10 11 12 13 14 16 17 18 19 1a 1b 1d 1e 1f 20
 
-woman_sprite_x
-        ; Sprite X positions in the woman part of the demo. 256 bytes.
-        ; 194 (-62) is added to these.
+sprite_x_or_y
+        ; Used for sprite X positions in anim_woman and for sprite Y positions in anim_friday.
+        ; 256 bytes. 194 (-62) is added to these.
         ; If the formula (x + 182) % 256 is applied, looks like a smooth curve with values 0-212.
         hex dd dd dd dd de de de de de de de de de de de de
         hex de dd dd dd dc dc db db da d9 d8 d7 d7 d5 d4 d3
@@ -2426,6 +2428,7 @@ woman_sprite_x
         hex dd dd dd dd dc dc dc dc dc dc dc dd dd dd dd dd
 
         ; A smooth curve with 256 values between 2-22.
+        ; Read by: many anim_ subs
 curve3  hex 0a 0b 0c 0c 0d 0e 0f 0f 10 10 11 11 12 12 13 13
         hex 13 13 13 13 13 13 12 12 12 11 11 10 10 0f 0e 0e
         hex 0d 0c 0b 0b 0a 09 09 08 07 07 06 06 06 05 05 05
@@ -2444,10 +2447,12 @@ curve3  hex 0a 0b 0c 0c 0d 0e 0f 0f 10 10 11 11 12 12 13 13
         hex 03 03 03 04 04 04 04 05 05 06 06 07 08 08 09 0a
 
         ; 256 bytes. Written to PPU.
+        ; Read by: anim_horzbars2, anim_horzbars1
         ; Note: on each line:
         ;     - the high nybbles are 0, 1, 2, 3, 2, 1, 0, 0
         ;     - all low nybbles are the same
-table5  hex 06 16 26 36 26 16 06 06
+some_horzbars_data
+        hex 06 16 26 36 26 16 06 06
         hex 0a 1a 2a 3a 2a 1a 0a 0a
         hex 02 12 22 32 22 12 02 02
         hex 03 13 23 33 23 13 03 03
@@ -2491,43 +2496,43 @@ table5  hex 06 16 26 36 26 16 06 06
         hex 05 15 25 35 25 15 05 05
         hex 0b 1b 2b 3b 2b 1b 0b 0b
 
-data1   db $18  ; $da85
-
-sprite_y_table1
+        ; Sprite data read by anim_title
+title_sprite_count_minus_one
+        db 24
+title_sprites_y
         hex 40 40 40 40 40
         hex 48 48 48 48 48
         hex 50 50 50 50 50
         hex 58 58 58 58 58
         hex 60 60 60 60 60
-sprite_tile_table1
+title_sprites_tile
         hex c6 c7 c8 c9 ca
         hex cb cc cd ce cf
         hex d6 d7 d8 d9 da
         hex db dc dd de df
         hex e0 e1 e2 e3 e4
-sprite_attr_table1
+title_sprites_attr
         hex 01 01 01 01 01
         hex 01 01 01 01 01
         hex 01 01 01 01 01
         hex 01 01 01 01 01
         hex 01 01 01 01 01
-sprite_x_table1
+title_sprites_x
         hex 40 48 50 58 60
         hex 40 48 50 58 60
         hex 40 48 50 58 60
         hex 40 48 50 58 60
         hex 40 48 50 58 60
 
-unacc_data  ; unaccessed ($daea)
-        hex 0b
-
-unacc_table1  ; unaccessed
+        ; Sprite data read by anim_ninja (unaccessed in unmodified demo; $daea).
+ninja_sprite_count_minus_one
+        db 11
+ninja_sprites_y
         hex 00 00 00
         hex 08 08 08
         hex 10 10 10
         hex 18 18 18
-
-unacc_table2  ; unaccessed
+ninja_sprites_tile
         hex 00 01 02
         hex 10 11 12
         hex 20 21 22
@@ -2536,80 +2541,78 @@ unacc_table2  ; unaccessed
         hex 40 40 40
         hex 40 40 40
         hex 40 40 40
-
-unacc_table3  ; unaccessed
+ninja_sprites_x
         hex 00 08 10
         hex 00 08 10
         hex 00 08 10
         hex 00 08 10
 
+        ; Read by: init_bowser, anim_bowser
 bowser_some_count_minus_one
         db 3
-table6  hex 04 06 06 06
-bowser_sprites_tile3
+some_bowser_table1
+        hex 04 06 06 06
+bowser_sprites_tile1
         hex 09 0e 0c 3e
-table8  hex 0b 0f 0d 3f
+some_bowser_table2
+        hex 0b 0f 0d 3f
 
         hex 04 02  ; unaccessed ($db28)
 
+        ; Read by: init_bowser, anim_bowser
 bowser_sprite_count_minus_one
         db 16
-
-sprite_y_table2
+bowser_sprites_y1
         hex 00 fb fb fb fb 03 03 03 03 f6 f6 f6 ee ee ee e6 e6
 bowser_sprites_tile2
         hex 46 1c 1b 1a 19 2c 2b 2a 29 2f 2e 2d 3e 1e 1d 0e 0c
 bowser_sprites_attr
         hex 40 41 41 41 41 41 41 41 41 42 42 42 42 42 42 42 42
-sprite_x_table2
+bowser_sprites_x1
         hex 00 06 0e 16 1e 07 0f 17 1f 0c 14 1c 0c 14 1c 0c 14
-
-data5   hex 03
-data6   hex 3f
-
-        ; $db71, 64 bytes.
-        ; Looks like a sawtooth wave with values 8-255.
-        ; Last 15 bytes are unaccessed.
-table9  hex 08 13 19 30 45 50 5e 67 80 88 9f ba c8 d1 e0 f4
+some_bowser_data1
+        hex 03
+some_bowser_data2
+        hex 3f
+some_bowser_table3  ; looks like a sawtooth wave; last 15 bytes unaccessed
+        hex 08 13 19 30 45 50 5e 67 80 88 9f ba c8 d1 e0 f4
         hex 18 25 34 50 54 55 6a 6f 9e ab cd d3 da e5 f0 ff
         hex 0a 19 3a 56 5a 5f 7b 80 90 af b9 c6 cf ea f7 fa
         hex 13 19 25 55 6a 6f 5e 67 80 88 ba c8 e1 eb f0 f4
-
-sprite_tile_table3
+bowser_sprites_tile3
         hex 40 43 42 41
 
         ; unaccessed ($dbb5)
         hex 03 00 00 07 07 42 43 52 53 03 03 03 03 00 07 00
         hex 07 01 00 00 41 51 03 03 00 07
 
-bowser_and_friday_sprite_count_minus_one
+        ; Read by: init_bowser, anim_bowser
+bowser_and_friday_sprite_count_minus_one  ; also read by init_friday, anim_friday
         db 15
-bowser_sprites_x
+bowser_sprites_x2
         hex 13 50 54 6f 9e ab d0 ff 06 5a 5f c6 ca 13 19 25
-bowser_sprites_y
+bowser_sprites_y2
         hex 55 df 51 21 3d 9a 7d 88 cc 8f aa 43 8a 6e 90 76
 bowser_sprites_xsub
         db 3, 5, 5, 7, 6, 4, 6, 5, 2, 5, 4, 8, 3, 2, 7, 6
-bowser_sprites_tile
+bowser_sprites_tile4
         hex 50 51 51 53 51 52 50 53 52 52 51 51 52 53 53 51
 
-; Star sprites in the first two parts of the demo.
-; The last 5 bytes of each 16-byte table are unaccessed.
+        ; Star sprite data read by move_stars, init_stars.
+        ; The last 5 bytes of each 16-byte table are unaccessed.
 star_count_minus_one
         db 10
 star_initial_x
         hex 13 50 54 6f 9e ab d0 ef 06 5a 5f d6 ca 13 19 25
 star_initial_y
-        ; same as bowser_sprites_y
-        hex 55 df 51 21 3d 9a 7d 88 cc 8f aa 43 8a 6e 90 76
+        hex 55 df 51 21 3d 9a 7d 88 cc 8f aa 43 8a 6e 90 76  ; same as bowser_sprites_y2
 star_y_speeds
         db 2, 3, 3, 5, 4, 2, 4, 3, 2, 2, 3, 4, 3, 2, 7, 6
 star_tiles
         hex af ae ae be be bf af bf bf af ae ae bf be be be
 
-        db $0f  ; unaccessed
-
-        ; read by: init_friday, anim_friday
+        ; Sprite data read by init_friday, anim_friday
+        db 15  ; unaccessed (likely sprite count as in Bowser sprites above)
 friday_sprites_x
         hex 40 48 40 48 80 88 80 88
         hex c0 c8 c0 c8 f0 f8 f0 f8
@@ -2625,8 +2628,8 @@ friday_sprites_tile
         hex ea eb fa fb ec ed fc fd
         hex ea eb fa fb ec ed fc fd
 
-unacc_table4
-        hex 00 03 06 03  ; unaccessed ($dc92)
+ninja_sprites_tile_add  ; read by anim_ninja (unaccessed in unmodified demo; $dc92)
+        hex 00 03 06 03
 
 ; -------------------------------------------------------------------------------------------------
 
@@ -2668,7 +2671,7 @@ hide_sprites
         inx
         cpx #15
         bne -
-        copy #$c0, apu_counter
+        copy #%11000000, apu_counter  ; frame counter: 5-step seq'r mode, interr. inhibit
         jsr init_palette_copy
         jsr update_palette
         rts
@@ -2738,15 +2741,14 @@ delay   ; Delay for raster effects.
         stx delay_var2
         copy #0, delay_cnt  ; loop counter
 
-delay_loop
-        lda delay_var1
+-       lda delay_var1
         add #85
         bcc +
 +       sta delay_var1
-
+        ;
         inclda delay_cnt
         cmp delay_var2
-        bne delay_loop
+        bne -
 
         rts
 
@@ -2784,36 +2786,32 @@ delay_loop
 
 ; -------------------------------------------------------------------------------------------------
 
-fade_out_palette
-        ; Change each color in the palette_copy array (32 bytes).
+fade_to_black
+        ; Fade colors in the palette_copy array towards black.
         ; Called by: anim_title, anim_credits, anim_greets
         ; Calls: nothing
 
-        ; How the colors are changed:
+        ; Change each color as follows (bits 5-4 = brightness, 3-0 = hue):
         ;     $0x -> $0f (black)
-        ;     $1x: no change
-        ;     $2x -> $3x
-        ;     $3x: no change
+        ;     $1x -> $0x
+        ;     $2x -> $1x
+        ;     $3x -> $2x
 
         ldy #0
-fade_out_palette_loop
-        ; take color
-        lda palette_copy,y
+-       lda palette_copy,y
         sta temp1
-        ; copy color brightness (0-3) to X
-        and #%00110000
+        and #%00110000        ; brightness
         lsr4
         tax
-        ; take color hue (0-15)
+        ;
         lda temp1
-        and #%00001111
-        ; change color
-        ora color_or_table,x  ; $0f, $00, $10, $20
+        and #%00001111        ; hue
+        ora color_or_table,x  ; 0f 00 10 20
         sta palette_copy,y
-        ; Y += 1, loop until 32
+        ;
         iny
         cpy #32
-        bne fade_out_palette_loop
+        bne -
 
         rts
 
@@ -2835,235 +2833,176 @@ change_background_color
 +       copy #$3f, ppu_data  ; black
 ++      rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Update a metasprite -------------------------------------------------------------------------
 
-update_sixteen_sprites
-        ; Update 16 (8*2) sprites.
-        ; Called by: anim_credits
-        ; Calls: nothing
+; Input: X/Y = first X/Y position, zp12 = first tile, sprite_page_offset = first offset on sprite
+;        page
+; Return: sprite_page_offset = current offset on sprite page
+; Order of sprites: first right, then down.
+; Called by: anim_credits
+; Call: nothing
 
-        ; Input: X, Y, zp12, zp24
+update_metasprite_8x2
+        ; 8*2 hardware sprites. Subpalette always 3.
 
-        ; Modifies: A, X, Y, zp12, zp14, zp21, zp22, zp23, zp24, zp13
+        stx zp21         ; first X position
+        sty zp22         ; first Y position
+        copy zp12, zp23  ; first tile
 
-        ; Sprite page offsets: zp24 * 4 ... (zp24 + 15) * 4
-        ; Tiles: zp12 ... zp12+15
-        ; X positions: X+0, X+8, ..., X+56, X+0, X+8, ..., X+56
-        ; Y positions: Y for first 8 sprites, Y+8 for the rest
-        ; Subpalette: always 3
+        lda #0
+        sta zp12  ; unused
+        sta zp13  ; outer loop counter
+        sta zp14  ; what to add to first tile number
 
-        stx zp21
-        sty zp22
-        copy zp12, zp23
-        lda #$00
-        sta zp12
-        sta zp13
-        sta zp14
-
-update_sixteen_sprites_loop_outer
-        ; counter: zp13 = 0, 8
-
+--      ; outer loop (counter: zp13 = 0, 8)
+        ;
         ldx #0
-        copy #$00, zp12
-
-update_sixteen_sprites_loop_inner
-        ; counter: X = 0, 8, ..., 56
-
-        ; update sprite at offset zp24
-
-        ; zp23 + zp14 -> sprite tile
+        copy #0, zp12
+        ;
+-       ; inner loop (update one sprite/round; counter: X = 0, 8, ..., 56)
+        ;
         lda zp14
         add zp23
-        ldy zp24
-        sta sprite_page + 1,y
-
-        ; zp21 + X -> sprite X
+        ldy sprite_page_offset
+        sta sprite_page + 1,y  ; tile
+        ;
         txa
         adc zp21
-        ldy zp24
-        sta sprite_page + 3,y
-
-        ; zp22 + zp13 -> sprite Y
+        ldy sprite_page_offset
+        sta sprite_page + 3,y  ; X
+        ;
         lda zp13
         add zp22
-        ldy zp24
-        sta sprite_page + 0,y
-
-        ; 3 -> sprite subpalette
+        ldy sprite_page_offset
+        sta sprite_page + 0,y  ; Y
+        ;
         lda #%00000011
-        ldy zp24
-        sta sprite_page + 2,y
-
+        ldy sprite_page_offset
+        sta sprite_page + 2,y  ; attributes
+        ;
         lda zp12
         add #4
         sta zp12
-
+        ;
         inc zp14
-
-        ; Y + 4 -> zp24
+        ;
         iny4
-        sty zp24
-
-        ; X += 8
-        ; loop while less than 64
+        sty sprite_page_offset  ; to next sprite
+        ;
         txa
         add #8
         tax
         cpx #64
-        bne update_sixteen_sprites_loop_inner
-
-        ; zp13 += 8
-        ; loop while less than 16
+        bne -     ; end inner loop
+        ;
         lda zp13
         add #8
         sta zp13
         lda zp13
         cmp #16
-        bne update_sixteen_sprites_loop_outer
+        bne --    ; end outer loop
 
-        sty zp24
+        sty sprite_page_offset  ; unnecessary
         rts
 
-; -------------------------------------------------------------------------------------------------
+update_metasprite_3x2
+        ; 3*2 hardware sprites. Subpalette always 2.
 
-update_six_sprites
-        ; Update 6 (3*2) sprites.
-        ; Called by: anim_credits
-        ; Calls: nothing
+        stx zp21         ; first X position
+        sty zp22         ; first Y position
+        copy zp12, zp23  ; first tile
 
-        ; Input: X, Y, zp12, zp24
+        lda #0
+        sta zp12  ; unused
+        sta zp13  ; outer loop counter
+        sta zp14  ; what to add to first tile number
 
-        ; Sprite page offsets: zp24 * 4 ... (zp24 + 5) * 4
-        ; Tiles: zp12 ... zp12+5
-        ; X positions: X+0, X+8, X+16, X+0, X+8, X+16
-        ; Y positions: Y+0, Y+0, Y+0, Y+8, Y+8, Y+8
-        ; Subpalette: always 2
-
-        stx zp21
-        sty zp22
-        copy zp12, zp23
-        lda #$00
-        sta zp12
-        sta zp13
-        sta zp14
-
-update_six_sprites_loop_outer
-        ; counter: zp13 = 0, 8
-
+--      ; outer loop (counter: zp13 = 0, 8)
         ldx #0
-        copy #$00, zp12
-
-update_six_sprites_loop_inner
-        ; counter: X = 0, 8, 16
-
-        ; update sprite at offset zp24
-
-        ; zp23 + zp14 -> sprite tile
+        copy #0, zp12
+        ;
+-       ; inner loop (update one sprite/round; counter: X = 0, 8, 16)
+        ;
         lda zp14
         add zp23
-        ldy zp24
-        sta sprite_page + 1,y
-
-        ; zp21 + X -> sprite X
+        ldy sprite_page_offset
+        sta sprite_page + 1,y  ; tile
+        ;
         txa
         adc zp21
-        ldy zp24
-        sta sprite_page + 3,y
-
-        ; zp22 + zp13 -> sprite Y
+        ldy sprite_page_offset
+        sta sprite_page + 3,y  ; X
+        ;
         lda zp13
         add zp22
-        ldy zp24
-        sta sprite_page + 0,y
-
-        ; 2 -> sprite subpalette
+        ldy sprite_page_offset
+        sta sprite_page + 0,y  ; Y
+        ;
         lda #%00000010
-        ldy zp24
-        sta sprite_page + 2,y
-
+        ldy sprite_page_offset
+        sta sprite_page + 2,y  ; attributes
+        ;
         lda zp12
         add #4
         sta zp12
-
+        ;
         inc zp14
-
-        ; Y + 4 -> zp24
+        ;
         iny4
-        sty zp24
-
-        ; X += 8
-        ; loop while less than 24
+        sty sprite_page_offset  ; to next sprite
+        ;
         txa
         add #8
         tax
         cpx #24
-        bne update_six_sprites_loop_inner
-
-        ; zp13 += 8
-        ; loop while less than 16
+        bne -     ; end inner loop
+        ;
         lda zp13
         add #8
         sta zp13
         lda zp13
         cmp #16
-        bne update_six_sprites_loop_outer
+        bne --    ; end outer loop
 
-        sty zp24
+        sty sprite_page_offset  ; unnecessary
         rts
 
-; -------------------------------------------------------------------------------------------------
+update_metasprite_4x2
+        ; 4*2 hardware sprites. Subpalette always 2.
 
-update_eight_sprites
-        ; Update 8 (4*2) sprites.
-        ; Called by: anim_credits
-        ; Calls: nothing
+        stx zp21         ; first X position
+        sty zp22         ; first Y position
+        copy zp12, zp23  ; first tile
 
-        ; Input: X, Y, zp12, zp24
+        lda #0
+        sta zp12  ; unused
+        sta zp13  ; outer loop counter
+        sta zp14  ; what to add to first tile number
 
-        ; Sprite page offsets: zp24 * 4 ... (zp24 + 7) * 4
-        ; Tiles: zp12 ... zp12+7
-        ; X positions: X+0, X+8, ..., X+24, X+0, X+8, ..., X+24
-        ; Y positions: Y+0 for first 4 sprites, Y+8 for the rest
-        ; Subpalette: always 2
-
-        stx zp21
-        sty zp22
-        copy zp12, zp23
-        lda #$00
-        sta zp12
-        sta zp13
-        sta zp14
-
-        ; outer loop (zp13 = 0, 8)
+        ; outer loop (counter: zp13 = 0, 8)
 --      ldx #0
-        copy #$00, zp12
+        copy #0, zp12
         ;
-        ; inner loop (X = 0, 8, 16, 24)
+-       ; inner loop (update one sprite/round; counter: X = 0, 8, 16, 24)
         ;
--       ; update sprite at offset zp24
-        ;
-        ; zp23 + zp14 -> sprite tile
         lda zp14
         add zp23
-        ldy zp24
-        sta sprite_page + 1,y
+        ldy sprite_page_offset
+        sta sprite_page + 1,y  ; tile
         ;
-        ; zp21 + X -> sprite X
         txa
         adc zp21
-        ldy zp24
-        sta sprite_page + 3,y
+        ldy sprite_page_offset
+        sta sprite_page + 3,y  ; X
         ;
-        ; zp22 + zp13 -> sprite Y
         lda zp13
         add zp22
-        ldy zp24
-        sta sprite_page + 0,y
+        ldy sprite_page_offset
+        sta sprite_page + 0,y  ; Y
         ;
-        ; 2 -> sprite subpalette
         lda #%00000010
-        ldy zp24
-        sta sprite_page + 2,y
+        ldy sprite_page_offset
+        sta sprite_page + 2,y  ; attributes
         ;
         lda zp12
         add #4
@@ -3072,24 +3011,22 @@ update_eight_sprites
         inc zp14
         ;
         iny4
-        sty zp24
+        sty sprite_page_offset  ; to next sprite
         ;
-        ; end inner loop
         txa
         add #8
         tax
         cpx #32
-        bne -
+        bne -     ; end inner loop
         ;
-        ; end outer loop
         lda zp13
         add #8
         sta zp13
         lda zp13
         cmp #16
-        bne --
+        bne --    ; end outer loop
 
-        sty zp24
+        sty sprite_page_offset  ; unnecessary
         rts
 
 ; -------------------------------------------------------------------------------------------------
@@ -3477,7 +3414,7 @@ init_title
 anim_title
         ; Animate title part (wAMMA logo).
         ; Called by: nmi_title
-        ; Calls: sub15, fade_out_palette, update_palette, move_stars
+        ; Calls: sub15, fade_to_black, update_palette, move_stars
 
         chr_bankswitch 0
         copy #>sprite_page, oam_dma  ; do sprite DMA
@@ -3515,23 +3452,22 @@ anim_title
         lda zp27
         cmp #$96
         bne anim_title_1
-        ;
-        ldx data1
 
         ; loop - edit sprites
+        ldx title_sprite_count_minus_one
 -       txa
         asl
         asl
         tay
         ;
-        lda sprite_y_table1,x
+        lda title_sprites_y,x
         add $012f
         sta sprite_page + 23*4 + 0,y
-        lda sprite_tile_table1,x
+        lda title_sprites_tile,x
         sta sprite_page + 23*4 + 1,y
-        lda sprite_attr_table1,x
+        lda title_sprites_attr,x
         sta sprite_page + 23*4 + 2,y
-        lda sprite_x_table1,x
+        lda title_sprites_x,x
         add $012e
         sta sprite_page + 23*4 + 3,y
         ;
@@ -3612,7 +3548,7 @@ anim_title_2
         cmp #$04
         bne +
 
-        jsr fade_out_palette
+        jsr fade_to_black
         jsr update_palette  ; palette_copy -> PPU
         copy #$00, zp20
 
@@ -3684,7 +3620,7 @@ anim_horzbars2
         sbc zp5
         and #%00111111
         tax
-        lda table5,x
+        lda some_horzbars_data,x
         sta ppu_data
         ldx zp3
         lda curve1,x
@@ -4084,7 +4020,7 @@ anim_horzbars1
         sbc zp12
         adc zp4
         tax
-        lda table5,x
+        lda some_horzbars_data,x
         sta ppu_data
         dey
         bne --
@@ -4240,8 +4176,8 @@ init_credits_2
 
 anim_credits
         ; Called by: nmi_credits
-        ; Calls: fade_out_palette, update_palette, hide_sprites, update_sixteen_sprites,
-        ;        update_eight_sprites, update_six_sprites
+        ; Calls: fade_to_black, update_palette, hide_sprites, update_metasprite_8x2,
+        ;        update_metasprite_4x2, update_metasprite_3x2
 
         copy #>sprite_page, oam_dma  ; do sprite DMA
 
@@ -4257,7 +4193,7 @@ anim_credits
         cmp #$04
         bne anim_credits1
 
-        jsr fade_out_palette
+        jsr fade_to_black
         jsr update_palette  ; palette_copy -> PPU
         copy #$00, zp20
 
@@ -4349,7 +4285,7 @@ cred_starring
         ; draw 8*2 sprites: tiles $90-$9f ("STARRING") starting from (92, 106), subpalette 3
         ldxy #92, #106
         copy #$90, zp12
-        jsr update_sixteen_sprites
+        jsr update_metasprite_8x2
 
         jmp cred_exit2
 
@@ -4359,12 +4295,12 @@ cred_code1
         ; draw 8*2 sprites: tiles $60-$6f ("VISY") starting from (117, 115), subpalette 3
         ldxy #117, #115
         copy #$60, zp12
-        jsr update_sixteen_sprites
+        jsr update_metasprite_8x2
 
         ; draw 4*2 sprites: tiles $ac-$b3 ("CODE") starting from (84, 97), subpalette 2
         ldxy #84, #97
         copy #$ac, zp12
-        jsr update_eight_sprites
+        jsr update_metasprite_4x2
 
         jmp cred_exit2
 
@@ -4374,12 +4310,12 @@ cred_code2
         ; draw 8*2 sprites: tiles $80-$8f ("PAHAMOKA") starting from (117, 115), subpalette 3
         ldxy #117, #115
         copy #$80, zp12
-        jsr update_sixteen_sprites
+        jsr update_metasprite_8x2
 
         ; draw 4*2 sprites: tiles $ac-$b3 ("CODE") starting from (84, 97), subpalette 2
         ldxy #84, #97
         copy #$ac, zp12
-        jsr update_eight_sprites
+        jsr update_metasprite_4x2
 
         jmp cred_exit2
 
@@ -4390,12 +4326,12 @@ cred_gfx1
         ; draw 8*2 sprites: tiles $50-$5f ("ZEROIC") starting from (117, 115), subpalette 3
         ldxy #117, #115
         copy #$50, zp12
-        jsr update_sixteen_sprites
+        jsr update_metasprite_8x2
 
         ; draw 3*2 sprites: tiles $a0-$a5 ("GFX") starting from (84, 97), subpalette 2
         ldxy #84, #97
         copy #$a0, zp12
-        jsr update_six_sprites
+        jsr update_metasprite_3x2
 
         jmp cred_exit2
 
@@ -4405,12 +4341,12 @@ cred_gfx2
         ; draw 8*2 sprites: tiles $40-$4f ("Inkoddi") starting from (117, 115), subpalette 3
         ldxy #117, #115
         copy #$40, zp12
-        jsr update_sixteen_sprites
+        jsr update_metasprite_8x2
 
         ; draw 3*2 sprites: tiles $a0-$a5 ("GFX") starting from (84, 97), subpalette 2
         ldxy #84, #97
         copy #$a0, zp12
-        jsr update_six_sprites
+        jsr update_metasprite_3x2
 
         jmp cred_exit2
 
@@ -4420,12 +4356,12 @@ cred_gfx3
         ; draw 8*2 sprites: tiles $e0-$ef ("PROGZMAX") starting from (117, 115), subpalette 3
         ldxy #117, #115
         copy #$e0, zp12
-        jsr update_sixteen_sprites
+        jsr update_metasprite_8x2
 
         ; draw 3*2 sprites: tiles $a0-$a5 ("GFX") starting from (84, 97), subpalette 2
         ldxy #84, #97
         copy #$a0, zp12
-        jsr update_six_sprites
+        jsr update_metasprite_3x2
 
         jmp cred_exit2
 
@@ -4437,12 +4373,12 @@ cred_gfx4
         ; subpalette 3
         ldxy #117, #115
         copy #$c0, zp12
-        jsr update_sixteen_sprites
+        jsr update_metasprite_8x2
 
         ; draw 3*2 sprites: tiles $a0-$a5 ("GFX") starting from (84, 97), subpalette 2
         ldxy #84, #97
         copy #$a0, zp12
-        jsr update_six_sprites
+        jsr update_metasprite_3x2
 
         jmp cred_exit2
 
@@ -4452,12 +4388,12 @@ cred_zax
         ; draw 8*2 sprites: tiles $70-$7f ("ilmarque") starting from (117, 115), subpalette 3
         ldxy #117, #115
         copy #$70, zp12
-        jsr update_sixteen_sprites
+        jsr update_metasprite_8x2
 
         ; draw 3*2 sprites: tiles $a6-$ab ("ZAX") starting from (84, 97), subpalette 2
         ldxy #84, #97
         copy #$a6, zp12
-        jsr update_six_sprites
+        jsr update_metasprite_3x2
 
         jmp cred_exit2
 
@@ -4616,11 +4552,11 @@ anim_woman
         inc zp1
         inc zp1
         ;
-        ; [woman_sprite_x + zp1 + zp2] + 194 -> sprite X position
+        ; [sprite_x_or_y + zp1 + zp2] + 194 -> sprite X position
         lda zp1
         add zp2
         tax
-        lda woman_sprite_x,x
+        lda sprite_x_or_y,x
         add #194
         sta sprite_page + 3,y
         ;
@@ -4681,11 +4617,11 @@ anim_woman
         dec zp1
         dec zp1
         ;
-        ; [woman_sprite_x + zp1 + zp3] + 194 -> sprite X position
+        ; [sprite_x_or_y + zp1 + zp3] + 194 -> sprite X position
         lda zp1
         add zp3
         tax
-        lda woman_sprite_x,x
+        lda sprite_x_or_y,x
         add #194
         sta sprite_page + 3,y
         ;
@@ -4745,7 +4681,7 @@ anim_woman
         copy #$00, $0149
 ++      rts
 
-; --- Unaccessed block (an unused part of the demo) -----------------------------------------------
+; --- Ninja part (unused) -------------------------------------------------------------------------
 
         ; Shows big eyes of a ninja at the top, a ninja walking right at the middle and credits
         ; scrolling at the bottom.
@@ -4918,35 +4854,36 @@ anim_ninja  ; $ed4b
         copy #%00000000, sprite_page + 2*4 + 2
         copy #248,       sprite_page + 2*4 + 3
 
-        ldx unacc_data
+        ; edit sprites
+        ldx ninja_sprite_count_minus_one  ; 11
 -       txa
         asl
         asl
         tay
-
-        lda unacc_table1,x
+        ;
+        lda ninja_sprites_y,x
         add #$9b
         sta sprite_page + 23*4 + 0,y
-
+        ;
         txa
         pha
         ldx $0137
-        lda unacc_table4,x
+        lda ninja_sprites_tile_add,x
         sta zp12
         pla
-
+        ;
         tax
-        lda unacc_table2,x
+        lda ninja_sprites_tile,x
         add zp12
         sta sprite_page + 23*4 + 1,y
-
+        ;
         lda #%00000010
         sta sprite_page + 23*4 + 2,y
-
-        lda unacc_table3,x
+        ;
+        lda ninja_sprites_x,x
         add $0139
         sta sprite_page + 23*4 + 3,y
-
+        ;
         cpx #0
         beq +
         dex
@@ -5053,15 +4990,15 @@ init_bowser
         reset_ppu_addr
 
         ldx bowser_some_count_minus_one
--       lda table6,x
+-       lda some_bowser_table1,x
         sta $0104,x
-        lda bowser_sprites_tile3,x
+        lda bowser_sprites_tile1,x
         sta $0108,x
         dex
         cpx #255
         bne -
 
-        ldx data5
+        ldx some_bowser_data1
 -       lda #$00
         sta $0112,x
         lda #$f0
@@ -5077,11 +5014,11 @@ init_bowser
         asl
         tay
         ;
-        lda bowser_sprites_y,x
+        lda bowser_sprites_y2,x
         sta sprite_page + 48*4 + 0,y
-        lda bowser_sprites_tile,x
+        lda bowser_sprites_tile4,x
         sta sprite_page + 48*4 + 1,y
-        lda bowser_sprites_x,x
+        lda bowser_sprites_x2,x
         sta sprite_page + 48*4 + 3,y
         lda bowser_sprites_xsub,x
         sta $011e,x
@@ -5142,13 +5079,13 @@ anim_bowser
         cmp #$00
         bne +++
         lda $0108,x
-        cmp table8,x
+        cmp some_bowser_table2,x
         beq +
         inc $0108,x
         jmp ++
-+       lda bowser_sprites_tile3,x
++       lda bowser_sprites_tile1,x
         sta $0108,x
-++      lda table6,x
+++      lda some_bowser_table1,x
         sta $0104,x
 +++     dex
         cpx #255
@@ -5167,10 +5104,10 @@ anim_bowser
         asl
         tay
         ;
-        lda sprite_y_table2,x
+        lda bowser_sprites_y1,x
         add $0111
         sta sprite_page + 1*4 + 0,y
-        lda sprite_x_table2,x
+        lda bowser_sprites_x1,x
         add $0110
         sta sprite_page + 1*4 + 3,y
         ;
@@ -5181,11 +5118,11 @@ anim_bowser
 
 +       lda $0100
         ldx $0101
-        cmp table9,x
+        cmp some_bowser_table3,x
         bne anim_bowser_3
 
         inclda $0101
-        cpx data6
+        cpx some_bowser_data2
         bne +      ; always taken
 
         copy #$00, $0101  ; unaccessed ($f111)
@@ -5199,12 +5136,12 @@ anim_bowser
         lda curve3,y
         sta $011a,x
         inc $0102
-        cpx data5
+        cpx some_bowser_data1
         bne anim_bowser_3
         copy #$00, $0102
 
 anim_bowser_3
-        ldx data5
+        ldx some_bowser_data1
         ; loop
 -       lda $0116,x
         cmp #$f0
@@ -5222,7 +5159,7 @@ anim_bowser_4
         cpx #255
         bne -
 
-        ldx data5
+        ldx some_bowser_data1
         ; loop - edit sprites
 -       txa
         asl
@@ -5231,7 +5168,7 @@ anim_bowser_4
         ;
         lda $0116,x
         sta sprite_page + 18*4 + 0,y
-        lda sprite_tile_table3,x
+        lda bowser_sprites_tile3,x
         sta sprite_page + 18*4 + 1,y
         lda #$2b
         sta sprite_page + 18*4 + 2,y
@@ -5390,7 +5327,7 @@ init_greets
 
 anim_greets
         ; Called by: nmi_greets
-        ; Calls: init_palette_copy, update_palette, fade_out_palette
+        ; Calls: init_palette_copy, update_palette, fade_to_black
 
         chr_bankswitch 2
 
@@ -5434,7 +5371,7 @@ anim_greets
         cmp #4
         bne +
 
-        jsr fade_out_palette
+        jsr fade_to_black
         jsr update_palette  ; palette_copy -> PPU
         copy #0, zp20
 
@@ -5656,7 +5593,7 @@ anim_cola_5
         copy #%00001110, ppu_mask  ; show background, hide sprites
         rts
 
-; -------------------------------------------------------------------------------------------------
+; --- Set up and animate the "IT IS FRIDAY..." part -----------------------------------------------
 
 write_row
         ; Write X to VRAM 32 times.
@@ -5670,21 +5607,13 @@ write_row
         bne -
         rts
 
-; --- Unaccessed block ($f4f9) --------------------------------------------------------------------
-
+        ; unaccessed block ($f4f9)
         ldy #0
 -       stx ppu_data
         iny
         cpy #32
         bne -
         rts
-
-; --- Set up and animate the "IT IS FRIDAY..." part -----------------------------------------------
-
-macro write_row_macro _byte
-        ldx _byte
-        jsr write_row
-endm
 
 init_friday
         ; Called by: nmi_friday
@@ -5700,47 +5629,35 @@ init_friday
 
         ; write 24 rows of tiles to the start of Name Table 0
         set_ppu_addr name_table0
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$25
-        write_row_macro #$39
-        write_row_macro #$37
-        write_row_macro #$37
-        write_row_macro #$37
-        write_row_macro #$37
-        write_row_macro #$37
-        write_row_macro #$37
-        write_row_macro #$37
-        write_row_macro #$38
+rept 15
+        ldx #$25
+        jsr write_row
+endr
+        ldx #$39
+        jsr write_row
+rept 7
+        ldx #$37
+        jsr write_row
+endr
+        ldx #$38
+        jsr write_row
 
         reset_ppu_addr
 
-        ; update first background subpalette from some_palette1
+        ; update first background subpalette
         set_ppu_addr vram_palette + 0*4
-        copy some_palette1 + 0, ppu_data
-        copy some_palette1 + 1, ppu_data
-        copy some_palette1 + 2, ppu_data
-        copy some_palette1 + 3, ppu_data
+        copy friday_bg_palette + 0, ppu_data
+        copy friday_bg_palette + 1, ppu_data
+        copy friday_bg_palette + 2, ppu_data
+        copy friday_bg_palette + 3, ppu_data
         reset_ppu_addr
 
-        ; update first sprite subpalette from some_palette2
+        ; update first sprite subpalette
         set_ppu_addr vram_palette + 4*4
-        copy some_palette2 + 0, ppu_data
-        copy some_palette2 + 1, ppu_data
-        copy some_palette2 + 2, ppu_data
-        copy some_palette2 + 3, ppu_data
+        copy friday_spr_palette + 0, ppu_data
+        copy friday_spr_palette + 1, ppu_data
+        copy friday_spr_palette + 2, ppu_data
+        copy friday_spr_palette + 3, ppu_data
         reset_ppu_addr
 
         ldx bowser_and_friday_sprite_count_minus_one  ; 15
@@ -5789,7 +5706,7 @@ anim_friday
 
         inc $0100
         ldx $0100
-        lda woman_sprite_x,x
+        lda sprite_x_or_y,x
         sta zp12
         lda curve3,x
         sta zp13

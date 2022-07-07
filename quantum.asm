@@ -125,7 +125,7 @@ apu_counter   equ $4017
 ; apu_ctrl:
 ;   write: 000DNTsS (DMC/noise/triangle/square2/square1 enable)
 
-; RAM (note: "unaccessed" = unaccessed except for the initial cleanup)
+; zero page (note: "unaccessed" = unaccessed except for the initial cleanup)
 zp0                equ $00
 demo_part          equ $01  ; which part is running
 temp1              equ $01
@@ -169,27 +169,31 @@ woman_timer_hi     equ $aa
 title_timer_lo     equ $ab
 title_timer_hi     equ $ac
 ; $ad-$c7: unaccessed
-snd_dat_ptr1       equ $c8  ; sound data pointer (2 bytes) in sound3, sound7
-zp29               equ $cb
-zp30               equ $cc
-zp31               equ $cd
-snd_dat_ptr2       equ $ce  ; sound data pointer (2 bytes) in sound7
-dat_ptr1           equ $d0  ; data pointer (2 bytes) in sub1, sound7
-zp32               equ $d2
-zp33               equ $d3
-zp34               equ $d4
-zp35               equ $d5
-zp36               equ $d6
-zp37               equ $d7
-dat_ptr2           equ $d8  ; data pointer (2 bytes) in sub1, sound7
-dat_ptr3           equ $da  ; data pointer (2 bytes) in sub1, sound6
-snd_arr1           equ $dc  ; 4 bytes; in sub1, sound2, sound3, sound4, sound5, sound6
+;
+; $c8-$ef: sound-related:
+snd_ptr1           equ $c8  ; data pointer (2 bytes); in sound3, sound7
+snd_var1           equ $cb  ; in many subs
+snd_var2           equ $cc  ; in sub1, sound7; high byte of snd_var1?
+snd_var3           equ $cd  ; in sound7
+snd_ptr2           equ $ce  ; data pointer (2 bytes); in sound7
+snd_ptr3           equ $d0  ; data pointer (2 bytes); in sub1, sound7
+snd_var4           equ $d2  ; in sub1, sound_engine, sound7
+snd_var5           equ $d3  ; in sub1, sound_engine, sound4
+snd_var6           equ $d4  ; in sub1, sound_engine, sound7
+snd_var7           equ $d5  ; in sub1, sound_engine, sound7
+snd_var8           equ $d6  ; in sub1, sound_engine
+snd_var9           equ $d7  ; in sub1, sound_engine
+snd_ptr4           equ $d8  ; data pointer (2 bytes); in sub1, sound7
+snd_ptr5           equ $da  ; data pointer (2 bytes); in sub1, sound6
+snd_arr1           equ $dc  ; 4 bytes; in many subs
 snd_arr2           equ $e0  ; 5 bytes; in sound7
-snd_arr3           equ $e5  ; 4 bytes; in sub1, sound_engine, sound6, sound7, change_background_color
+snd_arr3           equ $e5  ; 4 bytes; in many subs
 snd_arr4           equ $e9  ; 4 bytes; in sub1, sound4, sound6
 apu_ctrl_mirror    equ $ef
 ; $f0-$fe: unaccessed
-useless            equ $ff    ; only MSB is read, it's always set
+useless            equ $ff  ; only MSB is read; it's always set
+
+; other RAM (note: "unaccessed" = unaccessed except for the initial cleanup)
 ram1               equ $0100
 ram2               equ $0101
 ram3               equ $0102
@@ -319,30 +323,20 @@ endm
 
 macro chr_bankswitch _bank  ; write bank number (0-3) over the same value in PRG ROM
 _label  lda #(_bank)
-        sta _label + 1
+        sta _label+1
 endm
 
-macro cmpbeq _cmp, _beq
-        cmp _cmp
-        beq _beq
+macro cmp_beq _value, _target
+        cmp _value
+        beq _target
 endm
 
-macro copy _src, _dst  ; note: for clarity, don't use this if A is read later
+macro copy _src, _dst       ; note: for clarity, don't use this if A is read later
         lda _src
         sta _dst
 endm
 
-macro dexbne _target
-        dex
-        bne _target
-endm
-
-macro dexbpl _target
-        dex
-        bpl _target
-endm
-
-macro inclda _mem
+macro inc_lda _mem
         inc _mem
         lda _mem
 endm
@@ -352,11 +346,6 @@ macro iny4
         iny
         iny
         iny
-endm
-
-macro ldxy _x, _y
-        ldx _x
-        ldy _y
 endm
 
 macro lsr4
@@ -384,11 +373,6 @@ macro set_ppu_addr_via_x _addr
         stx ppu_addr
 endm
 
-macro set_ppu_scroll _horz, _vert
-        copy #(_horz), ppu_scroll
-        copy #(_vert), ppu_scroll
-endm
-
 macro sub _operand
         sec
         sbc _operand
@@ -397,11 +381,12 @@ endm
 ; --- iNES header ---------------------------------------------------------------------------------
 
         base $0000
-        db "NES", $1a   ; id
-        db 2            ; 32 KiB PRG ROM
-        db 4            ; 32 KiB CHR ROM
-        db $30, $00     ; mapper 3 (CNROM), horizontal name table mirroring
-        pad $0010, $00  ; padding
+
+        db "NES", $1a            ; id
+        db 2                     ; 32 KiB PRG ROM
+        db 4                     ; 32 KiB CHR ROM
+        db %00110000, %00000000  ; mapper 3 (CNROM), horizontal name table mirroring
+        pad $0010, $00           ; padding
 
 ; --- Start of PRG ROM (unaccessed block) ---------------------------------------------------------
 
@@ -428,86 +413,76 @@ endm
 ; -------------------------------------------------------------------------------------------------
 
         ; Args: A = pointer low, X = pointer high
-        ; Reads indirect data via dat_ptr1
+        ; Reads indirect data via snd_ptr3
         ; Called by call_sub1 with argument sound_data
         ; Calls: nothing
 
-sub1    sta dat_ptr1+0  ; $8034
-        stx dat_ptr1+1
+sub1    sta snd_ptr3+0      ; $8034
+        stx snd_ptr3+1
 
-        ; dat_ptr1 + 16 -> dat_ptr3
-        lda #16
-        add dat_ptr1+0
-        sta dat_ptr3+0
-        lda dat_ptr1+1
+        lda #16             ; snd_ptr3+16 -> snd_ptr5
+        add snd_ptr3+0
+        sta snd_ptr5+0
+        lda snd_ptr3+1
         adc #0
-        sta dat_ptr3+1
+        sta snd_ptr5+1
 
-        ; [dat_ptr1 + 3] -> zp33
-        ldy #3
-        lda (dat_ptr1),y
-        sta zp33
-        ; [dat_ptr1 + 4] -> zp37
+        ldy #3              ; [snd_ptr3+3] -> snd_var5
+        lda (snd_ptr3),y
+        sta snd_var5
+        ;
+        iny                 ; [snd_ptr3+4] -> snd_var9
+        lda (snd_ptr3),y
+        sta snd_var9
+        ;
+        iny                 ; [snd_ptr3+7] -> snd_var8
         iny
-        lda (dat_ptr1),y
-        sta zp37
-        ; [dat_ptr1 + 7] -> zp36
         iny
-        iny
-        iny
-        lda (dat_ptr1),y
-        sta zp36
-        ; [dat_ptr1 + 8] -> snd_arr40+0
-        iny
-        lda (dat_ptr1),y
+        lda (snd_ptr3),y
+        sta snd_var8
+
+        iny                 ; copy [snd_ptr3] + 8...12 to snd_arr40 + 0...4
+        lda (snd_ptr3),y
         sta snd_arr40+0
-        ; [dat_ptr1 + 9] -> snd_arr40+1
         iny
-        lda (dat_ptr1),y
+        lda (snd_ptr3),y
         sta snd_arr40+1
-        ; [dat_ptr1 + 10] -> snd_arr40+2
         iny
-        lda (dat_ptr1),y
+        lda (snd_ptr3),y
         sta snd_arr40+2
-        ; [dat_ptr1 + 11] -> snd_arr40+3
         iny
-        lda (dat_ptr1),y
+        lda (snd_ptr3),y
         sta snd_arr40+3
-        ; [dat_ptr1 + 12] -> snd_arr40+4
         iny
-        lda (dat_ptr1),y
+        lda (snd_ptr3),y
         sta snd_arr40+4
 
-        ; 144 -> zp29
-        iny4
+        iny4                ; 144 -> snd_var1
         tya
         add #128
-        sta zp29
+        sta snd_var1
 
-        ; dat_ptr1 + zp29 -> dat_ptr2
-        lda dat_ptr1+0
-        adc zp29
-        sta dat_ptr2+0
-        lda dat_ptr1+1
+        lda snd_ptr3+0      ; snd_ptr3+snd_var1 -> snd_ptr4
+        adc snd_var1
+        sta snd_ptr4+0
+        lda snd_ptr3+1
         adc #0
-        sta dat_ptr2+1
+        sta snd_ptr4+1
 
-        ; zp29 += zp36 * 4
-        ; carry -> zp30
-        lda zp36
+        lda snd_var8        ; snd_var1 += snd_var8*4; carry -> snd_var2
         asl
         asl
-        adc zp29
-        sta zp29
+        adc snd_var1
+        sta snd_var1
         lda #0
         adc #0
-        sta zp30
+        sta snd_var2
 
-        lda dat_ptr1+0
-        adc zp29
+        lda snd_ptr3+0
+        adc snd_var1
         sta snd_arr26+0
-        lda dat_ptr1+1
-        adc zp30
+        lda snd_ptr3+1
+        adc snd_var2
         sta snd_arr27+0
 
         lda snd_arr40+0
@@ -542,8 +517,7 @@ sub1    sta dat_ptr1+0  ; $8034
         adc snd_arr27+3
         sta snd_arr27+4
 
-        ; clear sound arrays 1, 3-5, 7-10, 12-25, 33-34, 36
-        lda #$00
+        lda #$00            ; clear sound arrays 1, 3-5, 7-10, 12-25, 33-34, 36
         ldx #3
 -       sta snd_arr5,x
         sta snd_arr1,x
@@ -572,15 +546,16 @@ sub1    sta dat_ptr1+0  ; $8034
         sta snd_arr24,x
         sta snd_arr25,x
         sta snd_arr34,x
-        dexbpl -
+        dex
+        bpl -
 
-        sta zp34
-        sta zp35
+        sta snd_var6
+        sta snd_var7
         sta apu_ctrl_mirror  ; disable all sound channels
         sta apu_ctrl
-        ldx zp33
+        ldx snd_var5
         inx
-        stx zp32
+        stx snd_var4
         rts
 
 ; --- Sound subs that call no other subs ----------------------------------------------------------
@@ -590,11 +565,11 @@ sub1    sta dat_ptr1+0  ; $8034
 sound_util1
         ; clamp A to 0-63 range (but it always is already)
         cmp #0
-        bpl +    ; always taken
-        lda #0   ; unaccessed ($8157)
+        bpl +               ; always taken
+        lda #0              ; unaccessed ($8157)
 +       cmp #63
-        bcc +    ; always taken
-        lda #63  ; unaccessed ($815d)
+        bcc +               ; always taken
+        lda #63             ; unaccessed ($815d)
         ;
 +       lsr
         lsr
@@ -603,7 +578,7 @@ sound_util1
         sta apu_regs,y
         rts
 
-        ; Args: X (channel, 0-3), A, zp29, snd_arr21, snd_arr38
+        ; Args: X (channel, 0-3), A, snd_var1, snd_arr21, snd_arr38
         ; Called by: sound2, sound3, sound4, sound5
 sound_util2
         cpx #3
@@ -615,7 +590,7 @@ sound_util2
         sta apu_regs+2,y
         lda #$08
         sta apu_regs+1,y
-        lda zp29
+        lda snd_var1
         cmp snd_arr38,x
         beq +
         sta snd_arr38,x
@@ -631,7 +606,7 @@ sound_util2
 
 +++     ldy apu_reg_offsets,x  ; 0, 4, 8, 12
         sta apu_regs+2,y
-        lda zp29
+        lda snd_var1
         ora #%00001000
         sta apu_regs+3,y
         rts
@@ -642,29 +617,29 @@ sound_util2
         ; Calls: sound1, sound3, sound6
 
 sound_engine
-        lda zp33
+        lda snd_var5
         beq snd_eng_exit
         ;
-        inc zp32
-        cmp zp32
+        inc snd_var4
+        cmp snd_var4
         beq +
         bpl +++
         ;
-+       copy #$00, zp32
-        lda zp34
++       copy #$00, snd_var4
+        lda snd_var6
         cmp #$40
         bcc ++
-        copy #$00, zp34
-        ldx zp35
+        copy #$00, snd_var6
+        ldx snd_var7
         inx
-        cpx zp36
+        cpx snd_var8
         bcc +
-        ldx zp37
-+       stx zp35
+        ldx snd_var9
++       stx snd_var7
 ++      jmp sound6
 
         ; loop
-+++     lda #$06  ; unnecessary
++++     lda #$06            ; unnecessary
         ldx #3
 -       lda snd_arr3,x
         bmi ++
@@ -680,7 +655,8 @@ sound_engine
 ++      cpx #$02
         bne +
         copy #$ff, triangle_ctrl
-+       dexbpl -
++       dex
+        bpl -
 
         lda apu_ctrl
         and #%00010000
@@ -691,13 +667,13 @@ sound_engine
         sta apu_ctrl_mirror
 +       copy apu_ctrl_mirror, apu_ctrl
 
-        ; loop
-        ldx #3
+        ldx #3              ; loop
 -       cpx #2
         beq +
         jsr sound1
 +       jsr sound3
-        dexbpl -
+        dex
+        bpl -
 
 snd_eng_exit
         inc snd_arr34+0
@@ -720,10 +696,9 @@ sound1  lda snd_arr24,x
 +       lda snd_arr13,x
         tay
         and #%11110000
-        beq +           ; always taken
+        beq +               ; always taken
 
-        ; unaccessed block ($823b)
-        lsr4
+        lsr4                ; unaccessed block ($823b)
         adc snd_arr5,x
         sta snd_arr5,x
         jmp ++
@@ -743,25 +718,24 @@ sound1  lda snd_arr24,x
         sta snd_arr5,x
 +       ldy snd_arr24,x
         cpy #$07
-        bne ++       ; always taken
+        bne ++              ; always taken
 
-        ; unaccessed block ($826a)
-        lda snd_arr25,x
+        lda snd_arr25,x     ; unaccessed block ($826a)
         beq +
         sta useless_arr1,x
 +       lda useless_arr1,x
         bne unacc1
 
 ++      lda snd_arr20,x
-        bne unacc1   ; never taken
+        bne unacc1          ; never taken
         lda snd_arr5,x
         bpl +
         lda #$00
 +       cmp #$3f
-        bcc +        ; always taken
-        lda #$3f     ; unaccessed ($8287)
+        bcc +               ; always taken
+        lda #$3f            ; unaccessed ($8287)
 +       sta snd_arr5,x
-        jmp sound_util1   ; ends with RTS
+        jmp sound_util1     ; ends with RTS
 
 ; --- Unaccessed block ($828f) --------------------------------------------------------------------
 
@@ -839,7 +813,7 @@ sound2b pha
         tay
         lda snd_arr7,x
         adc #0
-        sta zp29
+        sta snd_var1
         tya
         jsr sound_util2
         pla
@@ -856,7 +830,7 @@ sound2b pha
         tay
         lda snd_arr7,x
         adc #$ff
-        sta zp29
+        sta snd_var1
         tya
         jsr sound_util2
         pla
@@ -892,20 +866,19 @@ sound3a ldy snd_arr24,x
 ++      lda snd_arr18,x
         bne sound2b
         lda snd_arr7,x
-        sta zp29
+        sta snd_var1
         lda snd_arr1,x
         jmp sound_util2
 
 +++     lda snd_arr24,x
-        cmpbeq #3, sound3b
-        cmpbeq #1, ++
-        cmpbeq #2, +++
+        cmp_beq #3, sound3b
+        cmp_beq #1, ++
+        cmp_beq #2, +++
         lda snd_arr35,x
-        bne +        ; never taken
+        bne +               ; never taken
         jmp sound3a
 
-        ; unaccessed block ($838e)
-+       lda snd_arr35,x
++       lda snd_arr35,x     ; unaccessed block ($838e)
         bmi +
         clc
         adc snd_arr1,x
@@ -955,19 +928,19 @@ sound3b lda snd_arr22,x
 +       ldy snd_arr9,x
         ;
         lda notes_lo-1,y
-        sta snd_dat_ptr1+0
+        sta snd_ptr1+0
         lda notes_hi-1,y
-        sta snd_dat_ptr1+1
+        sta snd_ptr1+1
         ;
         sec
         lda snd_arr1,x
-        sbc snd_dat_ptr1+0
+        sbc snd_ptr1+0
         lda snd_arr7,x
-        sbc snd_dat_ptr1+1
+        sbc snd_ptr1+1
         bmi +
-        bpl ++         ; always taken
+        bpl ++              ; always taken
         ;
-        jmp sound3a    ; unaccessed ($8414)
+        jmp sound3a         ; unaccessed ($8414)
 +       lda snd_arr1,x
         clc
         adc snd_arr10,x
@@ -977,11 +950,11 @@ sound3b lda snd_arr22,x
         sta snd_arr7,x
         sec
         lda snd_arr1,x
-        sbc snd_dat_ptr1+0
+        sbc snd_ptr1+0
         lda snd_arr7,x
-        sbc snd_dat_ptr1+1
-        bpl +          ; always taken
-        jmp sound3a    ; unaccessed ($8433)
+        sbc snd_ptr1+1
+        bpl +               ; always taken
+        jmp sound3a         ; unaccessed ($8433)
         ;
 ++      lda snd_arr1,x
         sec
@@ -992,15 +965,15 @@ sound3b lda snd_arr22,x
         sta snd_arr7,x
         sec
         lda snd_arr1,x
-        sbc snd_dat_ptr1+0
+        sbc snd_ptr1+0
         lda snd_arr7,x
-        sbc snd_dat_ptr1+1
+        sbc snd_ptr1+1
         bmi +
         jmp sound3a
         ;
-+       lda snd_dat_ptr1+0
++       lda snd_ptr1+0
         sta snd_arr1,x
-        lda snd_dat_ptr1+1
+        lda snd_ptr1+1
         sta snd_arr7,x
         jmp sound3a
 
@@ -1011,7 +984,7 @@ sound3b lda snd_arr22,x
 
 sound4  lda snd_arr24,x
         cmp #$08
-        beq +        ; never taken
+        beq +               ; never taken
         lda snd_arr14,x
         bne sound4a
         lda snd_arr36,x
@@ -1020,22 +993,22 @@ sound4  lda snd_arr24,x
         bne sound4a
         rts
 
-+       jmp unacc4  ; unaccessed ($8478)
++       jmp unacc4          ; unaccessed ($8478)
 
 sound4a lda snd_arr34,x
         ldy snd_arr37,x
         bne +
         and #%00000011
-+       cmpbeq #0, +
-        cmpbeq #1, ++
-        cmpbeq #2, +++
-        cmpbeq #3, ++++  ; always taken
-        rts              ; unaccessed ($8495)
++       cmp_beq #0, +
+        cmp_beq #1, ++
+        cmp_beq #2, +++
+        cmp_beq #3, ++++    ; always taken
+        rts                 ; unaccessed ($8495)
 
 +       ldy snd_arr4,x
         lda notes_hi-1,y
         sta snd_arr7,x
-        sta zp29
+        sta snd_var1
         lda notes_lo-1,y
         sta snd_arr1,x
         jmp sound_util2
@@ -1046,7 +1019,7 @@ sound4a lda snd_arr34,x
         tay
         lda notes_hi-1,y
         sta snd_arr7,x
-        sta zp29
+        sta snd_var1
         lda notes_lo-1,y
         sta snd_arr1,x
         jmp sound_util2
@@ -1057,7 +1030,7 @@ sound4a lda snd_arr34,x
         tay
         lda notes_hi-1,y
         sta snd_arr7,x
-        sta zp29
+        sta snd_var1
         lda notes_lo-1,y
         sta snd_arr1,x
         jmp sound_util2
@@ -1068,7 +1041,7 @@ sound4a lda snd_arr34,x
         tay
         lda notes_hi-1,y
         sta snd_arr7,x
-        sta zp29
+        sta snd_var1
         lda notes_lo-1,y
         sta snd_arr1,x
         jmp sound_util2
@@ -1076,19 +1049,19 @@ sound4a lda snd_arr34,x
 sound4b sta snd_arr5,x
         jmp sound5a
 
-sound4c sta zp33
+sound4c sta snd_var5
         jmp sound5a
 
 ; --- Unaccessed block ($84f8) --------------------------------------------------------------------
 
 unacc2  sub #1
-        sta zp34
-        lda zp35
+        sta snd_var6
+        lda snd_var7
         add #1
-        cmp zp36
+        cmp snd_var8
         bcc +
-        lda zp37
-+       sta zp35
+        lda snd_var9
++       sta snd_var7
         jmp sound5a
 
 ; -------------------------------------------------------------------------------------------------
@@ -1105,11 +1078,11 @@ sound5  ldy snd_arr24,x
         cpy #$0f
         beq sound4c
         cpy #$0d
-        beq unacc2  ; never taken
+        beq unacc2          ; never taken
 
 sound5a lda snd_arr25,x
         cpy #$08
-        beq unacc3  ; never taken
+        beq unacc3          ; never taken
 
         lda snd_arr14,x
         bne ++
@@ -1125,15 +1098,14 @@ sound5a lda snd_arr25,x
         beq +
 
         lda snd_arr7,x
-        sta zp29
+        sta snd_var1
         lda snd_arr1,x
         jmp sound_util2
 +       rts
 
-        ; unaccessed block ($854e)
-unacc3  jsr unacc4
+unacc3  jsr unacc4          ; unaccessed block ($854e)
         lda snd_arr7,x
-        sta zp29
+        sta snd_var1
         lda snd_arr1,x
         jmp sound_util2
 
@@ -1145,10 +1117,10 @@ unacc4  lda snd_arr25,x
         beq +
         sta useless_arr2,x
 +       sec
-        lda zp32
+        lda snd_var4
         beq +
--       cmpbeq #1, ++
-        cmpbeq #2, +++
+-       cmp_beq #1, ++
+        cmp_beq #2, +++
         sbc #3
         bne -
 +       ldy snd_arr4,x
@@ -1180,7 +1152,7 @@ unacc4  lda snd_arr25,x
 
 ; -------------------------------------------------------------------------------------------------
 
-        ; Reads sound_data via dat_ptr3
+        ; Reads sound_data via snd_ptr5
         ; Called by: sound_engine, sound7
         ; Calls: sound7, sound7a, sound7e
 
@@ -1210,76 +1182,75 @@ sound6a lda snd_arr23,x
         asl
         adc #$f8
         tay
-        lda (dat_ptr3),y
+        lda (snd_ptr5),y
         iny
         sta snd_arr33,x
-        lda (dat_ptr3),y
+        lda (snd_ptr5),y
         iny
         sta snd_arr35,x
-        lda (dat_ptr3),y
+        lda (snd_ptr5),y
         iny
         sta snd_arr18,x
-        lda (dat_ptr3),y
+        lda (snd_ptr5),y
         iny
         sta snd_arr20,x
-        lda (dat_ptr3),y
+        lda (snd_ptr5),y
         bmi unacc5
         iny
         and #%01111111
-        sta zp29
+        sta snd_var1
         lda snd_arr33,x
         asl
         asl
         and #%10000000
-        ora zp29
+        ora snd_var1
         sta snd_arr3,x
         sta snd_arr11,x
-        lda (dat_ptr3),y
-        sta zp29
+        lda (snd_ptr5),y
+        sta snd_var1
         and #%11110000
         lsr
         lsr
         sta snd_arr5,x
         sta snd_arr39,x
-        lda zp29
+        lda snd_var1
         and #%00001111
         eor #%11111111
         add #1
         sta snd_arr12,x
         jmp +
 
-        ; unaccessed block ($862d)
-unacc5  iny
+unacc5  iny                 ; unaccessed block ($862d)
         and #%01111111
-        sta zp29
+        sta snd_var1
         lda snd_arr33,x
         asl
         asl
         and #%10000000
-        ora zp29
+        ora snd_var1
         sta snd_arr3,x
         sta snd_arr11,x
-        lda (dat_ptr3),y
-        sta zp29
+        lda (snd_ptr5),y
+        sta snd_var1
         and #%11110000
         lsr
         lsr
         sta snd_arr5,x
-        lda zp29
+        lda snd_var1
         and #%00001111
         sta snd_arr12,x
 
 +       iny
-        lda (dat_ptr3),y
+        lda (snd_ptr5),y
         iny
-        sta zp29
+        sta snd_var1
         asl
         and #%10000000
         sta snd_arr21,x
-        lda zp29
+        lda snd_var1
         and #%00100000
         sta snd_arr37,x
-        lda (dat_ptr3),y
+        lda (snd_ptr5),y
         tay
         and #%00001111
         bcs unacc6
@@ -1287,13 +1258,12 @@ unacc5  iny
         tya
         lsr4
         sta snd_arr36,x
-        lda zp29
+        lda snd_var1
         and #%00001111
         sta snd_arr15,x
         jmp +
 
-        ; unaccessed block ($8681)
-unacc6  eor #%11111111
+unacc6  eor #%11111111      ; unaccessed block ($8681)
         add #1
         sta snd_arr14,x
         tya
@@ -1301,7 +1271,7 @@ unacc6  eor #%11111111
         eor #%11111111
         add #1
         sta snd_arr36,x
-        lda zp29
+        lda snd_var1
         and #%00001111
         eor #%11111111
         add #1
@@ -1368,11 +1338,11 @@ sound6d lda #$00
 
 ; -------------------------------------------------------------------------------------------------
 
-        ; Reads sound_data via snd_dat_ptr1, snd_dat_ptr2, dat_ptr2
+        ; Reads sound_data via snd_ptr1, snd_ptr2, snd_ptr4
         ; Called by: sound6
         ; Calls: sound5, sound6d
 
-sound7  copy #$40, zp31
+sound7  copy #$40, snd_var3
 
         lda #$00
         ldx #4
@@ -1380,30 +1350,31 @@ sound7  copy #$40, zp31
         sta snd_arr23,x
         sta snd_arr24,x
         sta snd_arr25,x
-        dexbpl -
+        dex
+        bpl -
 
-        lda zp34
+        lda snd_var6
         bne +
-        lda zp32
+        lda snd_var4
         bne +
         jmp ++
 +       jmp sound7b
-++      lda zp35
+++      lda snd_var7
         asl
         asl
         tay
 
-        lda (dat_ptr2),y
+        lda (snd_ptr4),y
         iny
         tax
         and #%00011111
         asl
         sta snd_arr6+0
 
-        lda (dat_ptr2),y
-        sta zp29
+        lda (snd_ptr4),y
+        sta snd_var1
         lsr
-        sty zp30
+        sty snd_var2
         tay
         and #%00111110
         sta snd_arr6+2
@@ -1411,6 +1382,7 @@ sound7  copy #$40, zp31
         txa
         ror
         tax
+        ;
         tya
         lsr
         txa
@@ -1420,10 +1392,10 @@ sound7  copy #$40, zp31
         and #%00111110
         sta snd_arr6+1
 
-        asl zp29
-        ldy zp30
+        asl snd_var1
+        ldy snd_var2
         iny
-        lda (dat_ptr2),y
+        lda (snd_ptr4),y
         tax
         rol
         asl
@@ -1441,35 +1413,35 @@ sound7  copy #$40, zp31
         ldx #4
         ;
 -       lda snd_arr26,x
-        sta snd_dat_ptr1+0
+        sta snd_ptr1+0
         lda snd_arr27,x
-        sta snd_dat_ptr1+1
+        sta snd_ptr1+1
         ;
-        ldy snd_arr6,x        ; out of bounds? snd_arr6 + 4 = snd_arr7
-        lda (snd_dat_ptr1),y
+        ldy snd_arr6,x      ; out of bounds? snd_arr6+4 = snd_arr7
+        lda (snd_ptr1),y
         iny
         cmp #$00
         bne ++
-        sta zp29
-        lda (snd_dat_ptr1),y
-        bne +          ; never taken
+        sta snd_var1
+        lda (snd_ptr1),y
+        bne +               ; never taken
         jmp sound6d
 
-+       lda zp29       ; unaccessed ($8798)
-++      add dat_ptr1+0
++       lda snd_var1        ; unaccessed ($8798)
+++      add snd_ptr3+0
         sta snd_arr28,x
-        sta snd_dat_ptr2+0
+        sta snd_ptr2+0
         ;
-        lda (snd_dat_ptr1),y
-        adc dat_ptr1+1
+        lda (snd_ptr1),y
+        adc snd_ptr3+1
         sta snd_arr29,x
-        sta snd_dat_ptr2+1
+        sta snd_ptr2+1
         ;
         ldy #0
-        lda (snd_dat_ptr2),y
+        lda (snd_ptr2),y
         sta snd_arr31,x
         iny
-        lda (snd_dat_ptr2),y
+        lda (snd_ptr2),y
         adc #1
         sta snd_arr32,x
         ;
@@ -1480,7 +1452,8 @@ sound7  copy #$40, zp31
         ;
         lda #$00
         sta snd_arr30,x
-sound7a dexbpl -
+sound7a dex
+        bpl -
 
 sound7b ldx #4
 sound7c dec snd_arr32,x
@@ -1490,97 +1463,97 @@ sound7c dec snd_arr32,x
         jmp ++
 +       jmp sound7d
 ++      lda snd_arr28,x
-        sta snd_dat_ptr1+0
+        sta snd_ptr1+0
         lda snd_arr29,x
-        sta snd_dat_ptr1+1
+        sta snd_ptr1+1
         ;
-        lda zp34
+        lda snd_var6
         lsr
         tay
         iny
         iny
-        lda (snd_dat_ptr1),y
+        lda (snd_ptr1),y
         bcc +
         lsr4
 +       ldy snd_arr30,x
-        sty zp29
-        bit zp29
+        sty snd_var1
+        bit snd_var1
         ldy snd_arr2,x
         lsr
-        sta zp29
+        sta snd_var1
         bcc ++++
         cpx #$03
         beq ++
         bvs +
-        lda (snd_dat_ptr1),y
+        lda (snd_ptr1),y
         iny
         jmp +++
 
-+       lda (snd_dat_ptr1),y
++       lda (snd_ptr1),y
         and #%11110000
-        sta zp30
+        sta snd_var2
         iny
-        lda (snd_dat_ptr1),y
+        lda (snd_ptr1),y
         and #%00001111
-        ora zp30
+        ora snd_var2
         jmp +++
 
 ++      bvs +
-        lda (snd_dat_ptr1),y
+        lda (snd_ptr1),y
         and #%00001111
         sbc #$ff
-        bit zp31
+        bit snd_var3
         jmp +++
 
-+       lda (snd_dat_ptr1),y
++       lda (snd_ptr1),y
         lsr4
         add #1
         iny
         clv
 +++     sta snd_arr22,x
-++++    lsr zp29
+++++    lsr snd_var1
         bcc ++
         bvs +
-        lda (snd_dat_ptr1),y
+        lda (snd_ptr1),y
         and #%00001111
         adc #0
         sta snd_arr23,x
-        bit zp31
+        bit snd_var3
         jmp ++
 
-+       lda (snd_dat_ptr1),y
++       lda (snd_ptr1),y
         lsr4
         iny
         add #1
         sta snd_arr23,x
         clv
-++      lsr zp29
+++      lsr snd_var1
         bcc +++
         bvs +
-        lda (snd_dat_ptr1),y
+        lda (snd_ptr1),y
         and #%00001111
-        bit zp31
+        bit snd_var3
         jmp ++
 
-+       lda (snd_dat_ptr1),y
++       lda (snd_ptr1),y
         lsr4
         iny
         clv
 ++      sta snd_arr24,x
-+++     lsr zp29
++++     lsr snd_var1
         bcc +++
         bvs +
-        lda (snd_dat_ptr1),y
+        lda (snd_ptr1),y
         iny
         jmp ++
 
-+       lda (snd_dat_ptr1),y
++       lda (snd_ptr1),y
         and #%11110000
-        sta zp30
+        sta snd_var2
         iny
-        lda (snd_dat_ptr1),y
+        lda (snd_ptr1),y
         and #%00001111
-        ora zp30
+        ora snd_var2
 ++      sta snd_arr25,x
 +++     sty snd_arr2,x
         lda #$40
@@ -1592,8 +1565,7 @@ sound7d dex
         jmp sound7c
 +       rts
 
-sound7e ; loop
-        ldx #3
+sound7e ldx #3              ; loop
 -       ldy snd_arr3,x
         bmi ++
         dey
@@ -1606,7 +1578,8 @@ sound7e ; loop
         lda #$00
         ldy #$00
 +       sty snd_arr3,x
-++      dexbpl -
+++      dex
+        bpl -
 
         lda apu_ctrl
         and #%00010000
@@ -1617,8 +1590,7 @@ sound7e ; loop
         sta apu_ctrl_mirror
 +       copy apu_ctrl_mirror, apu_ctrl
 
-        ; loop
-        ldx #3
+        ldx #3              ; loop
 -       jsr sound5
         cpx #$02
         beq ++
@@ -1634,19 +1606,22 @@ sound7e ; loop
         ora snd_arr33,x
         ldy apu_reg_offsets,x  ; 0, 4, 8, 12
         sta apu_regs,y
-++      dexbpl -
+++      dex
+        bpl -
 
         inc snd_arr34+0
         inc snd_arr34+1
         inc snd_arr34+2
         inc snd_arr34+3
-        inc zp34
+        inc snd_var6
         rts
 
 ; --- Unaccessed block ($8906) --------------------------------------------------------------------
 
-        ldxy #0, #16
--       dexbne -
+        ldx #0
+        ldy #16
+-       dex
+        bne -
         dey
         bne -
         dec useless
@@ -1666,17 +1641,16 @@ sound7e ; loop
 
 jump_snd_eng
         bit useless
-        bmi +        ; always taken
+        bmi +               ; always taken
 
-        ; unaccessed block ($8925)
-        dec useless
+        dec useless         ; unaccessed block ($8925)
         bpl +
         copy #$05, useless
         jmp unacc7
 
 +       jmp sound_engine
 
-unacc7  rts  ; unaccessed ($8933)
+unacc7  rts                 ; unaccessed ($8933)
 
 ; -------------------------------------------------------------------------------------------------
 
@@ -1685,8 +1659,8 @@ unacc7  rts  ; unaccessed ($8933)
 call_sub1
         ldy #255
         dex
-        beq +         ; always taken
-        ldy #5        ; unaccessed ($8939)
+        beq +               ; always taken
+        ldy #5              ; unaccessed ($8939)
 +       sty useless
         asl
         tay
@@ -1702,7 +1676,8 @@ call_sub1
         hex c0 00 ff fe fd fc fb fa f9 f8 f7 f6 f5 f4 f3 f2 f1
 
 apu_reg_offsets
-        db 0, 4, 8, 12  ; read by: sound_util1, sound_util2, sound7
+        ; read by: sound_util1, sound_util2, sound7
+        db 0, 4, 8, 12
 apu_ctrl_channel_enable_masks
         ; OR bitmasks for enabling square 1 / square 2 / triangle / noise
         ; read by sound6
@@ -1780,7 +1755,7 @@ ptr_to_sound_data
 
 sound_data
         ; $8b68-$8dbf (600 bytes)
-        ; Read via snd_dat_ptr1, snd_dat_ptr2, dat_ptr2, dat_ptr3 by sound6, sound7
+        ; Read via snd_ptr1, snd_ptr2, snd_ptr4, snd_ptr5 by sound6, sound7
         ; Some bytes unaccessed.
         hex 20 10 00 05 3a 10 00 3c 15 1c 0c 0a 01 f9 12 00
         hex 90 00 00 00 02 5f 01 00 50 00 00 00 09 f5 00 00
@@ -2124,7 +2099,7 @@ sound_data
         hex 00 03 0e 0e 2b 0e 0e 2c e0 c0 20 0e 0e 2c b0 e2
         hex c0 20 0e 2b 0e 0e 2c e0 e0 c0 20 2b 0e
 
-sound_data_end  ; $a08d
+sound_data_end              ; $a08d
 
 ; -------------------------------------------------------------------------------------------------
 
@@ -2156,10 +2131,10 @@ init    ; Called by: reset vector
 
         jsr hide_sprites
         jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette  ; palette_copy -> PPU
+        jsr update_palette     ; palette_copy -> PPU
 
-        ; update fourth sprite subpalette
-        set_ppu_addr vram_palette + 7*4
+        ; update 4th sprite subpalette
+        set_ppu_addr vram_palette+7*4
         copy #$0f, ppu_data  ; black
         copy #$1c, ppu_data  ; medium-dark cyan
         copy #$2b, ppu_data  ; medium-light green
@@ -2169,15 +2144,15 @@ init    ; Called by: reset vector
         copy #id_wecome, demo_part  ; the first part of the demo to run
 
         copy #%00000000, ppu_ctrl  ; disable NMI
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
 
         ldx #$ff
         jsr fill_nt_and_clear_at
         jsr init_stars
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide background and sprites
+        sta ppu_ctrl        ; disable NMI
+        sta ppu_mask        ; hide BG and sprites
 
         ldy #$00
         jsr fill_attribute_tables
@@ -2191,10 +2166,9 @@ init    ; Called by: reset vector
         jsr wait_vbl
 
         copy #%10000000, ppu_ctrl  ; enable NMI
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
 
-        ; infinite loop; if at last part of the demo, do sound stuff
--       lda demo_part
+-       lda demo_part       ; infinite loop; if at last part of demo, do sound stuff
         cmp #id_horzbars2
         bne +
         copy #$0d, dmc_addr
@@ -2204,14 +2178,14 @@ init    ; Called by: reset vector
 ; --- Lots of data --------------------------------------------------------------------------------
 
 wecome_text_pointers  ; $c0a8
-        dw wecome_text + 0*16
-        dw wecome_text + 1*16
-        dw wecome_text + 2*16
-        dw wecome_text + 3*16
-        dw wecome_text + 4*16
-        dw wecome_text + 5*16
-        dw wecome_text + 6*16
-        dw wecome_text + 7*16  ; unaccessed ($c0b6)
+        dw wecome_text+0*16
+        dw wecome_text+1*16
+        dw wecome_text+2*16
+        dw wecome_text+3*16
+        dw wecome_text+4*16
+        dw wecome_text+5*16
+        dw wecome_text+6*16
+        dw wecome_text+7*16  ; unaccessed ($c0b6)
 
 wecome_text
         ; note: "l_^[" = " !-8"
@@ -2436,7 +2410,7 @@ friday_spr_palette
         hex 3c 3c 3c 3c
 
         ; 256 bytes.
-        ; If the formula (x + 60) % 256 is applied, looks like a smooth curve with values 0-121.
+        ; If the formula (x+60) % 256 is applied, looks like a smooth curve with values 0-121.
         ; Used as scroll values and sprite positions.
         ; Read by: many anim_ subs
 curve1  hex 00 00 ff fe fd fc fc fb fa fa f9 f8 f8 f7 f7 f6
@@ -2479,7 +2453,7 @@ curve2  hex 22 24 25 26 27 28 2a 2b 2c 2d 2e 30 31 32 33 34
 sprite_x_or_y
         ; Used for sprite X positions in anim_woman and for sprite Y positions in anim_friday.
         ; 256 bytes. 194 (-62) is added to these.
-        ; If the formula (x + 182) % 256 is applied, looks like a smooth curve with values 0-212.
+        ; If the formula (x+182) % 256 is applied, looks like a smooth curve with values 0-212.
         hex dd dd dd dd de de de de de de de de de de de de
         hex de dd dd dd dc dc db db da d9 d8 d7 d7 d5 d4 d3
         hex d2 d0 cf cd cc ca c8 c6 c4 c2 c0 be bb b9 b6 b4
@@ -2721,7 +2695,7 @@ hide_sprites
 
         ldx #0
 -       lda #245
-        sta sprite_page + 0,x
+        sta sprite_page+0,x
         inx
         inx
         inx
@@ -2772,7 +2746,7 @@ clear_palette_copy
         ; Calls: nothing
 
         ldx #0
--       lda #$0f  ; black
+-       lda #$0f            ; black
         sta palette_copy,x
         inx
         cpx #32
@@ -2789,7 +2763,7 @@ update_palette
         ;            init_greets, anim_greets
         ; Calls: nothing
 
-        set_ppu_addr vram_palette + 0*4
+        set_ppu_addr vram_palette+0*4
 
         ldx #0
 -       lda palette_copy,x
@@ -2816,7 +2790,7 @@ delay   ; Delay for raster effects.
         bcc +
 +       sta delay_var1
         ;
-        inclda delay_cnt
+        inc_lda delay_cnt
         cmp delay_var2
         bne -
 
@@ -2887,12 +2861,12 @@ fade_to_black
 
 ; -------------------------------------------------------------------------------------------------
 
-change_background_color
+change_bg_color
         ; Change background color: #$3f (black) if snd_arr3+3 < 8, otherwise snd_arr3+3.
         ; Called by: anim_gradients
         ; Calls: nothing
 
-        set_ppu_addr vram_palette + 0*4
+        set_ppu_addr vram_palette+0*4
 
         lda snd_arr3+3
         cmp #8
@@ -2915,14 +2889,14 @@ change_background_color
 update_metasprite_8x2
         ; 8*2 hardware sprites. Subpalette always 3.
 
-        stx zp9         ; first X position
-        sty zp10        ; first Y position
-        copy zp6, zp11  ; first tile
+        stx zp9             ; first X position
+        sty zp10            ; first Y position
+        copy zp6, zp11      ; first tile
 
         lda #0
-        sta zp6  ; unused
-        sta zp7  ; outer loop counter
-        sta zp8  ; what to add to first tile number
+        sta zp6             ; unused
+        sta zp7             ; outer loop counter
+        sta zp8             ; what to add to first tile number
 
 --      ; outer loop (counter: zp7 = 0, 8)
         ;
@@ -2934,21 +2908,21 @@ update_metasprite_8x2
         lda zp8
         add zp11
         ldy sprite_page_offset
-        sta sprite_page + 1,y  ; tile
+        sta sprite_page+1,y  ; tile
         ;
         txa
         adc zp9
         ldy sprite_page_offset
-        sta sprite_page + 3,y  ; X
+        sta sprite_page+3,y  ; X
         ;
         lda zp7
         add zp10
         ldy sprite_page_offset
-        sta sprite_page + 0,y  ; Y
+        sta sprite_page+0,y  ; Y
         ;
         lda #%00000011
         ldy sprite_page_offset
-        sta sprite_page + 2,y  ; attributes
+        sta sprite_page+2,y  ; attributes
         ;
         lda zp6
         add #4
@@ -2963,14 +2937,14 @@ update_metasprite_8x2
         add #8
         tax
         cpx #64
-        bne -     ; end inner loop
+        bne -               ; end inner loop
         ;
         lda zp7
         add #8
         sta zp7
         lda zp7
         cmp #16
-        bne --    ; end outer loop
+        bne --              ; end outer loop
 
         sty sprite_page_offset  ; unnecessary
         rts
@@ -2978,14 +2952,14 @@ update_metasprite_8x2
 update_metasprite_3x2
         ; 3*2 hardware sprites. Subpalette always 2.
 
-        stx zp9         ; first X position
-        sty zp10        ; first Y position
-        copy zp6, zp11  ; first tile
+        stx zp9             ; first X position
+        sty zp10            ; first Y position
+        copy zp6, zp11      ; first tile
 
         lda #0
-        sta zp6  ; unused
-        sta zp7  ; outer loop counter
-        sta zp8  ; what to add to first tile number
+        sta zp6             ; unused
+        sta zp7             ; outer loop counter
+        sta zp8             ; what to add to first tile number
 
 --      ; outer loop (counter: zp7 = 0, 8)
         ldx #0
@@ -2996,21 +2970,21 @@ update_metasprite_3x2
         lda zp8
         add zp11
         ldy sprite_page_offset
-        sta sprite_page + 1,y  ; tile
+        sta sprite_page+1,y  ; tile
         ;
         txa
         adc zp9
         ldy sprite_page_offset
-        sta sprite_page + 3,y  ; X
+        sta sprite_page+3,y  ; X
         ;
         lda zp7
         add zp10
         ldy sprite_page_offset
-        sta sprite_page + 0,y  ; Y
+        sta sprite_page+0,y  ; Y
         ;
         lda #%00000010
         ldy sprite_page_offset
-        sta sprite_page + 2,y  ; attributes
+        sta sprite_page+2,y  ; attributes
         ;
         lda zp6
         add #4
@@ -3025,14 +2999,14 @@ update_metasprite_3x2
         add #8
         tax
         cpx #24
-        bne -     ; end inner loop
+        bne -               ; end inner loop
         ;
         lda zp7
         add #8
         sta zp7
         lda zp7
         cmp #16
-        bne --    ; end outer loop
+        bne --              ; end outer loop
 
         sty sprite_page_offset  ; unnecessary
         rts
@@ -3040,14 +3014,14 @@ update_metasprite_3x2
 update_metasprite_4x2
         ; 4*2 hardware sprites. Subpalette always 2.
 
-        stx zp9         ; first X position
-        sty zp10        ; first Y position
-        copy zp6, zp11  ; first tile
+        stx zp9             ; first X position
+        sty zp10            ; first Y position
+        copy zp6, zp11      ; first tile
 
         lda #0
-        sta zp6  ; unused
-        sta zp7  ; outer loop counter
-        sta zp8  ; what to add to first tile number
+        sta zp6             ; unused
+        sta zp7             ; outer loop counter
+        sta zp8             ; what to add to first tile number
 
         ; outer loop (counter: zp7 = 0, 8)
 --      ldx #0
@@ -3058,21 +3032,21 @@ update_metasprite_4x2
         lda zp8
         add zp11
         ldy sprite_page_offset
-        sta sprite_page + 1,y  ; tile
+        sta sprite_page+1,y  ; tile
         ;
         txa
         adc zp9
         ldy sprite_page_offset
-        sta sprite_page + 3,y  ; X
+        sta sprite_page+3,y  ; X
         ;
         lda zp7
         add zp10
         ldy sprite_page_offset
-        sta sprite_page + 0,y  ; Y
+        sta sprite_page+0,y  ; Y
         ;
         lda #%00000010
         ldy sprite_page_offset
-        sta sprite_page + 2,y  ; attributes
+        sta sprite_page+2,y  ; attributes
         ;
         lda zp6
         add #4
@@ -3087,14 +3061,14 @@ update_metasprite_4x2
         add #8
         tax
         cpx #32
-        bne -     ; end inner loop
+        bne -               ; end inner loop
         ;
         lda zp7
         add #8
         sta zp7
         lda zp7
         cmp #16
-        bne --    ; end outer loop
+        bne --              ; end outer loop
 
         sty sprite_page_offset  ; unnecessary
         rts
@@ -3104,12 +3078,12 @@ update_metasprite_4x2
 sub15   ; Called by: anim_title
         ; Calls: nothing
 
-        ldxy #0, #0
+        ldx #0
+        ldy #0
         stx zp6
         stx zp7
 
-        ; loop (Y = 0 to 21)
--       lda sprite_tiles,y
+-       lda sprite_tiles,y  ; loop (Y = 0...21)
         cmp #$ff
         bne +
         ;
@@ -3120,7 +3094,7 @@ sub15   ; Called by: anim_title
         ;
 +       lda #$e1
         add zp7
-        sta sprite_page + 0,x
+        sta sprite_page+0,x
         sta title_arr1,y
         ;
         lda zp7
@@ -3130,14 +3104,14 @@ sub15   ; Called by: anim_title
         sta title_arr3,y
         ;
         lda sprite_tiles,y
-        sta sprite_page + 1,x
+        sta sprite_page+1,x
         ;
         lda #$00
-        sta sprite_page + 2,x
+        sta sprite_page+2,x
         ;
         lda zp6
         add #40
-        sta sprite_page + 3,x
+        sta sprite_page+3,x
         ;
 ++      inx
         inx
@@ -3178,7 +3152,8 @@ print_big_text_line
         ; top halves of one row of big letters: read 16 bytes via big_text_ptr, subtract 0x41
         ; (ASCII "A") from each, use as index to big_letter_tiles, write that byte and that
         ; byte + 1 to PPU
-        ldxy #0, #0
+        ldx #0
+        ldy #0
         stx offset
         ;
 -       get_top_left_tile_of_big_letter
@@ -3186,7 +3161,7 @@ print_big_text_line
         inx
         stx ppu_data
         ;
-        inclda offset
+        inc_lda offset
         cmp #16
         bne -
 
@@ -3201,7 +3176,7 @@ print_big_text_line
         inx
         stx ppu_data
         ;
-        inclda offset
+        inc_lda offset
         cmp #16
         bne -
 
@@ -3226,10 +3201,10 @@ move_stars
         asl
         tay
         ;
-        lda sprite_page + 45*4 + 0, y
+        lda sprite_page+45*4+0, y
         clc
         sbc star_y_speeds,x
-        sta sprite_page + 45*4 + 0, y
+        sta sprite_page+45*4+0, y
         ;
         dex
         cpx #255
@@ -3252,15 +3227,15 @@ init_stars
         tay
         ;
         lda star_initial_y,x
-        sta sprite_page + 45*4 + 0,y
+        sta sprite_page+45*4+0,y
         lda star_tiles,x
-        sta sprite_page + 45*4 + 1,y  ; tile ($ae/$af/$be/$bf)
+        sta sprite_page+45*4+1,y  ; tile ($ae/$af/$be/$bf)
         lda #%00000011
-        sta sprite_page + 45*4 + 2,y  ; subpalette 3
+        sta sprite_page+45*4+2,y  ; subpalette 3
         lda star_initial_x,x
-        sta sprite_page + 45*4 + 3,y
+        sta sprite_page+45*4+3,y
         lda star_y_speeds,x
-        sta ram_arr1,x                   ; 2-7
+        sta ram_arr1,x            ; 2-7
         ;
         dex
         cpx #255
@@ -3272,9 +3247,10 @@ init_stars
 
 macro print_big_text_line_macro _srcline, _dstline
         ; print a line of big text
-        copy wecome_text_pointers + _srcline*2 + 0, big_text_ptr+0
-        copy wecome_text_pointers + _srcline*2 + 1, big_text_ptr+1
-        ldxy #>(name_table0 + _dstline*32), #<(name_table0 + _dstline*32)
+        copy wecome_text_pointers+_srcline*2+0, big_text_ptr+0
+        copy wecome_text_pointers+_srcline*2+1, big_text_ptr+1
+        ldx #>(name_table0+_dstline*32)
+        ldy #<(name_table0+_dstline*32)
         jsr print_big_text_line
 endm
 
@@ -3286,16 +3262,16 @@ anim_wecome
         chr_bankswitch 0
 
         lda wecome_timer_hi
-        cmpbeq #1,  wecome_jump_table + 1*3
-        cmpbeq #2,  wecome_jump_table + 2*3
-        cmpbeq #3,  wecome_jump_table + 3*3
-        cmpbeq #4,  wecome_jump_table + 4*3
-        cmpbeq #5,  wecome_jump_table + 5*3
-        cmpbeq #6,  wecome_jump_table + 6*3
-        cmpbeq #7,  wecome_jump_table + 7*3
-        cmpbeq #8,  wecome_jump_table + 8*3
-        cmpbeq #9,  +
-        cmpbeq #10, wecome_jump_table + 10*3
+        cmp_beq #1,  wecome_jump_table+1*3
+        cmp_beq #2,  wecome_jump_table+2*3
+        cmp_beq #3,  wecome_jump_table+3*3
+        cmp_beq #4,  wecome_jump_table+4*3
+        cmp_beq #5,  wecome_jump_table+5*3
+        cmp_beq #6,  wecome_jump_table+6*3
+        cmp_beq #7,  wecome_jump_table+7*3
+        cmp_beq #8,  wecome_jump_table+8*3
+        cmp_beq #9,  +
+        cmp_beq #10, wecome_jump_table+10*3
         jmp bigtext_exit
 
 +       copy #0, ppu_scroll
@@ -3312,7 +3288,7 @@ anim_wecome
 +       inc vscroll
         inc vscroll
 ++      copy #%10000000, ppu_ctrl  ; enable NMI
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
 
 wecome_jump_table
         jmp bigtext_exit    ;  0
@@ -3372,21 +3348,21 @@ bigtext_exit
 macro set_sprite_pos _index, _ycurve, _yadd, _xcurve, _xadd
         lda _ycurve,x
         add #_yadd
-        sta sprite_page + _index*4 + 0
+        sta sprite_page+_index*4+0
         lda _xcurve,x
         add #_xadd
-        sta sprite_page + _index*4 + 3
+        sta sprite_page+_index*4+3
 endm
 
 macro move_four_sprites _i1, _i2, _i3, _i4
-        dec sprite_page + _i1*4 + 0
-        dec sprite_page + _i1*4 + 3
-        dec sprite_page + _i2*4 + 0
-        inc sprite_page + _i2*4 + 3
-        inc sprite_page + _i3*4 + 0
-        dec sprite_page + _i3*4 + 3
-        inc sprite_page + _i4*4 + 0
-        inc sprite_page + _i4*4 + 3
+        dec sprite_page+_i1*4+0
+        dec sprite_page+_i1*4+3
+        dec sprite_page+_i2*4+0
+        inc sprite_page+_i2*4+3
+        inc sprite_page+_i3*4+0
+        dec sprite_page+_i3*4+3
+        inc sprite_page+_i4*4+0
+        inc sprite_page+_i4*4+3
 endm
 
         copy #$00, zp6
@@ -3439,14 +3415,14 @@ init_title
 
         reset_ppu_addr
 
-        ; update first and second color in first sprite subpalette
-        set_ppu_addr vram_palette + 4*4
+        ; update 1st and 2nd color in 1st sprite subpalette
+        set_ppu_addr vram_palette+4*4
         copy #$00, ppu_data  ; dark gray
         copy #$30, ppu_data  ; white
         reset_ppu_addr
 
-        ; update second and third sprite subpalette
-        set_ppu_addr vram_palette + 5*4 + 1
+        ; update 2nd and 3rd sprite subpalette
+        set_ppu_addr vram_palette+5*4+1
         copy #$3d, ppu_data  ; light gray
         copy #$0c, ppu_data  ; dark cyan
         copy #$3c, ppu_data  ; light cyan
@@ -3456,8 +3432,8 @@ init_title
         copy #$1a, ppu_data  ; medium-dark green
         reset_ppu_addr
 
-        ; update first background subpalette
-        set_ppu_addr vram_palette + 0*4
+        ; update 1st BG subpalette
+        set_ppu_addr vram_palette+0*4
         copy #$38, ppu_data  ; light yellow
         copy #$01, ppu_data  ; dark purple
         copy #$26, ppu_data  ; medium-light red
@@ -3467,7 +3443,7 @@ init_title
         copy #1, part_init_done
         copy #$8e, ram6
         copy #$19, ram7
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
         rts
 
 anim_title
@@ -3476,13 +3452,12 @@ anim_title
         ; Calls: sub15, fade_to_black, update_palette, move_stars
 
         chr_bankswitch 0
-        copy #>sprite_page, oam_dma  ; do sprite DMA
+        copy #>sprite_page, oam_dma      ; do sprite DMA
 
-        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
+        copy #%10010000, ppu_ctrl        ; enable NMI, use PT1 for BG
 
-        ; update fourth color of first background subpalette
-        set_ppu_addr vram_palette + 0*4 + 3
-        copy #$0f, ppu_data  ; black
+        set_ppu_addr vram_palette+0*4+3  ; update 4th color of 1st BG subpalette
+        copy #$0f, ppu_data              ; black
         reset_ppu_addr
 
         copy #0, ppu_scroll
@@ -3521,14 +3496,14 @@ anim_title
         ;
         lda title_sprites_y,x
         add ram7
-        sta sprite_page + 23*4 + 0,y
+        sta sprite_page+23*4+0,y
         lda title_sprites_tile,x
-        sta sprite_page + 23*4 + 1,y
+        sta sprite_page+23*4+1,y
         lda title_sprites_attr,x
-        sta sprite_page + 23*4 + 2,y
+        sta sprite_page+23*4+2,y
         lda title_sprites_x,x
         add ram6
-        sta sprite_page + 23*4 + 3,y
+        sta sprite_page+23*4+3,y
         ;
         cpx #0
         beq +
@@ -3536,20 +3511,19 @@ anim_title
         jmp -
 
         ; edit sprite #24
-+       copy #129,       sprite_page + 24*4 + 0
-        copy #$e5,       sprite_page + 24*4 + 1
-        copy #%00000001, sprite_page + 24*4 + 2
-        copy #214,       sprite_page + 24*4 + 3
++       copy #129,       sprite_page+24*4+0
+        copy #$e5,       sprite_page+24*4+1
+        copy #%00000001, sprite_page+24*4+2
+        copy #214,       sprite_page+24*4+3
 
         ; edit sprite #25
-        copy #97,        sprite_page + 25*4 + 0
-        copy #$f0,       sprite_page + 25*4 + 1
-        copy #%00000010, sprite_page + 25*4 + 2
-        copy #230,       sprite_page + 25*4 + 3
+        copy #97,        sprite_page+25*4+0
+        copy #$f0,       sprite_page+25*4+1
+        copy #%00000010, sprite_page+25*4+2
+        copy #230,       sprite_page+25*4+3
 
-        ; update fourth color of first background subpalette
-        set_ppu_addr vram_palette + 0*4 + 3
-        copy #$30, ppu_data  ; white
+        set_ppu_addr vram_palette+0*4+3  ; update 4th color of 1st BG subpalette
+        copy #$30, ppu_data              ; white
         reset_ppu_addr
 
 anim_title_1
@@ -3561,7 +3535,8 @@ anim_title_1
         bcc anim_title_2
 
         ; loop
-        ldxy #0, #0
+        ldx #0
+        ldy #0
 -       lda title_arr3,x
         cmp #$01
         bne +
@@ -3571,7 +3546,7 @@ anim_title_1
         adc title_arr2,x
         sta zp6
         lda title_arr1,x
-        sta sprite_page + 0,y
+        sta sprite_page+0,y
         cmp zp6
         bcc +
         ;
@@ -3603,7 +3578,7 @@ anim_title_2
         lda title_timer_lo
         cmp #200
         bcc +
-        inclda loopcntr3
+        inc_lda loopcntr3
         cmp #4
         bne +
 
@@ -3661,17 +3636,18 @@ anim_horzbars2
 
         ; loop
 --      ldx #25
--       dexbne -
+-       dex
+        bne -
         ;
-        set_ppu_addr_via_x vram_palette + 0*4
-        inclda zp4
+        set_ppu_addr_via_x vram_palette+0*4
+        inc_lda zp4
         cmp #5
         beq +
         jmp ++
         ;
 +       inc zp1
         copy #0, zp4
-++      inclda zp1
+++      inc_lda zp1
         sbc zp2
         adc zp3
         tax
@@ -3687,8 +3663,8 @@ anim_horzbars2
         dey
         bne --
 
-        copy #%00000110, ppu_mask  ; hide background and sprites
-        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
+        copy #%00000110, ppu_mask  ; hide BG and sprites
+        copy #%10010000, ppu_ctrl  ; enable NMI, use PT1 for BG
         rts
 
 ; --- Set up and animate checkered wavy animation -------------------------------------------------
@@ -3698,23 +3674,22 @@ init_checkered
         ; Calls: fill_name_tables, fill_attribute_tables, jump_snd_eng, init_palette_copy,
         ;        update_palette
 
-        ; clear Name Tables
-        ldx #$00
+        ldx #$00              ; clear Name Tables
         jsr fill_name_tables
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide background and sprites
+        sta ppu_ctrl        ; disable NMI
+        sta ppu_mask        ; hide BG and sprites
 
         ldy #$14
         jsr fill_attribute_tables
         jsr jump_snd_eng
         jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette  ; palette_copy -> PPU
+        jsr update_palette     ; palette_copy -> PPU
 
-        ; update first color of fourth background subpalette
-        set_ppu_addr vram_palette + 3*4
-        copy #$0f, ppu_data  ; black
+
+        set_ppu_addr vram_palette+3*4  ; update 1st color of 4th BG subpalette
+        copy #$0f, ppu_data            ; black
         reset_ppu_addr
 
         copy #1, part_init_done
@@ -3747,7 +3722,8 @@ anim_checkered
         cpx #64
         bne -
 
-        ldxy #0, #0
+        ldx #0
+        ldy #0
         copy #$00, zp6
 
 --      copy #$21, ppu_addr
@@ -3857,7 +3833,7 @@ anim_checkered_2
         copy #230, ppu_scroll
         dec zp3
 
-        copy #%00001110, ppu_mask  ; show background, hide sprites
+        copy #%00001110, ppu_mask  ; show BG, hide sprites
         copy #%10000000, ppu_ctrl  ; enable NMI
         rts
 
@@ -3868,25 +3844,23 @@ init_gradients
         ; Calls: fill_name_tables, init_palette_copy, update_palette, fill_attribute_tables,
         ;        fill_attribute_tables_top
 
-        ; clear Name Tables
-        ldx #$00
+        ldx #$00              ; clear Name Tables
         jsr fill_name_tables
 
         jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette  ; palette_copy -> PPU
+        jsr update_palette     ; palette_copy -> PPU
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide background and sprites
+        sta ppu_ctrl        ; disable NMI
+        sta ppu_mask        ; hide BG and sprites
 
         ldy #$ff
         jsr fill_attribute_tables
         ldy #$55
         jsr fill_attribute_tables_top
 
-        ; update first color of fourth background subpalette
-        set_ppu_addr vram_palette + 3*4
-        copy #$0f, ppu_data  ; black
+        set_ppu_addr vram_palette+3*4  ; update 1st color of 4th BG subpalette
+        copy #$0f, ppu_data            ; black
         reset_ppu_addr
 
         copy #1, part_init_done
@@ -3894,9 +3868,9 @@ init_gradients
 
 anim_gradients
         ; Called by: nmi_gradients
-        ; Calls: change_background_color
+        ; Calls: change_bg_color
 
-        jsr change_background_color
+        jsr change_bg_color
         chr_bankswitch 1
         dec zp2
         dec zp2
@@ -3919,7 +3893,8 @@ anim_gradients
         beq +
         jmp anim_gradients_1
 
-+       ldxy #0, #0
++       ldx #0
+        ldy #0
         lda #$00
 
         sta zp6
@@ -4001,7 +3976,7 @@ anim_gradients_2
 
         dec zp3
 
-        copy #%00001110, ppu_mask  ; show background, hide sprites
+        copy #%00001110, ppu_mask  ; show BG, hide sprites
         copy #%10000000, ppu_ctrl  ; enable NMI
         rts
 
@@ -4015,8 +3990,8 @@ init_horzbars1
         ldx #$ff
         jsr fill_nt_and_clear_at
         jsr jump_snd_eng
-        jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette  ; palette_copy -> PPU
+        jsr init_palette_copy     ; palette_table -> palette_copy
+        jsr update_palette        ; palette_copy  -> PPU
         copy #1, part_init_done
         jsr hide_sprites
 
@@ -4026,7 +4001,7 @@ init_horzbars1
         sta zp3
         sta zp4
 
-        copy #%00000000, ppu_mask  ; hide background and sprites
+        copy #%00000000, ppu_mask  ; hide BG and sprites
         copy #%10000000, ppu_ctrl  ; enable NMI
         rts
 
@@ -4035,7 +4010,7 @@ anim_horzbars1
         ; Calls: delay
 
         dec zp4
-        inclda zp3
+        inc_lda zp3
         cmp #2
         bne +
 
@@ -4044,9 +4019,8 @@ anim_horzbars1
 
 +       copy #%10000100, ppu_ctrl  ; enable NMI, autoincrement PPU address by 32
 
-        ; update first color of first background subpalette
-        set_ppu_addr_via_x vram_palette + 0*4
-        copy #$0f, ppu_data  ; black
+        set_ppu_addr_via_x vram_palette+0  ; update 1st color of 1st BG subpalette
+        copy #$0f, ppu_data                ; black
         reset_ppu_addr
 
         ldx #$ff
@@ -4054,19 +4028,19 @@ anim_horzbars1
         ldx #$01
         jsr delay
 
-        ; update first color of first background subpalette
-        set_ppu_addr_via_x vram_palette + 0*4
-        copy #$0f, ppu_data  ; black
+
+        set_ppu_addr_via_x vram_palette+0  ; update 1st color of 1st BG subpalette
+        copy #$0f, ppu_data                ; black
         reset_ppu_addr
 
         copy #$00, zp1
 
-        ; loop
-        ldy #85
+        ldy #85             ; loop
 --      ldx #25
--       dexbne -
+-       dex
+        bne -
         ;
-        set_ppu_addr_via_x vram_palette + 0*4
+        set_ppu_addr_via_x vram_palette+0*4
         ldx zp2
         lda curve3,x
         sta zp6
@@ -4086,9 +4060,8 @@ anim_horzbars1
 
         reset_ppu_addr
 
-        ; update first color of first background subpalette
-        set_ppu_addr_via_x vram_palette + 0*4
-        copy #$0f, ppu_data  ; black
+        set_ppu_addr_via_x vram_palette+0  ; update 1st color of 1st BG subpalette
+        copy #$0f, ppu_data                ; black
         reset_ppu_addr
         rts
 
@@ -4100,24 +4073,22 @@ init_credits
         ; Out: credits_loop_cntr
         ; Calls: fill_name_tables, init_palette_copy, update_palette, hide_sprites
 
-        ; fill Name Tables with #$ff
-        ldx #$ff
+        ldx #$ff              ; fill Name Tables with #$ff
         jsr fill_name_tables
 
         jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette  ; palette_copy -> PPU
+        jsr update_palette     ; palette_copy  -> PPU
 
-        ; update fourth sprite subpalette
-        set_ppu_addr vram_palette + 7*4
-        copy #$0f, ppu_data  ; black
-        copy #$19, ppu_data  ; medium-dark green
-        copy #$33, ppu_data  ; light purple
-        copy #$30, ppu_data  ; white
+        set_ppu_addr vram_palette+7*4  ; update 4th sprite subpalette
+        copy #$0f, ppu_data            ; black
+        copy #$19, ppu_data            ; medium-dark green
+        copy #$33, ppu_data            ; light purple
+        copy #$30, ppu_data            ; white
         reset_ppu_addr
 
         ; write name tables 0 and 2, then clear attribute tables
 
-        set_ppu_addr name_table0 + 0*32 + 0
+        set_ppu_addr name_table0+0*32+0
 
 write_name_table
         ; Write 768+160 = 928 bytes (why not 960?) to PPU.
@@ -4129,56 +4100,56 @@ write_name_table
         ;   innermost:     X = 0 to 7;                    write 8 bytes (writent_loopcntr1 + 0...7)
         copy #0, writent_loopcntr1
         copy #0, writent_loopcntr2
----     ldy #0         ; start outermost and 2nd-outermost
---      ldx #0         ; start 2nd-innermost
--       txa            ; start innermost
+---     ldy #0              ; start outermost and 2nd-outermost
+--      ldx #0              ; start 2nd-innermost
+-       txa                 ; start innermost
         add writent_loopcntr1
         sta ppu_data
         inx
         cpx #8
-        bne -          ; end innermost
+        bne -               ; end innermost
         ;
         iny
         cpy #4
-        bne --         ; end 2nd-innermost
+        bne --              ; end 2nd-innermost
         ;
         lda writent_loopcntr1
         add #8
         sta writent_loopcntr1
         lda writent_loopcntr1
         cmp #64
-        bne ---        ; end 2nd-outermost
+        bne ---             ; end 2nd-outermost
         ;
         copy #0, writent_loopcntr1
-        inclda writent_loopcntr2
+        inc_lda writent_loopcntr2
         cmp #3
-        bne ---        ; end outermost
+        bne ---             ; end outermost
 
         ; triple loop:
         ;   outermost: writent_loopcntr1 = 0 to 32 step 8; write 5*4*8 = 160 bytes to PPU
         ;   middle:    Y = 0 to 3;                 write 4*8 = 32 bytes
         ;   innermost: X = 0 to 7;                 write 8 bytes (writent_loopcntr1 + 0...7)
         ldx #0
----     ldy #0        ; start outermost
---      ldx #0        ; start middle
--       txa           ; start innermost
+---     ldy #0              ; start outermost
+--      ldx #0              ; start middle
+-       txa                 ; start innermost
         add writent_loopcntr1
         sta ppu_data
         inx
         cpx #8
-        bne -         ; end innermost
+        bne -               ; end innermost
         ;
         iny
         cpy #4
-        bne --        ; end middle
+        bne --              ; end middle
         ;
         lda writent_loopcntr1
         add #8
         sta writent_loopcntr1
         cmp #40
-        bne ---       ; end outermost
+        bne ---             ; end outermost
 
-        lda #$f0      ; unnecessary
+        lda #$f0            ; unnecessary
 
         ; write 8*8 = 64 bytes to PPU ($f0-$f7 eight times; attribute data?)
         ldy #0
@@ -4193,15 +4164,14 @@ write_name_table
         bne --
 
         reset_ppu_addr
-        inclda credits_loop_cntr
+        inc_lda credits_loop_cntr
         cmp #2
         bne +
         jmp ++
-+       set_ppu_addr name_table2 + 0*32 + 0
++       set_ppu_addr name_table2+0*32+0
         jmp write_name_table
 
-++      ; clear Attribute Table 0
-        set_ppu_addr attr_table0
+++      set_ppu_addr attr_table0  ; clear Attribute Table 0
         ldx #0
 -       copy #$00, ppu_data
         inx
@@ -4209,8 +4179,7 @@ write_name_table
         bne -
         reset_ppu_addr
 
-        ; clear Attribute Table 2
-        set_ppu_addr attr_table2
+        set_ppu_addr attr_table2  ; clear Attribute Table 2
         ldx #0
 -       copy #$00, ppu_data
         inx
@@ -4225,8 +4194,8 @@ write_name_table
         copy #1, part_init_done
         copy #0, zp1
 
-        copy #%00011000, ppu_ctrl  ; disable NMI, use pattern table 1 for background and sprites
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00011000, ppu_ctrl  ; disable NMI, use PT1 for BG and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
         rts
 
 anim_credits
@@ -4244,7 +4213,7 @@ anim_credits
         cmp #140
         bcc anim_credits1
         ;
-        inclda loopcntr3
+        inc_lda loopcntr3
         cmp #4
         bne anim_credits1
 
@@ -4255,16 +4224,16 @@ anim_credits
 anim_credits1
         copy #id_credits, demo_part
 
-        set_ppu_addr vram_palette + 0*4
+        set_ppu_addr vram_palette+0*4
 
         lda credits_timer_hi
         cmp #8
         beq anim_credits2
 
         lda credits_bg_pal
-        cmpbeq #0, +++
-        cmpbeq #1, ++
-        cmpbeq #2, +
+        cmp_beq #0, +++
+        cmp_beq #1, ++
+        cmp_beq #2, +
 
 +       copy #$34, ppu_data  ; light pink
         copy #$24, ppu_data  ; medium-light pink
@@ -4288,7 +4257,7 @@ anim_credits2
         lda curve2,x
         sta ppu_scroll
 
-        inclda credits_timer_lo
+        inc_lda credits_timer_lo
         cmp #180
         beq +
         jmp ++
@@ -4296,26 +4265,26 @@ anim_credits2
         copy #0, credits_timer_lo
 
 ++      lda credits_timer_hi
-        cmpbeq #1, credits_jump_table + 1*3
-        cmpbeq #2, credits_jump_table + 2*3
-        cmpbeq #3, credits_jump_table + 3*3
-        cmpbeq #4, credits_jump_table + 4*3
-        cmpbeq #5, credits_jump_table + 5*3
-        cmpbeq #6, credits_jump_table + 6*3
-        cmpbeq #7, credits_jump_table + 7*3
-        cmpbeq #8, credits_jump_table + 8*3
-        cmpbeq #9, anim_credits_nextpart
+        cmp_beq #1, credits_jump_table+1*3
+        cmp_beq #2, credits_jump_table+2*3
+        cmp_beq #3, credits_jump_table+3*3
+        cmp_beq #4, credits_jump_table+4*3
+        cmp_beq #5, credits_jump_table+5*3
+        cmp_beq #6, credits_jump_table+6*3
+        cmp_beq #7, credits_jump_table+7*3
+        cmp_beq #8, credits_jump_table+8*3
+        cmp_beq #9, anim_credits_nextpart
 
 credits_jump_table
-        jmp cred_exit1     ; 0
-        jmp cred_starring  ; 1
-        jmp cred_code1     ; 2
-        jmp cred_code2     ; 3
-        jmp cred_gfx1      ; 4
-        jmp cred_gfx2      ; 5
-        jmp cred_gfx3      ; 6
-        jmp cred_gfx4      ; 7
-        jmp cred_zax       ; 8
+        jmp cred_exit1      ; 0
+        jmp cred_starring   ; 1
+        jmp cred_code1      ; 2
+        jmp cred_code2      ; 3
+        jmp cred_gfx1       ; 4
+        jmp cred_gfx2       ; 5
+        jmp cred_gfx3       ; 6
+        jmp cred_gfx4       ; 7
+        jmp cred_zax        ; 8
 
 anim_credits_nextpart
         copy #id_checkered, demo_part  ; next part
@@ -4323,7 +4292,8 @@ anim_credits_nextpart
         jmp cred_exit2
 
 macro metasprite_args _x, _y, _tile
-        ldxy #_x, #_y
+        ldx #_x
+        ldy #_y
         copy #_tile, zp6
 endm
 
@@ -4388,8 +4358,8 @@ cred_exit1
         jsr hide_sprites
 cred_exit2
         chr_bankswitch 1
-        copy #%10011000, ppu_ctrl  ; enable NMI, use pattern table 1 for background and sprites
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%10011000, ppu_ctrl  ; enable NMI, use PT1 for BG and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
         rts
 
 ; --- Set up and animate woman --------------------------------------------------------------------
@@ -4398,8 +4368,7 @@ init_woman
         ; Called by: nmi_woman
         ; Calls: fill_name_tables, fill_attribute_tables, hide_sprites, jump_snd_eng
 
-        ; fill Name Tables with #$7f
-        ldx #$7f
+        ldx #$7f              ; fill Name Tables with #$7f
         jsr fill_name_tables
 
         ldy #$00
@@ -4407,8 +4376,8 @@ init_woman
         jsr hide_sprites
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide background and sprites
+        sta ppu_ctrl        ; disable NMI
+        sta ppu_mask        ; hide BG and sprites
 
         copy #$20, ram22
         copy #$21, ram23
@@ -4419,18 +4388,16 @@ init_woman
 
         set_ppu_addr name_table0
 
-        ; loop
-        ldy #0
---      ; write Y...Y+15
-        ldx #0
+
+        ldy #0              ; loop
+--      ldx #0              ; write Y...Y+15
 -       sty ppu_data
         iny
         inx
         cpx #16
         bne -
         ;
-        ; write 16 * byte #$7f
-        ldx #0
+        ldx #0              ; write 16 * byte #$7f
 -       copy #$7f, ppu_data
         inx
         cpx #16
@@ -4445,18 +4412,15 @@ init_woman
         ; the left half consists of tiles $00, $01, ..., $df
         ; the right half consists of tile $7f
 
-        ; loop
-        ldy #0
---      ; first inner loop
-        ldx #0
+        ldy #0              ; loop
+--      ldx #0              ; 1st inner loop
 -       sty ppu_data
         iny
         inx
         cpx #16
         bne -
         ;
-        ; second inner loop
-        ldx #0
+        ldx #0              ; 2nd inner loop
 -       copy #$7f, ppu_data
         inx
         cpx #16
@@ -4467,7 +4431,7 @@ init_woman
 
         ; write bytes #$e0-#$e4 to Name Table 0, row 29, columns 10-14
         reset_ppu_addr
-        set_ppu_addr name_table0 + 29*32 + 10
+        set_ppu_addr name_table0+29*32+10
         copy #$e0, ppu_data
         copy #$e1, ppu_data
         copy #$e2, ppu_data
@@ -4475,21 +4439,20 @@ init_woman
         copy #$e4, ppu_data
         reset_ppu_addr
 
-        ; update first background subpalette and first sprite subpalette
-        set_ppu_addr vram_palette + 0*4
+        ; update 1st BG subpalette and 1st sprite subpalette
+        set_ppu_addr vram_palette+0*4
         ldx #0
         copy #$30, ppu_data  ; white
         copy #$25, ppu_data  ; medium-light red
         copy #$17, ppu_data  ; medium-dark orange
         copy #$0f, ppu_data  ; black
-        set_ppu_addr vram_palette + 4*4 + 1
+        set_ppu_addr vram_palette+4*4+1
         copy #$02, ppu_data  ; dark blue
         copy #$12, ppu_data  ; medium-dark blue
         copy #$22, ppu_data  ; medium-light blue
         reset_ppu_addr
 
-        ; reset H/V scroll
-        lda #0
+        lda #0              ; reset H/V scroll
         sta ppu_scroll
         sta ppu_scroll
 
@@ -4512,43 +4475,37 @@ anim_woman
 
         inc zp2
         inc zp3
-        ldxy #24, #0
+        ldx #24
+        ldy #0
         lda #$00
         sta zp6
         sta zp1
         lda zp3
 
         ; loop
--       ; update sprite at offset Y
-        ;
-        txa
-        sta sprite_page + 0,y
-        ;
+-       txa                 ; update sprite at offset Y
+        sta sprite_page+0,y
         lda #$f0
         add zp4
-        sta sprite_page + 1,y
-        ;
+        sta sprite_page+1,y
         lda ram22
-        sta sprite_page + 2,y
+        sta sprite_page+2,y
         ;
-        ; store X
-        txa
+        txa                 ; store X
         pha
         ;
         inc zp1
         inc zp1
         inc zp1
         ;
-        ; [sprite_x_or_y + zp1 + zp2] + 194 -> sprite X position
-        lda zp1
+        lda zp1             ; [sprite_x_or_y+zp1+zp2] + 194 -> sprite X pos
         add zp2
         tax
         lda sprite_x_or_y,x
         add #194
-        sta sprite_page + 3,y
+        sta sprite_page+3,y
         ;
-        ; restore X
-        pla
+        pla                 ; restore X
         tax
         ;
         iny4
@@ -4557,8 +4514,7 @@ anim_woman
         tax
         inc zp5
         ;
-        ; if zp5 = 15 then clear it and increment zp4
-        lda zp5
+        lda zp5             ; if zp5 = 15 then clear it and increment zp4
         cmp #15
         beq +
         jmp ++
@@ -4566,16 +4522,14 @@ anim_woman
 +       inc zp4
         copy #0, zp5
 
-        ; if zp4 = 16 then clear it
-++      lda zp4
+++      lda zp4             ; if zp4 = 16 then clear it
         cmp #16
         beq +
         jmp ++
         ;
 +       copy #0, zp4
 
-        ; loop until Y = 96
-++      cpy #96
+++      cpy #96             ; loop until Y = 96
         bne -
 
         ldx #24
@@ -4585,35 +4539,28 @@ anim_woman
         dec zp4
 
         ; loop
--       ; update sprite at offset Y
-        ;
-        txa
-        sta sprite_page + 0,y
-        ;
+-       txa                 ; update sprite at offset Y
+        sta sprite_page+0,y
         lda #$f0
         add zp4
-        sta sprite_page + 1,y
-        ;
+        sta sprite_page+1,y
         lda ram23
-        sta sprite_page + 2,y
+        sta sprite_page+2,y
         ;
-        ; store X
-        txa
+        txa                 ; store X
         pha
         ;
         dec zp1
         dec zp1
         ;
-        ; [sprite_x_or_y + zp1 + zp3] + 194 -> sprite X position
-        lda zp1
+        lda zp1             ; [sprite_x_or_y+zp1+zp3] + 194 -> sprite X pos
         add zp3
         tax
         lda sprite_x_or_y,x
         add #194
-        sta sprite_page + 3,y
+        sta sprite_page+3,y
         ;
-        ; restore X
-        pla
+        pla                 ; restore X
         tax
         ;
         iny4
@@ -4622,20 +4569,18 @@ anim_woman
         tax
         inc zp4
         ;
-        ; if zp4 = 16 then clear it
-        lda zp4
+        lda zp4             ; if zp4 = 16 then clear it
         cmp #16
         beq +
         jmp ++
         ;
 +       copy #0, zp4
-        ; loop until Y = 192
-++      cpy #192
+++      cpy #192            ; loop until Y = 192
         bne -
 
         chr_bankswitch 3
 
-        copy #%10001000, ppu_ctrl  ; enable NMI, use pattern table 1 for sprites
+        copy #%10001000, ppu_ctrl  ; enable NMI, use PT1 for sprites
 
         ldx #$ff
         jsr delay
@@ -4648,14 +4593,14 @@ anim_woman
         nop
         nop
 
-        copy #%10011000, ppu_ctrl  ; enable NMI, use pattern table 1 for background and sprites
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%10011000, ppu_ctrl  ; enable NMI, use PT1 for BG and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
 
         lda zp3
         cmp #$fa
         bne ++
 
-        inclda ram21
+        inc_lda ram21
         cmp #$02
         beq +
 
@@ -4683,16 +4628,17 @@ init_ninja  ; $ec99
         ldy #$00
         jsr fill_attribute_tables
         jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette     ; palette_copy -> PPU
+        jsr update_palette     ; palette_copy  -> PPU
         jsr hide_sprites
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide background and sprites
+        sta ppu_ctrl        ; disable NMI
+        sta ppu_mask        ; hide BG and sprites
 
-        set_ppu_addr name_table0 + 8*32 + 10
+        set_ppu_addr name_table0+8*32+10
 
-        ldxy #$50, #0
+        ldx #$50
+        ldy #0
 -       stx ppu_data
         inx
         iny
@@ -4701,7 +4647,7 @@ init_ninja  ; $ec99
 
         reset_ppu_addr
 
-        set_ppu_addr name_table0 + 9*32 + 10
+        set_ppu_addr name_table0+9*32+10
 
         ldy #0
         ldx #$5c
@@ -4713,7 +4659,7 @@ init_ninja  ; $ec99
 
         reset_ppu_addr
 
-        set_ppu_addr name_table0 + 10*32 + 10
+        set_ppu_addr name_table0+10*32+10
 
         ldy #0
         ldx #$68
@@ -4731,30 +4677,30 @@ init_ninja  ; $ec99
         sta zp1
         copy #$00, zp2
 
-        set_ppu_addr vram_palette + 6*4 + 2
+        set_ppu_addr vram_palette+6*4+2
         copy #$00, ppu_data
         copy #$10, ppu_data
         reset_ppu_addr
 
         copy #%10000000, ppu_ctrl  ; enable NMI
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
 
         copy #$00, ram8
         rts
 
-anim_ninja  ; $ed4b
+anim_ninja                  ; $ed4b
         lda ram8
         cmp #$01
         beq +
 
-        set_ppu_addr vram_palette + 4*4
+        set_ppu_addr vram_palette+4*4
         copy #$0f, ppu_data
         copy #$0f, ppu_data
         copy #$0f, ppu_data
         copy #$0f, ppu_data
         reset_ppu_addr
 
-        set_ppu_addr vram_palette + 0*4
+        set_ppu_addr vram_palette+0*4
         copy #$0f, ppu_data
         copy #$30, ppu_data
         copy #$10, ppu_data
@@ -4762,22 +4708,22 @@ anim_ninja  ; $ed4b
         reset_ppu_addr
 
 +       copy #$01, ram8
-        copy #%00011110, ppu_mask  ; show background and sprites
-        copy #%00010000, ppu_ctrl  ; disable NMI, use pattern table 1 for background
+        copy #%00011110, ppu_mask  ; show BG and sprites
+        copy #%00010000, ppu_ctrl  ; disable NMI, use PT1 for BG
 
-        inclda zp2
+        inc_lda zp2
         cmp #8
         beq +
         jmp +++
 +       copy #$00, zp2
-        inclda text_offset
+        inc_lda text_offset
         cmp #235
         beq +
         jmp ++
         ;
 +       copy #0, part_init_done
         copy #id_cola, demo_part
-++      set_ppu_addr name_table0 + 27*32 + 1
+++      set_ppu_addr name_table0+27*32+1
 
         ldx #0
 -       txa
@@ -4802,8 +4748,8 @@ anim_ninja  ; $ed4b
         sta ppu_scroll
         copy #0, ppu_scroll
 
-        copy #%00010000, ppu_ctrl  ; disable NMI, use pattern table 1 for background
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00010000, ppu_ctrl  ; disable NMI, use PT1 for BG
+        copy #%00011110, ppu_mask  ; show BG and sprites
 
         copy #>sprite_page, oam_dma  ; do sprite DMA
 
@@ -4823,23 +4769,20 @@ anim_ninja  ; $ed4b
         copy zp2, ppu_scroll
         copy #0,  ppu_scroll
 
-        ; edit sprite #0
-        copy #215,       sprite_page + 0*4 + 0
-        copy #$25,       sprite_page + 0*4 + 1
-        copy #%00000000, sprite_page + 0*4 + 2
-        copy #248,       sprite_page + 0*4 + 3
+        copy #215,       sprite_page+0*4+0  ; edit sprite #0
+        copy #$25,       sprite_page+0*4+1
+        copy #%00000000, sprite_page+0*4+2
+        copy #248,       sprite_page+0*4+3
 
-        ; edit sprite #1
-        copy #207,       sprite_page + 1*4 + 0
-        copy #$25,       sprite_page + 1*4 + 1
-        copy #%00000000, sprite_page + 1*4 + 2
-        copy #248,       sprite_page + 1*4 + 3
+        copy #207,       sprite_page+1*4+0  ; edit sprite #1
+        copy #$25,       sprite_page+1*4+1
+        copy #%00000000, sprite_page+1*4+2
+        copy #248,       sprite_page+1*4+3
 
-        ; edit sprite #2
-        copy #223,       sprite_page + 2*4 + 0
-        copy #$27,       sprite_page + 2*4 + 1
-        copy #%00000000, sprite_page + 2*4 + 2
-        copy #248,       sprite_page + 2*4 + 3
+        copy #223,       sprite_page+2*4+0  ; edit sprite #2
+        copy #$27,       sprite_page+2*4+1
+        copy #%00000000, sprite_page+2*4+2
+        copy #248,       sprite_page+2*4+3
 
         ; edit sprites
         ldx ninja_sprite_count_minus_one  ; 11
@@ -4850,7 +4793,7 @@ anim_ninja  ; $ed4b
         ;
         lda ninja_sprites_y,x
         add #$9b
-        sta sprite_page + 23*4 + 0,y
+        sta sprite_page+23*4+0,y
         ;
         txa
         pha
@@ -4862,37 +4805,37 @@ anim_ninja  ; $ed4b
         tax
         lda ninja_sprites_tile,x
         add zp6
-        sta sprite_page + 23*4 + 1,y
+        sta sprite_page+23*4+1,y
         ;
         lda #%00000010
-        sta sprite_page + 23*4 + 2,y
+        sta sprite_page+23*4+2,y
         ;
         lda ninja_sprites_x,x
         add ram14
-        sta sprite_page + 23*4 + 3,y
+        sta sprite_page+23*4+3,y
         ;
         cpx #0
         beq +
         dex
         jmp -
 
-+       inclda ram15
++       inc_lda ram15
         cmp #$06
         bne +
         inc ram14
         inc ram14
         copy #$00, ram15
-+       inclda ram10
++       inc_lda ram10
         cmp #$0c
         bne +
         copy #$00, ram10
-        inclda ram9
+        inc_lda ram9
         cmp #$04
         bne +
         copy #$00, ram9
 
-+       copy #%10001000, ppu_ctrl  ; enable NMI, use pattern table 1 for sprites
-        copy #%00011000, ppu_mask  ; show background and sprites (neither in the leftmost column)
++       copy #%10001000, ppu_ctrl  ; enable NMI, use PT1 for sprites
+        copy #%00011000, ppu_mask  ; show BG and sprites (neither in the leftmost column)
         rts
 
 ; --- Set up and animate Bowser's spaceship -------------------------------------------------------
@@ -4906,9 +4849,9 @@ init_bowser
         ldy #$aa
         jsr fill_attribute_tables
 
-        ; write the crescent moon to name table 0 (lines 8-15, columns 26-28, tiles $60-$77)
-        copy #$1a, zp6  ; row start address low ($1a, $3a, ..., $fa)
-        ldx #$60        ; tile
+        ; write the crescent moon to NT0 (lines 8-15, columns 26-28, tiles $60-$77)
+        copy #$1a, zp6      ; row start address low ($1a, $3a, ..., $fa)
+        ldx #$60            ; tile
 --      copy #$21, ppu_addr
         copy zp6,  ppu_addr
         ;
@@ -4927,9 +4870,9 @@ init_bowser
         cmp #$1a
         bne --
 
-        ; write blank tiles to name table 0 (lines 16-18, columns 8-10, tiles $80-$88)
-        copy #$08, zp6  ; row start address low ($08, $28, $48)
-        ldx #$80        ; tile (replace with #$57 to make small crescent moon reappear)
+        ; write blank tiles to NT0 (lines 16-18, columns 8-10, tiles $80-$88)
+        copy #$08, zp6      ; row start address low ($08, $28, $48)
+        ldx #$80            ; tile (replace with #$57 to make small crescent moon reappear)
 --      copy #$22, ppu_addr
         copy zp6,  ppu_addr
         ;
@@ -4949,7 +4892,7 @@ init_bowser
         bne --
 
         ; update all sprite subpalettes
-        set_ppu_addr vram_palette + 4*4
+        set_ppu_addr vram_palette+4*4
         copy #$0f, ppu_data  ; black
         copy #$01, ppu_data  ; dark blue
         copy #$1c, ppu_data  ; medium-dark cyan
@@ -4968,8 +4911,8 @@ init_bowser
         copy #$18, ppu_data  ; medium-dark yellow
         reset_ppu_addr
 
-        ; update first background subpalette
-        set_ppu_addr vram_palette + 0*4
+        ; update 1st BG subpalette
+        set_ppu_addr vram_palette+0*4
         copy #$0f, ppu_data  ; black
         copy #$20, ppu_data  ; white
         copy #$10, ppu_data  ; light gray
@@ -5004,11 +4947,11 @@ init_bowser
         tay
         ;
         lda bowser_sprites_y2,x
-        sta sprite_page + 48*4 + 0,y
+        sta sprite_page+48*4+0,y
         lda bowser_sprites_tile4,x
-        sta sprite_page + 48*4 + 1,y
+        sta sprite_page+48*4+1,y
         lda bowser_sprites_x2,x
-        sta sprite_page + 48*4 + 3,y
+        sta sprite_page+48*4+3,y
         lda bowser_sprites_xsub,x
         sta ram_arr1,x
         ;
@@ -5027,9 +4970,9 @@ init_bowser
         tay
         ;
         lda bowser_sprites_tile2,x
-        sta sprite_page + 1*4 + 1,y
+        sta sprite_page+1*4+1,y
         lda bowser_sprites_attr,x
-        sta sprite_page + 1*4 + 2,y
+        sta sprite_page+1*4+2,y
         ;
         cpx #0
         beq +
@@ -5042,7 +4985,7 @@ init_bowser
         sta ram3
         copy #1, part_init_done
         copy #%10000000, ppu_ctrl  ; enable NMI
-        copy #%00010010, ppu_mask  ; hide background, show sprites (not in the leftmost column)
+        copy #%00010010, ppu_mask  ; hide BG, show sprites (not in the leftmost column)
         rts
 
 anim_bowser
@@ -5081,10 +5024,10 @@ anim_bowser
         bne -
 
         ; edit tiles of four sprites
-        copy bowser_tile_arr+0, sprite_page +  1*4 + 1
-        copy bowser_tile_arr+1, sprite_page + 16*4 + 1
-        copy bowser_tile_arr+2, sprite_page + 17*4 + 1
-        copy bowser_tile_arr+3, sprite_page + 13*4 + 1
+        copy bowser_tile_arr+0, sprite_page+ 1*4+1
+        copy bowser_tile_arr+1, sprite_page+16*4+1
+        copy bowser_tile_arr+2, sprite_page+17*4+1
+        copy bowser_tile_arr+3, sprite_page+13*4+1
 
         ; loop - edit positions of sprites #1-#17
         ldx bowser_sprite_count2_minus_one  ; 16
@@ -5095,10 +5038,10 @@ anim_bowser
         ;
         lda bowser_sprites_y1,x
         add ram5
-        sta sprite_page + 1*4 + 0,y
+        sta sprite_page+1*4+0,y
         lda bowser_sprites_x1,x
         add ram4
-        sta sprite_page + 1*4 + 3,y
+        sta sprite_page+1*4+3,y
         ;
         cpx #0
         beq +
@@ -5110,13 +5053,14 @@ anim_bowser
         cmp some_bowser_table3,x
         bne ++
 
-        inclda ram2
+        inc_lda ram2
         cpx some_bowser_data2
-        bne +      ; always taken
+        bne +               ; always taken
 
-        copy #$00, ram2  ; unaccessed ($f111)
+        copy #$00, ram2     ; unaccessed ($f111)
 
-+       ldxy ram3, ram1
++       ldx ram3
+        ldy ram1
         lda #$ff
         sta bowser_x_arr,x
         lda curve1,y
@@ -5154,13 +5098,13 @@ anim_bowser
         tay
         ;
         lda bowser_y_arr,x
-        sta sprite_page + 18*4 + 0,y
+        sta sprite_page+18*4+0,y
         lda bowser_sprites_tile3,x
-        sta sprite_page + 18*4 + 1,y
+        sta sprite_page+18*4+1,y
         lda #$2b
-        sta sprite_page + 18*4 + 2,y
+        sta sprite_page+18*4+2,y
         lda bowser_x_arr,x
-        sta sprite_page + 18*4 + 3,y
+        sta sprite_page+18*4+3,y
         ;
         dex
         cpx #255
@@ -5173,19 +5117,20 @@ anim_bowser
         asl
         tay
         ;
-        lda sprite_page + 48*4 + 3,y
+        lda sprite_page+48*4+3,y
         clc
         sbc bowser_sprites_xsub,x
-        sta sprite_page + 48*4 + 3,y
+        sta sprite_page+48*4+3,y
         ;
         dex
         cpx #255
         bne -
 
         copy #%10000000, ppu_ctrl  ; enable NMI
-        copy #%00011010, ppu_mask  ; show background and sprites (no sprites in leftmost column)
+        copy #%00011010, ppu_mask  ; show BG and sprites (no sprites in leftmost column)
 
-        set_ppu_scroll 0, 50
+        copy #0,  ppu_scroll
+        copy #50, ppu_scroll
         rts
 
 ; --- Set up and "animate" "game over" part -------------------------------------------------------
@@ -5194,17 +5139,17 @@ init_gameover
         ; Called by: nmi_gameover
         ; Calls: fill_name_tables, fill_attribute_tables, init_palette_copy, update_palette
 
-        ; clear name&attribute tables
-        ldx #$4a  ; space
+        ; clear name & attribute tables
+        ldx #$4a            ; space
         jsr fill_name_tables
         ldy #$00
         jsr fill_attribute_tables
 
         jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette     ; palette_copy -> PPU
+        jsr update_palette     ; palette_copy  -> PPU
 
-        ; copy 96 (32*3) bytes of text to rows 14-16 of name table 0; subtract 17 from each byte
-        set_ppu_addr name_table0 + 14*32
+        ; copy 96 (32*3) bytes of text to rows 14-16 of NT0; subtract 17 from each byte
+        set_ppu_addr name_table0+14*32
         ldx #0
 -       lda gameover_text,x
         clc
@@ -5214,17 +5159,18 @@ init_gameover
         cpx #96
         bne -
 
-        copy #%00000010, ppu_ctrl  ; disable NMI, use name table 2
-        copy #%00000000, ppu_mask  ; hide background and sprites
+        copy #%00000010, ppu_ctrl  ; disable NMI, use NT2
+        copy #%00000000, ppu_mask  ; hide BG and sprites
         rts
 
 anim_gameover
         ; Called by: nmi_gameover
         ; Calls: nothing
 
-        set_ppu_scroll 0, 0
-        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
-        copy #%00001110, ppu_mask  ; show background, hide sprites
+        copy #0, ppu_scroll
+        copy #0, ppu_scroll
+        copy #%10010000, ppu_ctrl  ; enable NMI, use PT1 for BG
+        copy #%00001110, ppu_mask  ; show BG, hide sprites
         rts
 
 ; --- Set up and animate "GREETS" part ------------------------------------------------------------
@@ -5234,7 +5180,7 @@ init_greets
         ; Calls: fill_name_tables, fill_attribute_tables, clear_palette_copy, update_palette
 
         ; clear name&attribute tables
-        ldx #$4a  ; space
+        ldx #$4a            ; space
         jsr fill_name_tables
         ldy #$00
         jsr fill_attribute_tables
@@ -5242,18 +5188,18 @@ init_greets
         jsr clear_palette_copy  ; black -> palette_copy
         jsr update_palette      ; palette_copy -> PPU
 
-        copy #%00000010, ppu_ctrl  ; disable NMI, use name table 2
-        copy #%00000000, ppu_mask  ; hide background and sprites
+        copy #%00000010, ppu_ctrl  ; disable NMI, use NT2
+        copy #%00000000, ppu_mask  ; hide BG and sprites
 
         ; Write the heading "GREETS TO ALL NINTENDAWGS:" (16*3 tiles, tiles $00-$2f)
         ; to rows 3-5, columns 9-24 of Name Table 0.
         ;
-        copy #0, zp6  ; outer loop counter, VRAM address offset
-        ldx #0        ; tile number
+        copy #0, zp6        ; outer loop counter, VRAM address offset
+        ldx #0              ; tile number
         ;
---      copy #>(name_table0 + 3*32 + 9), ppu_addr
+--      copy #>(name_table0+3*32+9), ppu_addr
         lda zp6
-        add #<(name_table0 + 3*32 + 9)
+        add #<(name_table0+3*32+9)
         sta ppu_addr
         ;
         ; write row
@@ -5266,20 +5212,19 @@ init_greets
         ;
         reset_ppu_addr
         ;
-        ; manage loop counter
-        lda zp6
+        lda zp6             ; manage loop counter
         add #32
         sta zp6
         cmp #(3*32)
         bne --
 
-        ; copy the main text (32*20 = 256+256+128 tiles) to rows 8-27 of name table 0;
+        ; copy the main text (32*20 = 256+256+128 tiles) to rows 8-27 of NT0;
         ; subtract 17 from each byte
         ;
-        set_ppu_addr name_table0 + 8*32
+        set_ppu_addr name_table0+8*32
         ;
         ldx #0
--       lda greets_text + 0,x
+-       lda greets_text+0,x
         clc
         sbc #16
         sta ppu_data
@@ -5287,7 +5232,7 @@ init_greets
         bne -
         ;
         ldx #0
--       lda greets_text + 256,x
+-       lda greets_text+256,x
         clc
         sbc #16
         sta ppu_data
@@ -5295,7 +5240,7 @@ init_greets
         bne -
         ;
         ldx #0
--       lda greets_text + 2*256,x
+-       lda greets_text+2*256,x
         clc
         sbc #16
         sta ppu_data
@@ -5323,10 +5268,10 @@ anim_greets
         bne +
 
         jsr init_palette_copy  ; palette_table -> palette_copy
-        jsr update_palette     ; palette_copy -> PPU
+        jsr update_palette     ; palette_copy  -> PPU
 
-        ; update first background subpalette
-        set_ppu_addr vram_palette + 0*4
+        ; update 1st BG subpalette
+        set_ppu_addr vram_palette+0*4
         copy #$0f, ppu_data  ; black
         copy #$30, ppu_data  ; white
         copy #$1a, ppu_data  ; medium-dark green
@@ -5351,7 +5296,7 @@ anim_greets
         cmp #0
         bcc +
         ;
-        inclda loopcntr3
+        inc_lda loopcntr3
         cmp #4
         bne +
 
@@ -5360,8 +5305,8 @@ anim_greets
         copy #0, loopcntr3
 
 +       copy #id_greets, demo_part
-        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
-        copy #%00001110, ppu_mask  ; show background, hide sprites
+        copy #%10010000, ppu_ctrl  ; enable NMI, use PT1 for BG
+        copy #%00001110, ppu_mask  ; show BG, hide sprites
         rts
 
 ; --- Set up and animate Coca Cola cans -----------------------------------------------------------
@@ -5378,16 +5323,16 @@ init_cola
         jsr fill_attribute_tables
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide background and sprites
+        sta ppu_ctrl        ; disable NMI
+        sta ppu_mask        ; hide BG and sprites
 
         lda #$00
         sta zp1
         sta zp2
         sta zp3
 
-        ; update first background subpalette
-        set_ppu_addr vram_palette + 0*4
+        ; update 1st BG subpalette
+        set_ppu_addr vram_palette+0*4
         copy #$05, ppu_data  ; dark red
         copy #$25, ppu_data  ; medium-light red
         copy #$15, ppu_data  ; medium-dark red
@@ -5396,7 +5341,8 @@ init_cola
 
         copy #$c8, ram18
 
-        set_ppu_scroll 0, 200
+        copy #0,   ppu_scroll
+        copy #200, ppu_scroll
 
         copy #$00, ram24
         copy #1, part_init_done
@@ -5414,8 +5360,8 @@ anim_cola
 +       ldy #$80
 
         ; loop
---      copy #>(name_table0 + 8*32 + 4), ppu_addr
-        lda #<(name_table0 + 8*32 + 4)
+--      copy #>(name_table0+8*32+4), ppu_addr
+        lda #<(name_table0+8*32+4)
         add ram16
         sta ppu_addr
         ;
@@ -5433,8 +5379,8 @@ anim_cola
         bne --
 
         ; loop
---      copy #>(name_table0 + 16*32 + 4), ppu_addr
-        lda #<(name_table0 + 16*32 + 4)
+--      copy #>(name_table0+16*32+4), ppu_addr
+        lda #<(name_table0+16*32+4)
         add ram16
         sta ppu_addr
         ;
@@ -5455,8 +5401,8 @@ anim_cola
         copy #$00, ram16
 
         ; loop
---      copy #>(name_table0 + 8*32 + 20), ppu_addr
-        lda #<(name_table0 + 8*32 + 20)
+--      copy #>(name_table0+8*32+20), ppu_addr
+        lda #<(name_table0+8*32+20)
         add ram16
         sta ppu_addr
         ;
@@ -5474,8 +5420,8 @@ anim_cola
         bne --
 
         ; loop
---      copy #>(name_table0 + 16*32 + 20), ppu_addr
-        lda #<(name_table0 + 16*32 + 20)
+--      copy #>(name_table0+16*32+20), ppu_addr
+        lda #<(name_table0+16*32+20)
         add ram16
         sta ppu_addr
         ;
@@ -5513,14 +5459,15 @@ anim_cola_2
         lda ram19
         cmp #$01
         beq anim_cola_3
-        inclda ram17
+        inc_lda ram17
         cmp #$c8
         beq +
         jmp anim_cola_3
 +       copy #$01, ram19
 
 anim_cola_3
-        ldxy #$00, #$00
+        ldx #$00
+        ldy #$00
         lda ram19
         cmp #$00
         beq anim_cola_5
@@ -5541,14 +5488,14 @@ anim_cola_3
         cmp zp6
         bcc +
         bcs ++
-+       copy #%00001110, ppu_mask  ; show background, hide sprites
++       copy #%00001110, ppu_mask  ; show BG, hide sprites
         jmp +++
 ++      lda zp1
         cmp zp7
         bcs +
-        copy #%11101110, ppu_mask  ; darken all colors, show background, hide sprites
+        copy #%11101110, ppu_mask  ; darken all colors, show BG, hide sprites
 +++     jmp ++
-+       copy #%00001110, ppu_mask  ; show background, hide sprites
++       copy #%00001110, ppu_mask  ; show BG, hide sprites
 ++      lda zp1
         add zp3
         adc zp2
@@ -5573,8 +5520,8 @@ anim_cola_3
         bne -
 
 anim_cola_5
-        copy #%10010000, ppu_ctrl  ; enable NMI, use pattern table 1 for background
-        copy #%00001110, ppu_mask  ; show background, hide sprites
+        copy #%10010000, ppu_ctrl  ; enable NMI, use PT1 for BG
+        copy #%00001110, ppu_mask  ; show BG, hide sprites
         rts
 
 ; --- Set up and animate the "IT IS FRIDAY..." part -----------------------------------------------
@@ -5591,8 +5538,7 @@ write_row
         bne -
         rts
 
-        ; unaccessed block ($f4f9)
-        ldy #0
+        ldy #0              ; unaccessed block ($f4f9)
 -       stx ppu_data
         iny
         cpy #32
@@ -5608,8 +5554,8 @@ init_friday
         jsr hide_sprites
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide background and sprites
+        sta ppu_ctrl        ; disable NMI
+        sta ppu_mask        ; hide BG and sprites
 
         ; write 24 rows of tiles to the start of Name Table 0
         set_ppu_addr name_table0
@@ -5628,20 +5574,20 @@ endr
 
         reset_ppu_addr
 
-        ; update first background subpalette
-        set_ppu_addr vram_palette + 0*4
-        copy friday_bg_palette + 0, ppu_data
-        copy friday_bg_palette + 1, ppu_data
-        copy friday_bg_palette + 2, ppu_data
-        copy friday_bg_palette + 3, ppu_data
+        ; update 1st BG subpalette
+        set_ppu_addr vram_palette+0*4
+        copy friday_bg_palette+0, ppu_data
+        copy friday_bg_palette+1, ppu_data
+        copy friday_bg_palette+2, ppu_data
+        copy friday_bg_palette+3, ppu_data
         reset_ppu_addr
 
-        ; update first sprite subpalette
-        set_ppu_addr vram_palette + 4*4
-        copy friday_spr_palette + 0, ppu_data
-        copy friday_spr_palette + 1, ppu_data
-        copy friday_spr_palette + 2, ppu_data
-        copy friday_spr_palette + 3, ppu_data
+        ; update 1st sprite subpalette
+        set_ppu_addr vram_palette+4*4
+        copy friday_spr_palette+0, ppu_data
+        copy friday_spr_palette+1, ppu_data
+        copy friday_spr_palette+2, ppu_data
+        copy friday_spr_palette+3, ppu_data
         reset_ppu_addr
 
         ; loop - edit sprites #48-#63
@@ -5652,13 +5598,13 @@ endr
         tay
         ;
         lda friday_sprites_y,x
-        sta sprite_page + 48*4 + 0,y
+        sta sprite_page+48*4+0,y
         lda friday_sprites_tile,x
-        sta sprite_page + 48*4 + 1,y
+        sta sprite_page+48*4+1,y
         lda #%00000010
-        sta sprite_page + 48*4 + 2,y
+        sta sprite_page+48*4+2,y
         lda friday_sprites_x,x
-        sta sprite_page + 48*4 + 3,y
+        sta sprite_page+48*4+3,y
         ;
         lda friday_sprites_xadd,x
         sta ram_arr1,x
@@ -5678,10 +5624,10 @@ macro edit_sprite_macro _index, _y, _x
         lda #_y
         clc
         sbc zp6
-        sta sprite_page + _index*4 + 0
-        copy #$25,       sprite_page + _index*4 + 1
-        copy #%00000000, sprite_page + _index*4 + 2
-        copy #_x,        sprite_page + _index*4 + 3
+        sta sprite_page+_index*4+0
+        copy #$25,       sprite_page+_index*4+1
+        copy #%00000000, sprite_page+_index*4+2
+        copy #_x,        sprite_page+_index*4+3
 endm
 
 anim_friday
@@ -5706,11 +5652,11 @@ anim_friday
         ;
         lda friday_sprites_y,x
         add zp6
-        sta sprite_page + 48*4 + 0,y
-        lda sprite_page + 48*4 + 3,y
+        sta sprite_page+48*4+0,y
+        lda sprite_page+48*4+3,y
         clc
         adc friday_sprites_xadd,x
-        sta sprite_page + 48*4 + 3,y
+        sta sprite_page+48*4+3,y
         ;
         dex
         cpx #7
@@ -5724,24 +5670,24 @@ anim_friday
         ;
         lda friday_sprites_y,x
         add zp7
-        sta sprite_page + 48*4 + 0,y
-        lda sprite_page + 48*4 + 3,y
+        sta sprite_page+48*4+0,y
+        lda sprite_page+48*4+3,y
         clc
         adc friday_sprites_xadd,x
-        sta sprite_page + 48*4 + 3,y
+        sta sprite_page+48*4+3,y
         ;
         dex
         cpx #255
         bne -
 
         chr_bankswitch 0
-        inclda zp2
+        inc_lda zp2
         cmp #$08
         beq +
         jmp anim_friday_2
         ;
 +       copy #$00, zp2
-        inclda text_offset
+        inc_lda text_offset
         cmp #235
         beq +
         jmp anim_friday_1
@@ -5750,9 +5696,9 @@ anim_friday
         copy #id_cola, demo_part  ; next part
 
 anim_friday_1
-        ; copy 31 bytes from friday_text + text_offset to name table 0 Y pos 19, X pos 1
+        ; copy 31 bytes from friday_text+text_offset to NT0 Y pos 19, X pos 1
 
-        set_ppu_addr name_table0 + 19*32 + 1
+        set_ppu_addr name_table0+19*32+1
 
         ldx #0
 -       txa
@@ -5786,7 +5732,7 @@ anim_friday_2
         edit_sprite_macro 5, 156, 0
 
         copy #%10000000, ppu_ctrl  ; enable NMI
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
         rts
 
 ; -------------------------------------------------------------------------------------------------
@@ -5801,13 +5747,15 @@ fill_attribute_tables
 
         ldx #64
 -       sty ppu_data
-        dexbne -
+        dex
+        bne -
 
         set_ppu_addr attr_table2
 
         ldx #64
 -       sty ppu_data
-        dexbne -
+        dex
+        bne -
 
         reset_ppu_addr
         rts
@@ -5823,27 +5771,31 @@ fill_attribute_tables_top
 
         ldx #32
 -       sty ppu_data
-        dexbne -
+        dex
+        bne -
 
         set_ppu_addr attr_table2
 
         ldx #32
 -       sty ppu_data
-        dexbne -
+        dex
+        bne -
 
         reset_ppu_addr
         rts
 
 ; --- Unaccessed block ($f7d0) --------------------------------------------------------------------
 
-        set_ppu_addr attr_table0 + 4*8
+        set_ppu_addr attr_table0+4*8
         ldx #32
 -       sty ppu_data
-        dexbne -
-        set_ppu_addr attr_table2 + 4*8
+        dex
+        bne -
+        set_ppu_addr attr_table2+4*8
         ldx #32
 -       sty ppu_data
-        dexbne -
+        dex
+        bne -
         reset_ppu_addr
         rts
 
@@ -5860,14 +5812,15 @@ fill_name_tables
         copy #$3c, zp6
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide sprites and background
+        sta ppu_ctrl        ; disable NMI
+        sta ppu_mask        ; hide sprites and BG
 
-        ; fill the Name Tables with the specified byte
+        ; fill Name Tables with specified byte
 
         set_ppu_addr name_table0
 
-        ldxy #0, #0
+        ldx #0
+        ldy #0
 -       lda vram_fill_byte
         sta ppu_data
         sta ppu_data
@@ -5878,7 +5831,8 @@ fill_name_tables
 
         set_ppu_addr name_table2
 
-        ldxy #0, #0
+        ldx #0
+        ldy #0
 -       lda vram_fill_byte
         sta ppu_data
         sta ppu_data
@@ -5906,7 +5860,8 @@ endm
 macro fill_nt _addr
         ; write vram_fill_byte to PPU 960 times, starting from _addr
         set_ppu_addr _addr
-        ldxy #0, #0
+        ldx #0
+        ldy #0
 -       copy vram_fill_byte, ppu_data
         inx
         bne -
@@ -5933,15 +5888,13 @@ fill_nt_and_clear_at
         copy #$3c, zp6
 
         lda #%00000000
-        sta ppu_ctrl  ; disable NMI
-        sta ppu_mask  ; hide background and sprites
+        sta ppu_ctrl          ; disable NMI
+        sta ppu_mask          ; hide BG and sprites
 
-        ; clear attribute tables 0 and 1
-        clear_at attr_table0
+        clear_at attr_table0  ; clear attribute tables
         clear_at attr_table1
 
-        ; fill name tables 0, 1, 2 with vram_fill_byte
-        fill_nt name_table0
+        fill_nt name_table0   ; fill name tables with vram_fill_byte
         fill_nt name_table1
         fill_nt name_table2
 
@@ -5955,7 +5908,7 @@ fill_nt_and_clear_at
         sta ppu_scroll
 
         copy #%00000000, ppu_ctrl  ; disable NMI
-        copy #%00011110, ppu_mask  ; show background and sprites
+        copy #%00011110, ppu_mask  ; show BG and sprites
         rts
 
 ; -------------------------------------------------------------------------------------------------
@@ -5964,46 +5917,45 @@ nmi     ; Non-maskable interrupt routine. Run code for the part of the demo we'r
         ; Called by: NMI vector
         ; Calls: (see jump table)
 
-        lda ppu_status  ; clear VBlank flag
+        lda ppu_status      ; clear VBlank flag
 
         lda demo_part
-        cmpbeq #id_wecome,    nmi_jump_table +  1*3
-        cmpbeq #id_horzbars1, nmi_jump_table +  2*3
-        cmpbeq #id_title,     nmi_jump_table +  3*3
-        cmpbeq #id_credits,   nmi_jump_table +  4*3
-        cmpbeq #id_woman,     nmi_jump_table +  5*3
-        cmpbeq #id_friday,    nmi_jump_table +  6*3
-        cmpbeq #id_bowser,    nmi_jump_table +  7*3
-        cmpbeq #id_cola,      nmi_jump_table +  8*3
-        cmpbeq #id_horzbars2, nmi_jump_table +  9*3
-        cmpbeq #id_checkered, nmi_jump_table + 10*3
-        cmpbeq #id_gradients, nmi_jump_table + 11*3
-        cmpbeq #id_greets,    nmi_jump_table + 12*3
-        cmpbeq #id_gameover,  nmi_jump_table + 13*3
+        cmp_beq #id_wecome,    nmi_jump_table+ 1*3
+        cmp_beq #id_horzbars1, nmi_jump_table+ 2*3
+        cmp_beq #id_title,     nmi_jump_table+ 3*3
+        cmp_beq #id_credits,   nmi_jump_table+ 4*3
+        cmp_beq #id_woman,     nmi_jump_table+ 5*3
+        cmp_beq #id_friday,    nmi_jump_table+ 6*3
+        cmp_beq #id_bowser,    nmi_jump_table+ 7*3
+        cmp_beq #id_cola,      nmi_jump_table+ 8*3
+        cmp_beq #id_horzbars2, nmi_jump_table+ 9*3
+        cmp_beq #id_checkered, nmi_jump_table+10*3
+        cmp_beq #id_gradients, nmi_jump_table+11*3
+        cmp_beq #id_greets,    nmi_jump_table+12*3
+        cmp_beq #id_gameover,  nmi_jump_table+13*3
 
 nmi_jump_table
-        jmp nmi_exit       ;  0 (unaccessed, $f980)
-        jmp nmi_wecome     ;  1
-        jmp nmi_horzbars1  ;  2
-        jmp nmi_title      ;  3
-        jmp nmi_credits    ;  4
-        jmp nmi_woman      ;  5
-        jmp nmi_friday     ;  6
-        jmp nmi_bowser     ;  7
-        jmp nmi_cola       ;  8
-        jmp nmi_horzbars2  ;  9
-        jmp nmi_checkered  ; 10
-        jmp nmi_gradients  ; 11
-        jmp nmi_greets     ; 12
-        jmp nmi_gameover   ; 13
+        jmp nmi_exit        ;  0 (unaccessed, $f980)
+        jmp nmi_wecome      ;  1
+        jmp nmi_horzbars1   ;  2
+        jmp nmi_title       ;  3
+        jmp nmi_credits     ;  4
+        jmp nmi_woman       ;  5
+        jmp nmi_friday      ;  6
+        jmp nmi_bowser      ;  7
+        jmp nmi_cola        ;  8
+        jmp nmi_horzbars2   ;  9
+        jmp nmi_checkered   ; 10
+        jmp nmi_gradients   ; 11
+        jmp nmi_greets      ; 12
+        jmp nmi_gameover    ; 13
 
 nmi_wecome
         ; Demo part: "GREETINGS! WE COME FROM..."
         ; Called by: nmi
         ; Calls: anim_wecome, jump_snd_eng
 
-        ; set flag on first run
-        lda part_init_done
+        lda part_init_done  ; set flag on first run
         cmp #0
         beq +
         jmp ++
@@ -6022,15 +5974,14 @@ nmi_wecome
 
 +       inc wecome_timer_hi
         copy #0, wecome_timer_lo
-++      jmp nmi_exit  ; RTI
+++      jmp nmi_exit        ; RTI
 
 nmi_horzbars1
         ; Demo part: non-full-screen horizontal color bars (after the red and purple gradients).
         ; Called by: nmi
         ; Calls: init_horzbars1, anim_horzbars1, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6038,26 +5989,25 @@ nmi_horzbars1
 
 ++      jsr anim_horzbars1
         jsr jump_snd_eng
-        inclda horzbars1_timer_lo
+        inc_lda horzbars1_timer_lo
         cmp #255
         beq +
         jmp ++
-+       inclda horzbars1_timer_hi
++       inc_lda horzbars1_timer_hi
         cmp #3
         beq +
         jmp ++
 
 +       copy #id_woman, demo_part  ; next part
         copy #0, part_init_done
-++      jmp nmi_exit  ; RTI
+++      jmp nmi_exit        ; RTI
 
 nmi_title
         ; Demo part: title screen ("wAMMA - QUANTUM DISCO BROTHERS").
         ; Called by: nmi
         ; Calls: init_title, anim_title, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6065,26 +6015,25 @@ nmi_title
 
 ++      jsr anim_title
         jsr jump_snd_eng
-        inclda title_timer_lo
+        inc_lda title_timer_lo
         cmp #255
         beq +
         jmp ++
-+       inclda title_timer_hi
++       inc_lda title_timer_hi
         cmp #3
         beq +
         jmp ++
 
 +       copy #id_gradients, demo_part  ; next part
         copy #0, part_init_done
-++      jmp nmi_exit  ; RTI
+++      jmp nmi_exit        ; RTI
 
 nmi_credits
         ; Demo part: credits.
         ; Called by: nmi
         ; Calls: init_credits, anim_credits, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6092,15 +6041,14 @@ nmi_credits
 
 ++      jsr anim_credits
         jsr jump_snd_eng
-        jmp nmi_exit  ; RTI
+        jmp nmi_exit        ; RTI
 
 nmi_woman
         ; Demo part: the woman.
         ; Called by: nmi
         ; Calls: init_woman, anim_woman, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6108,26 +6056,25 @@ nmi_woman
 
 ++      jsr anim_woman
         jsr jump_snd_eng
-        inclda woman_timer_lo
+        inc_lda woman_timer_lo
         cmp #255
         beq +
         jmp ++
-+       inclda woman_timer_hi
++       inc_lda woman_timer_hi
         cmp #4
         beq +
         jmp ++
 
 +       copy #id_friday, demo_part  ; next part
         copy #0, part_init_done
-++      jmp nmi_exit  ; RTI
+++      jmp nmi_exit        ; RTI
 
 nmi_friday
         ; Demo part: "IT IS FRIDAY..."
         ; Called by: nmi
         ; Calls: init_friday, anim_friday, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6135,15 +6082,14 @@ nmi_friday
 
 ++      jsr anim_friday
         jsr jump_snd_eng
-        jmp nmi_exit  ; RTI
+        jmp nmi_exit        ; RTI
 
 nmi_bowser
         ; Demo part: Bowser's spaceship.
         ; Called by: nmi
         ; Calls: init_bowser, anim_bowser, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6151,26 +6097,25 @@ nmi_bowser
 
 ++      jsr anim_bowser
         jsr jump_snd_eng
-        inclda bowser_timer_lo
+        inc_lda bowser_timer_lo
         cmp #255
         beq +
         jmp ++
-+       inclda bowser_timer_hi
++       inc_lda bowser_timer_hi
         cmp #3
         beq +
         jmp ++
 
 +       copy #id_credits, demo_part  ; next part
         copy #0, part_init_done
-++      jmp nmi_exit  ; RTI
+++      jmp nmi_exit        ; RTI
 
 nmi_cola
         ; Demo part: Coca Cola cans.
         ; Called by: nmi
         ; Calls: init_cola, anim_cola, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6178,7 +6123,7 @@ nmi_cola
 
 ++      jsr anim_cola
         jsr jump_snd_eng
-        inclda cola_timer_lo
+        inc_lda cola_timer_lo
         cmp #255
         beq +
         jmp ++
@@ -6192,41 +6137,39 @@ nmi_cola
 
         copy #id_bowser, demo_part  ; next part
         copy #0, part_init_done
-++      jmp nmi_exit  ; RTI
+++      jmp nmi_exit        ; RTI
 
 nmi_horzbars2
         ; Demo part: full-screen horizontal color bars (after "game over - continue?").
         ; Called by: nmi
         ; Calls: init_horzbars2, anim_horzbars2
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
 +       jsr init_horzbars2
 
 ++      jsr anim_horzbars2
-        inclda horzbars2_timer_lo
+        inc_lda horzbars2_timer_lo
         cmp #255
         beq +
         jmp ++
-+       inclda horzbars2_timer_hi
++       inc_lda horzbars2_timer_hi
         cmp #14
         beq +
         jmp ++
 
 +       copy #id_wecome, demo_part  ; back to first part
         copy #0, part_init_done
-++      jmp nmi_exit  ; RTI
+++      jmp nmi_exit        ; RTI
 
 nmi_checkered
         ; Demo part: checkered wavy animation.
         ; Called by: nmi
         ; Calls: init_checkered, anim_checkered, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6234,7 +6177,7 @@ nmi_checkered
 
 ++      jsr anim_checkered
         jsr jump_snd_eng
-        inclda checkered_timer_lo
+        inc_lda checkered_timer_lo
         cmp #255
         beq +
         jmp ++
@@ -6248,15 +6191,14 @@ nmi_checkered
 
         copy #id_greets, demo_part  ; next part
         copy #0, part_init_done
-+       jmp nmi_exit  ; RTI
++       jmp nmi_exit        ; RTI
 
 nmi_gradients
         ; Demo part: red and purple gradient.
         ; Called by: nmi
         ; Calls: init_gradients, anim_gradients, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6264,26 +6206,25 @@ nmi_gradients
 
 ++      jsr anim_gradients
         jsr jump_snd_eng
-        inclda gradients_timer_lo
+        inc_lda gradients_timer_lo
         cmp #255
         beq +
         jmp ++
-+       inclda gradients_timer_hi
++       inc_lda gradients_timer_hi
         cmp #3
         beq +
         jmp ++
 
 +       copy #id_horzbars1, demo_part  ; next part
         copy #0, part_init_done
-++      jmp nmi_exit  ; RTI
+++      jmp nmi_exit        ; RTI
 
 nmi_greets
         ; Demo part: "GREETS TO ALL NINTENDAWGS".
         ; Called by: nmi
         ; Calls: init_greets, anim_greets, jump_snd_eng
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
@@ -6291,7 +6232,7 @@ nmi_greets
 
 ++      jsr anim_greets
         jsr jump_snd_eng
-        inclda greets_timer_lo
+        inc_lda greets_timer_lo
         cmp #255
         beq +
         jmp ++
@@ -6305,22 +6246,21 @@ nmi_greets
 
         copy #id_gameover, demo_part  ; next part
         copy #0, part_init_done
-+       jmp nmi_exit  ; RTI
++       jmp nmi_exit        ; RTI
 
 nmi_gameover
         ; Demo part: "game over - continue?".
         ; Called by: nmi
         ; Calls: init_gameover, anim_gameover
 
-        ; initialize on first run
-        lda part_init_done
+        lda part_init_done  ; initialize on first run
         cmp #0
         beq +
         jmp ++
 +       jsr init_gameover
 
 ++      jsr anim_gameover
-        inclda gameover_timer_lo
+        inc_lda gameover_timer_lo
         cmp #255
         beq +
         jmp ++
@@ -6334,14 +6274,14 @@ nmi_gameover
 
         copy #id_horzbars2, demo_part  ; next part
         copy #0, part_init_done
-+       jmp nmi_exit  ; RTI
++       jmp nmi_exit                   ; RTI
 
 nmi_exit
         rti
 
 ; --- IRQ routine (unaccessed) --------------------------------------------------------------------
 
-irq     rti  ; $fc26
+irq     rti                 ; $fc26
 
 ; --- Interrupt vectors ---------------------------------------------------------------------------
 

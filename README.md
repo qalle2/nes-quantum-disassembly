@@ -1,4 +1,5 @@
 # nes-quantum-disassembly
+*Note: This project has been moved to [Codeberg](https://codeberg.org/qalle/nes-quantum-disassembly). This version will no longer be updated.*
 
 An unofficial disassembly of the Nintendo Entertainment System (NES) demo *Quantum Disco Brothers* by wAMMA. Assembles with [ASM6](https://github.com/qalle2/asm6/).
 
